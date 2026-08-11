@@ -1,0 +1,46 @@
+# Trusted build of EQBuddy v1.50.1 — audited source, public build log.
+# Builds the SAME commit that was security-audited (pinned by full SHA below),
+# runs the project's own test suite, then publishes the full Windows (WPF) app
+# exactly the way the official release script does. The SHA-256 of the exe is
+# printed in the public log so the downloaded artifact can be verified.
+name: Trusted Windows build (audited v1.50.1)
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The exact commit audited on 2026-08-10 (tag v1.50.1). Pinning the
+          # full SHA means even a later upstream change can't slip in.
+          ref: b243d2fdf0c262036ff4df4025fadea85396bbf9
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Run the project's test suite first
+        run: dotnet test tests/EQBuddy.Tests/EQBuddy.Tests.csproj -c Release --logger "console;verbosity=normal"
+
+      - name: Publish Windows app (same flags as the official release script)
+        run: >
+          dotnet publish src/EQBuddy/EQBuddy.csproj -c Release -r win-x64 --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -o dist/publish
+
+      - name: Bundle license and docs (MIT requires the notice to travel along)
+        run: Copy-Item LICENSE, NOTICE, README.md dist/publish/
+
+      - name: Print SHA-256 into the public log
+        run: Get-FileHash dist/publish/EQBuddy.exe -Algorithm SHA256 | Format-List
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EQBuddy-trusted-windows
+          path: dist/publish/
+
