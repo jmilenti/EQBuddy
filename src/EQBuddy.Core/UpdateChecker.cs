@@ -24,8 +24,8 @@ public static class UpdateChecker
     private const string FolderName = "EQBuddyDownload";
     private const string SetupName = "EQBuddySetup.exe";
     public const string LinuxTarballName = "EQBuddy-linux-x64.tar.gz";
-    private const string GitHubLatestApi = "https://api.github.com/repos/DranakCorps-bot/EQBuddy/releases/latest";
-    public const string GitHubLatestPage = "https://github.com/DranakCorps-bot/EQBuddy/releases/latest";
+    private const string GitHubLatestApi = "https://api.github.com/repos/jmilenti/EQBuddy/releases/latest";
+    public const string GitHubLatestPage = "https://github.com/jmilenti/EQBuddy/releases/latest";
 
     /// <summary>Probing the releases API: a short timeout, because this runs unprompted at
     /// startup and every 6 h, and a slow answer should just mean "no update this time".</summary>
