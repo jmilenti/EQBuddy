@@ -1,0 +1,60 @@
+# One-click release for the trusted fork. Builds from the current main, runs the
+# test suite, compiles the installer, publishes a GitHub release whose tag matches
+# Directory.Build.props — which is what installed apps poll for updates. The
+# SHA-256 sidecar is what lets the in-app updater verify the download; without it
+# the updater refuses (by design).
+name: Trusted release
+
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Read version from Directory.Build.props
+        id: ver
+        run: |
+          $props = Get-Content Directory.Build.props -Raw
+          if ($props -notmatch '<Version>([\d.]+)</Version>') { throw 'No <Version> in Directory.Build.props' }
+          "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
+
+      - name: Run the test suite
+        run: dotnet test tests/EQBuddy.Tests/EQBuddy.Tests.csproj -c Release --logger "console;verbosity=normal"
+
+      - name: Publish Windows app
+        run: >
+          dotnet publish src/EQBuddy/EQBuddy.csproj -c Release -r win-x64 --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -o dist/publish
+
+      - name: Compile installer (Inno Setup)
+        run: |
+          $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { choco install innosetup -y --no-progress; $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" installer\EQBuddy.iss
+          if ($LASTEXITCODE -ne 0) { throw 'installer compile failed' }
+
+      - name: Hash + portable zip
+        run: |
+          (Get-FileHash dist\EQBuddySetup.exe -Algorithm SHA256).Hash | Set-Content dist\EQBuddySetup.exe.sha256 -NoNewline
+          Copy-Item LICENSE, NOTICE, README.md dist\publish\
+          Compress-Archive -Path dist\publish\EQBuddy.exe, README.md, LICENSE, NOTICE -DestinationPath dist\EQBuddy-portable.zip -Force
+          Get-FileHash dist\EQBuddySetup.exe, dist\publish\EQBuddy.exe -Algorithm SHA256 | Format-List
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "v${{ steps.ver.outputs.version }}"
+          dist\EQBuddySetup.exe dist\EQBuddySetup.exe.sha256 dist\EQBuddy-portable.zip
+          --title "EQBuddy v${{ steps.ver.outputs.version }} (trusted fork)"
+          --notes "Built by GitHub Actions from this repository's source. Verify EQBuddySetup.exe against EQBuddySetup.exe.sha256. In-app updates point at this repo's releases."
