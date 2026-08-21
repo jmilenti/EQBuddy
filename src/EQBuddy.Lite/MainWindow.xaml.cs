@@ -122,8 +122,8 @@ public partial class MainWindow : Window
         var motes = Motes.Summarize(s.Loot, s.Elapsed);
         MotesText.Text = motes.Total == 0
             ? "✨ no motes yet"
-            : $"✨ {motes.Total} motes ({motes.PerHour:0.#}/h)  " +
-              string.Join(", ", motes.Tiers.Select(t => $"{TierShort(t.Item)}×{t.Count}"));
+            : $"✨ {motes.Total} motes ({motes.PerHour:0.#}/h)" +
+              string.Concat(motes.Tiers.Select(t => $"\n      {TierShort(t.Item)} ×{t.Count}"));
 
         var rows = _group.Snapshot(now, s.PetName)
             .Take(8)
