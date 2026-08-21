@@ -1,0 +1,3 @@
+# wrangler's local state: account cache, build output, dev logs — never repo material
+.wrangler/
+node_modules/
