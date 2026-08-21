@@ -19,6 +19,7 @@ public partial class MainWindow : Window
     private readonly LogWatcher _watcher;
     private readonly GroupDpsTracker _group = new();
     private readonly GroupSync _sync = new();
+    private readonly SpawnTimers _spawnTimers;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     private DateTime _lastCharScan = DateTime.MinValue;
@@ -50,7 +51,14 @@ public partial class MainWindow : Window
             Top = 60;
         }
 
-        _watcher = new LogWatcher(_stats) { Tap = _group.Apply };
+        // Same spawn-timer wiring as the full app: catalog + user overrides + a persistence
+        // file for countdowns longer than a log's lifetime. LogWatcher.Select feeds it the
+        // server name, and the parser feeds it kills/zones/sightings.
+        _spawnTimers = new SpawnTimers(SpawnCatalog.LoadEmbedded(),
+            SpawnOverrides.Load(AppPaths.File("spawn-overrides.json")),
+            AppPaths.File("spawn-timers.json"));
+
+        _watcher = new LogWatcher(_stats) { Tap = _group.Apply, Spawns = _spawnTimers };
         FollowCharacter(force: true);
 
         // Log hygiene at startup, same promises as the full app: force Log=1 and wipe
@@ -116,6 +124,19 @@ public partial class MainWindow : Window
             ? $"⚔ {s.SessionDps:0} dps  (now {s.CurrentDps:0})"
             : $"⚔ {s.SessionDps:0} dps";
 
+        // DPS breakdown: your top damage sources (melee, spells, abilities) with their
+        // share of session damage — the Lite take on the full app's Damage breakout.
+        var totalDamage = s.DamageBySource.Sum(d => d.Total);
+        if (totalDamage > 0)
+        {
+            BreakdownList.ItemsSource = s.DamageBySource
+                .Take(5)
+                .Select(d => $"{Pad(d.Name, 13)} {FmtDamage(d.Total),6} {d.Total * 100 / totalDamage,3}%")
+                .ToList();
+            BreakdownList.Visibility = Visibility.Visible;
+        }
+        else BreakdownList.Visibility = Visibility.Collapsed;
+
         var petDamage = s.PetAbilities.Sum(p => p.Total);
         PetText.Text = s.PetName.Length > 0
             ? $"🐾 {s.PetName}: {petDamage / Math.Max(1, s.CombatSeconds):0.#} dps"
@@ -127,6 +148,19 @@ public partial class MainWindow : Window
             ? "✨ no motes yet"
             : $"✨ {motes.Total} motes ({motes.PerHour:0.#}/h)" +
               string.Concat(motes.Tiers.Select(t => $"\n      {TierShort(t.Item)} ×{t.Count}"));
+
+        // Spawn timers: soonest first (Core's Snapshot order), section hidden entirely
+        // when no camp is running — an empty list isn't worth panel height.
+        var timers = _spawnTimers.Snapshot(now);
+        if (timers.Count > 0)
+        {
+            SpawnList.ItemsSource = timers
+                .Take(6)
+                .Select(t => $"{Pad(t.Name, 13)} {FmtSpawn(t, now)}")
+                .ToList();
+            SpawnSection.Visibility = Visibility.Visible;
+        }
+        else SpawnSection.Visibility = Visibility.Collapsed;
 
         _sync.Publish(_stats.CharacterName ?? "", s.CurrentDps, s.SessionDps);
 
@@ -161,6 +195,30 @@ public partial class MainWindow : Window
 
     private static string Pad(string s, int width) =>
         s.Length >= width ? s[..width] : s.PadRight(width);
+
+    private static string FmtDamage(long total) => total switch
+    {
+        >= 1_000_000 => $"{total / 1_000_000.0:0.#}M",
+        >= 10_000 => $"{total / 1000.0:0}k",
+        >= 1_000 => $"{total / 1000.0:0.#}k",
+        _ => total.ToString(),
+    };
+
+    /// <summary>"DUE" / countdown / "killed N ago" for a spawn row, in the same
+    /// spirit as the full app's chips: mm:ss under an hour, h:mm above.</summary>
+    private static string FmtSpawn(SpawnTimerState t, DateTime now)
+    {
+        if (t.DueAt is not { } due)
+        {
+            var ago = now - t.KilledAt;
+            return ago.TotalHours >= 1 ? $"† {ago.TotalHours:0}h ago" : $"† {ago.TotalMinutes:0}m ago";
+        }
+        if (now >= due) return "DUE!";
+        var left = due - now;
+        return left.TotalHours >= 1
+            ? $"{(int)left.TotalHours}h{left.Minutes:00}m"
+            : $"{left.Minutes}:{left.Seconds:00}";
+    }
 
     /// <summary>"Mote of Greater Potential" → "Greater"; the tierless base mote → "Base".</summary>
     private static string TierShort(string item)
