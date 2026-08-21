@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private readonly SessionStats _stats = new();
     private readonly LogWatcher _watcher;
     private readonly GroupDpsTracker _group = new();
+    private readonly GroupSync _sync = new();
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     private DateTime _lastCharScan = DateTime.MinValue;
@@ -58,6 +59,7 @@ public partial class MainWindow : Window
 
         _timer.Tick += (_, _) => Tick();
         _timer.Start();
+        _sync.Start();
         CheckUpdates();
 
         Closing += (_, _) =>
@@ -66,6 +68,7 @@ public partial class MainWindow : Window
             _settings.WindowTop = Top;
             _settings.Save();
             _watcher.Dispose();
+            _sync.Dispose();
         };
     }
 
@@ -125,13 +128,35 @@ public partial class MainWindow : Window
             : $"✨ {motes.Total} motes ({motes.PerHour:0.#}/h)" +
               string.Concat(motes.Tiers.Select(t => $"\n      {TierShort(t.Item)} ×{t.Count}"));
 
-        var rows = _group.Snapshot(now, s.PetName)
-            .Take(8)
-            .Select(r => $"{Pad(r.Name, 12)} {r.WindowDps,5:0} dps")
-            .ToList();
-        GroupList.ItemsSource = rows.Count > 0
-            ? rows
-            : new List<string> { "(no group activity nearby)" };
+        _sync.Publish(_stats.CharacterName ?? "", s.CurrentDps, s.SessionDps);
+
+        List<string> rows;
+        if (_sync.Active)
+        {
+            GroupLabel.Text = _sync.LastError is { } err
+                ? $"GROUP · sync {_sync.GroupCode} · {err}"
+                : $"GROUP · synced · {_sync.GroupCode}";
+            var synced = _sync.Members;
+            var syncedNames = new HashSet<string>(synced.Select(m => m.Name),
+                StringComparer.OrdinalIgnoreCase);
+            rows = synced.Select(m => $"{Pad(m.Name, 12)} {m.Dps,5:0} dps").ToList();
+            // Players near you who aren't running the app still show, marked approximate.
+            rows.AddRange(_group.Snapshot(now, s.PetName)
+                .Where(r => !syncedNames.Contains(r.Name))
+                .Select(r => $"{Pad("~" + r.Name, 12)} {r.WindowDps,5:0} dps"));
+            rows = rows.Take(8).ToList();
+            if (rows.Count == 0) rows.Add("(waiting for group…)");
+        }
+        else
+        {
+            GroupLabel.Text = "GROUP · from your log, near you";
+            rows = _group.Snapshot(now, s.PetName)
+                .Take(8)
+                .Select(r => $"{Pad(r.Name, 12)} {r.WindowDps,5:0} dps")
+                .ToList();
+            if (rows.Count == 0) rows.Add("(no group activity nearby)");
+        }
+        GroupList.ItemsSource = rows;
     }
 
     private static string Pad(string s, int width) =>
@@ -214,4 +239,11 @@ public partial class MainWindow : Window
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 
     private void OnCheckUpdatesMenu(object sender, RoutedEventArgs e) => CheckUpdates();
+
+    private void OnGroupSyncMenu(object sender, RoutedEventArgs e)
+    {
+        var relay = _sync.RelayUrl.Length > 0 ? _sync.RelayUrl : GroupSync.DefaultRelay;
+        var dlg = new SyncDialog(_sync.GroupCode, relay) { Owner = this };
+        if (dlg.ShowDialog() == true) _sync.Configure(dlg.GroupCode, dlg.RelayUrl);
+    }
 }

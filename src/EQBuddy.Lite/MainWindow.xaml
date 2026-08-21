@@ -12,6 +12,7 @@
             <ContextMenu>
                 <MenuItem x:Name="VersionItem" IsEnabled="False"/>
                 <MenuItem Header="Check for updates" Click="OnCheckUpdatesMenu"/>
+                <MenuItem Header="Group sync…" Click="OnGroupSyncMenu"/>
                 <Separator/>
                 <MenuItem Header="Exit" Click="OnClose"/>
             </ContextMenu>
@@ -40,7 +41,7 @@
 
             <Rectangle Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
 
-            <TextBlock Text="GROUP · from your log, near you" FontSize="9.5"
+            <TextBlock x:Name="GroupLabel" Text="GROUP · from your log, near you" FontSize="9.5"
                        Foreground="#7B8794" Margin="0,0,0,3"/>
             <ItemsControl x:Name="GroupList">
                 <ItemsControl.ItemTemplate>
