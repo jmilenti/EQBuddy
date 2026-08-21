@@ -38,7 +38,6 @@ public partial class MainWindow : Window
         // Same UiScale the full app persists: the corner grip scales the whole panel
         // and SizeToContent re-fits the window around it.
         RootScale.ScaleX = RootScale.ScaleY = Math.Clamp(_settings.UiScale, MinScale, MaxScale);
-        BreakdownChevron.Text = _ui.ShowBreakdown ? "▾" : "▸";
 
         if (_settings.LogFolder is { } saved && !Directory.Exists(saved))
             _settings.LogFolder = null; // stale saved path (game moved) — re-detect
@@ -125,8 +124,13 @@ public partial class MainWindow : Window
 
         var s = _stats.Snapshot();
 
-        TitleText.Text = string.IsNullOrEmpty(_stats.CharacterName)
-            ? "EQdps" : _stats.CharacterName;
+        // Class combo, derived from the AA ledger: each owned AA names its class in the
+        // catalog, and the ledger persists per character — so the combo fills in as AAs
+        // are seen and sticks. Classes with no AAs observed yet stay unknown.
+        var combo = ClassCombo(s.AaAbilities);
+        TitleText.Text = string.IsNullOrEmpty(_stats.CharacterName) ? "EQdps"
+            : combo.Length > 0 ? $"{_stats.CharacterName} · {combo}"
+            : _stats.CharacterName;
         StatusDot.Fill = _watcher.LastGrowth is { } g && now - g < TimeSpan.FromSeconds(30)
             ? Brushes.LimeGreen : new SolidColorBrush(Color.FromRgb(0x66, 0x66, 0x66));
 
@@ -134,31 +138,66 @@ public partial class MainWindow : Window
             ? $"⚔ {s.SessionDps:0} dps  (now {s.CurrentDps:0})"
             : $"⚔ {s.SessionDps:0} dps";
 
-        // DPS breakdown: your top damage sources (melee, spells, abilities) with their
-        // share of session damage — the Lite take on the full app's Damage breakout.
-        // Collapsed by default; the ▸ next to the DPS line opens it.
+        // DPS breakdown behind its own clickable heading, collapsed by default — the
+        // summary line is always there, the detail is opt-in.
         var totalDamage = s.DamageBySource.Sum(d => d.Total);
-        if (_ui.ShowBreakdown && totalDamage > 0)
+        if (totalDamage > 0)
         {
-            BreakdownList.ItemsSource = s.DamageBySource
-                .Take(5)
-                .Select(d => $"{Pad(d.Name, 13)} {FmtDamage(d.Total),6} {d.Total * 100 / totalDamage,3}%")
-                .ToList();
-            BreakdownList.Visibility = Visibility.Visible;
+            DamageHeader.Text = $"{(_ui.ShowBreakdown ? "▾" : "▸")} DAMAGE · top sources";
+            DamageHeader.Visibility = Visibility.Visible;
+            if (_ui.ShowBreakdown)
+            {
+                BreakdownList.ItemsSource = s.DamageBySource
+                    .Take(5)
+                    .Select(d => $"{Pad(d.Name, 13)} {FmtDamage(d.Total),6} {d.Total * 100 / totalDamage,3}%")
+                    .ToList();
+                BreakdownList.Visibility = Visibility.Visible;
+            }
+            else BreakdownList.Visibility = Visibility.Collapsed;
         }
-        else BreakdownList.Visibility = Visibility.Collapsed;
+        else
+        {
+            DamageHeader.Visibility = Visibility.Collapsed;
+            BreakdownList.Visibility = Visibility.Collapsed;
+        }
 
+        // Charm provenance when Core proved it (blink/charmed/glaze landings), with how
+        // long the charm has held; the charm spell rides the tooltip. A pet without a
+        // seen charm landing shows plain — the log can't say which class summoned it.
+        var charmTag = "";
+        if (s.PetCharmed)
+        {
+            var dur = s.PetSince is { } since ? FmtDur(now - since) : "";
+            charmTag = dur.Length > 0 ? $" · charmed {dur}" : " · charmed";
+        }
         var petDamage = s.PetAbilities.Sum(p => p.Total);
         PetText.Text = s.PetName.Length > 0
-            ? $"🐾 {s.PetName}: {petDamage / Math.Max(1, s.CombatSeconds):0.#} dps"
+            ? $"🐾 {s.PetName}{charmTag}: {petDamage / Math.Max(1, s.CombatSeconds):0.#} dps"
             : petDamage > 0 ? $"🐾 pet: {petDamage / Math.Max(1, s.CombatSeconds):0.#} dps"
             : "🐾 no pet";
+        PetText.ToolTip = s.PetCharmSpell is { Length: > 0 } charmSpell
+            ? $"Charmed with {charmSpell}" : null;
 
+        // Motes as their own heading, tier list behind the same click-to-expand.
         var motes = Motes.Summarize(s.Loot, s.Elapsed);
-        MotesText.Text = motes.Total == 0
-            ? "✨ no motes yet"
-            : $"✨ {motes.Total} motes ({motes.PerHour:0.#}/h)" +
-              string.Concat(motes.Tiers.Select(t => $"\n      {TierShort(t.Item)} ×{t.Count}"));
+        if (motes.Total == 0)
+        {
+            MotesHeader.Text = "MOTES · none yet";
+            MotesList.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            MotesHeader.Text =
+                $"{(_ui.ShowMotes ? "▾" : "▸")} MOTES · {motes.Total} ({motes.PerHour:0.#}/h)";
+            if (_ui.ShowMotes)
+            {
+                MotesList.ItemsSource = motes.Tiers
+                    .Select(t => $"{Pad(TierShort(t.Item), 14)} ×{t.Count}")
+                    .ToList();
+                MotesList.Visibility = Visibility.Visible;
+            }
+            else MotesList.Visibility = Visibility.Collapsed;
+        }
 
         // Session loot (motes excluded — they have their own line above), collapsed to
         // a one-line heading by default.
@@ -274,6 +313,38 @@ public partial class MainWindow : Window
 
     private static string Pad(string s, int width) =>
         s.Length >= width ? s[..width] : s.PadRight(width);
+
+    private static string FmtDur(TimeSpan t) =>
+        t.TotalSeconds < 60 ? $"{t.TotalSeconds:0}s"
+        : t.TotalHours < 1 ? $"{t.TotalMinutes:0}m"
+        : $"{(int)t.TotalHours}h{t.Minutes:00}m";
+
+    /// <summary>EQ's short class codes in the conventional archetype order.</summary>
+    private static readonly string[] ClassOrder =
+        ["war", "pal", "shd", "rng", "mnk", "rog", "brd", "bst", "ber",
+         "clr", "dru", "shm", "enc", "mag", "nec", "wiz"];
+
+    private static readonly Dictionary<string, string> ClassShort = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Warrior"] = "war", ["Paladin"] = "pal", ["Shadow Knight"] = "shd",
+        ["Shadowknight"] = "shd", ["Ranger"] = "rng", ["Monk"] = "mnk", ["Rogue"] = "rog",
+        ["Bard"] = "brd", ["Beastlord"] = "bst", ["Berserker"] = "ber", ["Cleric"] = "clr",
+        ["Druid"] = "dru", ["Shaman"] = "shm", ["Enchanter"] = "enc", ["Magician"] = "mag",
+        ["Necromancer"] = "nec", ["Wizard"] = "wiz",
+    };
+
+    /// <summary>"mnk/shm/enc" from the classes of the AAs this character owns.</summary>
+    private static string ClassCombo(IEnumerable<AaAbilityInfo> ledger)
+    {
+        var found = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var a in ledger)
+            if (AaCatalog.Find(a.Name)?.Class is { Length: > 0 } cls)
+                found.Add(ClassShort.TryGetValue(cls, out var code)
+                    ? code : cls[..Math.Min(3, cls.Length)].ToLowerInvariant());
+        return string.Join("/",
+            ClassOrder.Where(found.Contains)
+                .Concat(found.Where(f => !ClassOrder.Contains(f)).OrderBy(x => x, StringComparer.Ordinal)));
+    }
 
     private static string FmtDamage(long total) => total switch
     {
@@ -421,15 +492,21 @@ public partial class MainWindow : Window
     {
         e.Handled = true;
         _ui.ShowBreakdown = !_ui.ShowBreakdown;
-        BreakdownChevron.Text = _ui.ShowBreakdown ? "▾" : "▸";
-        if (!_ui.ShowBreakdown) BreakdownList.Visibility = Visibility.Collapsed;
+        Tick(); // instant feedback rather than waiting up to a second
     }
 
     private void OnLootToggle(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
         _ui.ShowLoot = !_ui.ShowLoot;
-        if (!_ui.ShowLoot) LootList.Visibility = Visibility.Collapsed;
+        Tick();
+    }
+
+    private void OnMotesToggle(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        _ui.ShowMotes = !_ui.ShowMotes;
+        Tick();
     }
 
     private void OnGroupRowClick(object sender, MouseButtonEventArgs e)

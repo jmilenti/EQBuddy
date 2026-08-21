@@ -15,6 +15,9 @@ public sealed class LiteUiSettings
     /// <summary>Session loot list expanded under its heading. Same opt-in default.</summary>
     public bool ShowLoot { get; set; }
 
+    /// <summary>Mote tier list expanded under the MOTES heading. Same opt-in default.</summary>
+    public bool ShowMotes { get; set; }
+
     private static readonly string SettingsPath = AppPaths.File("lite-ui.json");
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
 

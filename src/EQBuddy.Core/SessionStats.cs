@@ -251,6 +251,9 @@ public sealed class SessionStats
     private DateTime? _lastOwnAction;
     private string? _petName;        // normalized (article stripped, capitalized)
     private bool _petConfirmed;      // false = blink-only (charm suspected, no "Master" tell yet)
+    private bool _petCharmed;        // the pet arrived via a charm landing (blink/charmed/glaze)
+    private DateTime? _petSince;     // when this pet was first claimed — charm duration reads from here
+    private string? _petCharmSpell;  // the charm spell, when a known charm cast preceded the landing
 
     // ---- spell tracking ----
     private readonly SpellCatalog _spells = new();
@@ -458,7 +461,8 @@ public sealed class SessionStats
                         if (chCategory == SpellCategory.Charm)
                         {
                             _pendingCast = null;
-                            ConfirmPet(LogParser.Normalize(ch.Name));
+                            ConfirmPet(LogParser.Normalize(ch.Name), ch.Time,
+                                charmed: true, charmSpell: chCast.Spell);
                         }
                         // Unknown cast + no pet of our own: record the cast as a charm
                         // candidate — NO claim, no damage credit (a bystander's charm
@@ -483,7 +487,8 @@ public sealed class SessionStats
                         && _spells.Classify(glazeCast.Spell) == SpellCategory.Charm)
                     {
                         _pendingCast = null;
-                        ConfirmPet(glazed.Target);
+                        ConfirmPet(glazed.Target, glazed.Time,
+                            charmed: true, charmSpell: glazeCast.Spell);
                     }
                     break;
                 case PetClaimEvent pc:
@@ -508,7 +513,7 @@ public sealed class SessionStats
                         _spells.Learn(cand.Spell, SpellCategory.Charm);
                         _charmCandidate = null;
                     }
-                    ConfirmPet(claimed);
+                    ConfirmPet(claimed, pc.Time);
                     // Only the attack order proves a fight; the leader response would
                     // otherwise open a combat span while camped.
                     if (pc.Fighting) TrackCombat(pc.Time);
@@ -522,7 +527,7 @@ public sealed class SessionStats
                         var category = _spells.Classify(cast.Spell);
                         if (category == SpellCategory.Charm)
                         {
-                            ConfirmPet(blinked);
+                            ConfirmPet(blinked, pb.Time, charmed: true, charmSpell: cast.Spell);
                             _pendingCast = null;
                             break;
                         }
@@ -537,6 +542,13 @@ public sealed class SessionStats
                         // not a charm — never even provisional.
                         break;
                     }
+                    // A blink IS the charm tell, so even the provisional claim is a charm.
+                    if (!string.Equals(_petName, blinked, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _petSince = pb.Time;
+                        _petCharmSpell = null;
+                    }
+                    _petCharmed = true;
                     _petName = blinked;
                     _petConfirmed = false;
                     break;
@@ -561,8 +573,7 @@ public sealed class SessionStats
                         && IsPet(wo.Target) && _spells.Classify(wo.Spell) == SpellCategory.Charm:
                     // Charm broke on our pet. Drop the claim now instead of waiting for the
                     // creature to turn around and hit us.
-                    _petName = null;
-                    _petConfirmed = false;
+                    DropPet();
                     break;
                 case SpellWornOffEvent { Pet: false, Target.Length: 0 } woNoTarget
                         when _petName is not null
@@ -570,8 +581,7 @@ public sealed class SessionStats
                     // Befriend Animal's break line names NO target — "Your charm spell
                     // has worn off." (eqlwiki; unique among the animal charms). Only one
                     // charm can be active, so a targetless charm fade is ours.
-                    _petName = null;
-                    _petConfirmed = false;
+                    DropPet();
                     break;
                 case ThirdMeleeEvent tm when IsPet(tm.Attacker):
                     AddPetDamage(tm.Time, tm.Amount, DamageKind.Melee, tm.Target, tm.Skill, tm.Critical);
@@ -702,7 +712,7 @@ public sealed class SessionStats
                     break;
                 case DamageTakenEvent dt:
                     // A "pet" attacking us means the charm broke — stop crediting it.
-                    if (IsPet(dt.Attacker)) _petName = null;
+                    if (IsPet(dt.Attacker)) DropPet();
                     _damageTaken += dt.Amount;
                     if (dt.Melee) { _meleeHitsTaken++; _runeBlockStreak = 0; }
                     TouchFight(dt.Attacker, dt.Time, dmgIn: dt.Amount);
@@ -1066,9 +1076,32 @@ public sealed class SessionStats
             string.Equals(normalized, _petName, StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>A "Master" tell proves the pet is ours — upgrade any provisional damage.</summary>
-    private void ConfirmPet(string name)
+    /// <summary>Every path that un-claims the pet clears its provenance with it.</summary>
+    private void DropPet()
     {
+        _petName = null;
+        _petConfirmed = false;
+        _petCharmed = false;
+        _petSince = null;
+        _petCharmSpell = null;
+    }
+
+    /// <summary>A "Master" tell proves the pet is ours — upgrade any provisional damage.
+    /// <paramref name="charmed"/> marks the charm landings; a claim without it (leader
+    /// response, attack order) keeps whatever provenance an earlier landing recorded.</summary>
+    private void ConfirmPet(string name, DateTime time, bool charmed = false, string? charmSpell = null)
+    {
+        if (!string.Equals(_petName, name, StringComparison.OrdinalIgnoreCase))
+        {
+            _petSince = time;
+            _petCharmed = charmed;
+            _petCharmSpell = charmSpell;
+        }
+        else if (charmed)
+        {
+            _petCharmed = true;
+            _petCharmSpell ??= charmSpell;
+        }
         _petName = name;
         if (_petConfirmed) return;
         _petConfirmed = true;
@@ -1387,7 +1420,7 @@ public sealed class SessionStats
         _fizzles = 0; _resists = 0;
         _closedCombatSeconds = 0; _closedCombatDamage = 0;
         _combatStart = null; _combatLast = null; _combatDamage = 0;
-        _lastOwnAction = null; _petName = null; _petConfirmed = false;
+        _lastOwnAction = null; DropPet();
         _pendingCast = null; _charmCandidate = null;
         _castsStarted = 0; _castsInterrupted = 0;
         _dotDamage = 0; _directSpellDamage = 0;
@@ -1612,6 +1645,9 @@ public sealed class SessionStats
                     .Select(kv => new SourceDamage(kv.Key, kv.Value.Count, kv.Value.Total,
                         kv.Value.Crits, kv.Value.ActiveSeconds)).ToList(),
                 PetName = _petName ?? "",
+                PetCharmed = _petName is not null && _petCharmed,
+                PetSince = _petName is not null ? _petSince : null,
+                PetCharmSpell = _petName is not null ? _petCharmSpell : null,
                 SpecialHits = _specialHits.OrderByDescending(kv => kv.Value)
                     .Select(kv => new NameCount(kv.Key, kv.Value)).ToList(),
                 SessionDps = sessionDps,
@@ -1805,6 +1841,14 @@ public sealed class StatsSnapshot
     /// <summary>The current pet's name, or "" when none is claimed — window titles want the
     /// name without fishing it back out of a "Pet (Name)" row label.</summary>
     public string PetName { get; init; } = "";
+    /// <summary>The pet arrived via a charm landing (definitive: blink/charmed/glaze
+    /// after our own charm cast, or the blink tell itself). False = a regular pet, or
+    /// a charm we never saw land.</summary>
+    public bool PetCharmed { get; init; }
+    /// <summary>When this pet was first claimed — the charm duration reads from here.</summary>
+    public DateTime? PetSince { get; init; }
+    /// <summary>The charm spell, when a known charm cast preceded the landing.</summary>
+    public string? PetCharmSpell { get; init; }
     /// <summary>The creatures being fought right now (every open fight — the log can't
     /// say which is targeted), or the one just killed / last considered, briefly. Feeds
     /// the target-drops surfaces. Empty between pulls.</summary>
