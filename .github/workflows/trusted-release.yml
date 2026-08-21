@@ -32,7 +32,7 @@ jobs:
 
       - name: Publish Windows app
         run: >
-          dotnet publish src/EQBuddy/EQBuddy.csproj -c Release -r win-x64 --self-contained
+          dotnet publish src/EQBuddy.Lite/EQBuddy.Lite.csproj -c Release -r win-x64 --self-contained
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
           -o dist/publish
 
