@@ -129,13 +129,21 @@ public sealed class GroupSync : IDisposable
         public double Sdps { get; set; }
     }
 
+    /// <summary>The default relay URL before the EQdps rename. A settings file that
+    /// saved it meant "the default", not a deliberate choice — follow the default.</summary>
+    private const string LegacyRelay = "https://eqbuddy-relay.milentis-jason.workers.dev";
+
     private static SyncSettings LoadSettings()
     {
         try
         {
             if (File.Exists(SettingsPath) &&
                 JsonSerializer.Deserialize<SyncSettings>(File.ReadAllText(SettingsPath), JsonOpts) is { } s)
+            {
+                if (string.Equals(s.RelayUrl, LegacyRelay, StringComparison.OrdinalIgnoreCase))
+                    s.RelayUrl = DefaultRelay;
                 return s;
+            }
         }
         catch (Exception ex)
         {
