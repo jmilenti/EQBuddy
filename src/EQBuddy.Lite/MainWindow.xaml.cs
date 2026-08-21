@@ -33,6 +33,10 @@ public partial class MainWindow : Window
         InitializeComponent();
         VersionItem.Header = $"EQdps v{UpdateChecker.CurrentVersion}";
 
+        // Same UiScale the full app persists: the corner grip scales the whole panel
+        // and SizeToContent re-fits the window around it.
+        RootScale.ScaleX = RootScale.ScaleY = Math.Clamp(_settings.UiScale, MinScale, MaxScale);
+
         if (_settings.LogFolder is { } saved && !Directory.Exists(saved))
             _settings.LogFolder = null; // stale saved path (game moved) — re-detect
         _settings.LogFolder ??= LogWatcher.FindDefaultLogFolder();
@@ -74,6 +78,7 @@ public partial class MainWindow : Window
         {
             _settings.WindowLeft = Left;
             _settings.WindowTop = Top;
+            _settings.UiScale = RootScale.ScaleX;
             _settings.Save();
             _watcher.Dispose();
             _sync.Dispose();
@@ -292,6 +297,46 @@ public partial class MainWindow : Window
     private void OnDrag(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton == MouseButton.Left) DragMove();
+    }
+
+    // ---- corner resize: the grip drags a scale factor, not a window edge ----
+
+    private const double MinScale = 0.6;
+    private const double MaxScale = 2.5;
+    private Point _gripOrigin;
+    private double _gripScale;
+    private double _gripWidth;
+
+    private void OnGripDown(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true; // the grip must not start a window drag
+        if (e.ClickCount == 2)
+        {
+            RootScale.ScaleX = RootScale.ScaleY = 1.0;
+            return;
+        }
+        _gripOrigin = PointToScreen(e.GetPosition(this));
+        _gripScale = RootScale.ScaleX;
+        _gripWidth = Math.Max(1, ActualWidth);
+        ResizeGrip.CaptureMouse();
+    }
+
+    private void OnGripMove(object sender, MouseEventArgs e)
+    {
+        if (!ResizeGrip.IsMouseCaptured) return;
+        var p = PointToScreen(e.GetPosition(this));
+        // Growth tracks the drag like a real corner would: pulling the corner out by
+        // half the panel's width makes the panel half again as big.
+        var drag = ((p.X - _gripOrigin.X) + (p.Y - _gripOrigin.Y)) / 2;
+        RootScale.ScaleX = RootScale.ScaleY =
+            Math.Clamp(_gripScale * (_gripWidth + drag) / _gripWidth, MinScale, MaxScale);
+    }
+
+    private void OnGripUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!ResizeGrip.IsMouseCaptured) return;
+        ResizeGrip.ReleaseMouseCapture();
+        e.Handled = true;
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();

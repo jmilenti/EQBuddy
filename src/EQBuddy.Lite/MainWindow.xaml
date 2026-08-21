@@ -6,8 +6,11 @@
         Topmost="True" ResizeMode="NoResize" SizeToContent="WidthAndHeight"
         ShowInTaskbar="True">
     <Border Background="#F0101418" BorderBrush="#3CFFFFFF" BorderThickness="1"
-            CornerRadius="10" Padding="14,10,14,12"
+            CornerRadius="10"
             MouseLeftButtonDown="OnDrag">
+        <Border.LayoutTransform>
+            <ScaleTransform x:Name="RootScale"/>
+        </Border.LayoutTransform>
         <Border.ContextMenu>
             <ContextMenu>
                 <MenuItem x:Name="VersionItem" IsEnabled="False"/>
@@ -17,7 +20,8 @@
                 <MenuItem Header="Exit" Click="OnClose"/>
             </ContextMenu>
         </Border.ContextMenu>
-        <StackPanel MinWidth="235">
+        <Grid>
+        <StackPanel MinWidth="235" Margin="14,10,14,12">
             <DockPanel Margin="0,0,0,6">
                 <Ellipse x:Name="StatusDot" DockPanel.Dock="Left" Width="8" Height="8"
                          Fill="#666" VerticalAlignment="Center" Margin="0,1,7,0"/>
@@ -74,5 +78,11 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </StackPanel>
+        <TextBlock x:Name="ResizeGrip" Text="◢" FontSize="10" Foreground="#55616C"
+                   Cursor="SizeNWSE" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                   Margin="0,0,4,2" ToolTip="Drag to resize · double-click to reset"
+                   MouseLeftButtonDown="OnGripDown" MouseMove="OnGripMove"
+                   MouseLeftButtonUp="OnGripUp"/>
+        </Grid>
     </Border>
 </Window>
