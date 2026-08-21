@@ -20,6 +20,8 @@ public partial class MainWindow : Window
     private readonly GroupDpsTracker _group = new();
     private readonly GroupSync _sync = new();
     private readonly SpawnTimers _spawnTimers;
+    private readonly LiteUiSettings _ui = LiteUiSettings.Load();
+    private BreakdownPopup? _popup;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     private DateTime _lastCharScan = DateTime.MinValue;
@@ -36,6 +38,7 @@ public partial class MainWindow : Window
         // Same UiScale the full app persists: the corner grip scales the whole panel
         // and SizeToContent re-fits the window around it.
         RootScale.ScaleX = RootScale.ScaleY = Math.Clamp(_settings.UiScale, MinScale, MaxScale);
+        BreakdownChevron.Text = _ui.ShowBreakdown ? "▾" : "▸";
 
         if (_settings.LogFolder is { } saved && !Directory.Exists(saved))
             _settings.LogFolder = null; // stale saved path (game moved) — re-detect
@@ -80,6 +83,8 @@ public partial class MainWindow : Window
             _settings.WindowTop = Top;
             _settings.UiScale = RootScale.ScaleX;
             _settings.Save();
+            _ui.Save();
+            _popup?.Close();
             _watcher.Dispose();
             _sync.Dispose();
         };
@@ -131,8 +136,9 @@ public partial class MainWindow : Window
 
         // DPS breakdown: your top damage sources (melee, spells, abilities) with their
         // share of session damage — the Lite take on the full app's Damage breakout.
+        // Collapsed by default; the ▸ next to the DPS line opens it.
         var totalDamage = s.DamageBySource.Sum(d => d.Total);
-        if (totalDamage > 0)
+        if (_ui.ShowBreakdown && totalDamage > 0)
         {
             BreakdownList.ItemsSource = s.DamageBySource
                 .Take(5)
@@ -154,6 +160,32 @@ public partial class MainWindow : Window
             : $"✨ {motes.Total} motes ({motes.PerHour:0.#}/h)" +
               string.Concat(motes.Tiers.Select(t => $"\n      {TierShort(t.Item)} ×{t.Count}"));
 
+        // Session loot (motes excluded — they have their own line above), collapsed to
+        // a one-line heading by default.
+        var loot = s.Loot.Where(l => !Motes.IsMote(l.Item)).ToList();
+        if (loot.Count > 0)
+        {
+            var pieces = loot.Sum(l => l.Count);
+            LootHeader.Text = $"{(_ui.ShowLoot ? "▾" : "▸")} LOOT · {pieces} item{(pieces == 1 ? "" : "s")}";
+            LootHeader.Visibility = Visibility.Visible;
+            if (_ui.ShowLoot)
+            {
+                LootList.ItemsSource = loot
+                    .OrderByDescending(l => l.Count)
+                    .ThenBy(l => l.Item, StringComparer.OrdinalIgnoreCase)
+                    .Take(12)
+                    .Select(l => $"{Pad(l.Item, 18)} ×{l.Count}")
+                    .ToList();
+                LootList.Visibility = Visibility.Visible;
+            }
+            else LootList.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            LootHeader.Visibility = Visibility.Collapsed;
+            LootList.Visibility = Visibility.Collapsed;
+        }
+
         // Spawn timers: soonest first (Core's Snapshot order), section hidden entirely
         // when no camp is running — an empty list isn't worth panel height.
         var timers = _spawnTimers.Snapshot(now);
@@ -167,7 +199,9 @@ public partial class MainWindow : Window
         }
         else SpawnSection.Visibility = Visibility.Collapsed;
 
-        _sync.Publish(_stats.CharacterName ?? "", s.CurrentDps, s.SessionDps);
+        _sync.Publish(_stats.CharacterName ?? "", s.CurrentDps, s.SessionDps,
+            s.DamageBySource.Take(6).Select(d => new BreakdownEntry(d.Name, d.Total)).ToList(),
+            motes);
 
         List<string> rows;
         if (_sync.Active)
@@ -196,6 +230,46 @@ public partial class MainWindow : Window
             if (rows.Count == 0) rows.Add("(no group activity nearby)");
         }
         GroupList.ItemsSource = rows;
+        RefreshPopup();
+    }
+
+    /// <summary>Keep the member popup parked at the panel's right edge and fed with the
+    /// latest synced numbers. Called every tick and when the popup opens.</summary>
+    private void RefreshPopup()
+    {
+        if (_popup is not { } popup) return;
+        popup.Left = Left + ActualWidth + 8;
+        popup.Top = Top;
+
+        var member = _sync.Members.FirstOrDefault(m =>
+            m.Name.StartsWith(popup.MemberName, StringComparison.OrdinalIgnoreCase));
+        if (member is null)
+        {
+            popup.Update(popup.MemberName,
+                _sync.Active
+                    ? "(no exact data — they need\n EQdps running to share it)"
+                    : "(breakdowns need group sync —\n right-click → Group sync…)",
+                "", "");
+            return;
+        }
+
+        string rows;
+        var total = member.Breakdown.Sum(b => b.Total);
+        if (total > 0)
+            rows = string.Join("\n", member.Breakdown.Select(b =>
+                $"{Pad(b.Name, 13)} {FmtDamage(b.Total),6} {b.Total * 100 / total,3}%"));
+        else
+            rows = "(no damage yet)";
+
+        var m = member.Motes;
+        var motesSummary = m.Total > 0
+            ? $"✨ {m.Total} motes ({m.PerHour:0.#}/h)"
+            : "✨ no motes yet";
+        var motesDetail = m.Total > 0
+            ? string.Join("\n", m.Tiers.Select(t => $"{Pad(TierShort(t.Name), 12)} ×{t.Count}"))
+            : "";
+
+        popup.Update($"{member.Name} · {member.Dps:0} dps", rows, motesSummary, motesDetail);
     }
 
     private static string Pad(string s, int width) =>
@@ -342,6 +416,43 @@ public partial class MainWindow : Window
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 
     private void OnCheckUpdatesMenu(object sender, RoutedEventArgs e) => CheckUpdates();
+
+    private void OnBreakdownToggle(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        _ui.ShowBreakdown = !_ui.ShowBreakdown;
+        BreakdownChevron.Text = _ui.ShowBreakdown ? "▾" : "▸";
+        if (!_ui.ShowBreakdown) BreakdownList.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnLootToggle(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        _ui.ShowLoot = !_ui.ShowLoot;
+        if (!_ui.ShowLoot) LootList.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnGroupRowClick(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is not System.Windows.Controls.TextBlock tb) return;
+        var name = tb.Text.TrimStart('~').Split(' ')[0].Trim();
+        if (name.Length == 0 || name.StartsWith('(')) return; // placeholder rows
+
+        if (_popup is { } open &&
+            string.Equals(open.MemberName, name, StringComparison.OrdinalIgnoreCase))
+        {
+            open.Close();
+            _popup = null;
+            return;
+        }
+
+        _popup?.Close();
+        var popup = _popup = new BreakdownPopup(name, this);
+        popup.Closed += (_, _) => { if (ReferenceEquals(_popup, popup)) _popup = null; };
+        RefreshPopup();
+        popup.Show();
+    }
 
     private void OnGroupSyncMenu(object sender, RoutedEventArgs e)
     {

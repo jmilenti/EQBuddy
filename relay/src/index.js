@@ -26,7 +26,10 @@ export class GroupRoom {
   roster(now) {
     return [...this.members.values()]
       .sort((a, b) => b.dps - a.dps)
-      .map((m) => ({ name: m.name, dps: m.dps, sdps: m.sdps, ageMs: now - m.seen }));
+      .map((m) => ({
+        name: m.name, dps: m.dps, sdps: m.sdps,
+        top: m.top || [], motes: m.motes || null, ageMs: now - m.seen,
+      }));
   }
 
   async fetch(request) {
@@ -52,6 +55,34 @@ export class GroupRoom {
     if (!NAME_RE.test(name) || !Number.isFinite(dps) || dps < 0)
       return json({ error: "bad member" }, 400);
 
+    // Optional damage breakdown: top sources as [{n: "Ignite", t: 48210}, ...].
+    // Old clients just omit it.
+    const top = [];
+    if (Array.isArray(body.top)) {
+      for (const e of body.top.slice(0, 8)) {
+        const n = typeof e?.n === "string" ? e.n.trim().slice(0, 24) : "";
+        const t = Number(e?.t);
+        if (n && Number.isFinite(t) && t >= 0) top.push({ n, t: Math.round(t) });
+      }
+    }
+
+    // Optional mote haul: {tot, ph, tiers: [{n: "Mote of Greater Potential", c: 3}]}.
+    let motes = null;
+    if (body.motes && typeof body.motes === "object") {
+      const tot = Number(body.motes.tot);
+      const ph = Number(body.motes.ph);
+      const tiers = [];
+      if (Array.isArray(body.motes.tiers)) {
+        for (const e of body.motes.tiers.slice(0, 10)) {
+          const n = typeof e?.n === "string" ? e.n.trim().slice(0, 32) : "";
+          const c = Number(e?.c);
+          if (n && Number.isFinite(c) && c >= 0) tiers.push({ n, c: Math.round(c) });
+        }
+      }
+      if (Number.isFinite(tot) && tot >= 0)
+        motes = { tot: Math.round(tot), ph: Number.isFinite(ph) && ph >= 0 ? Math.round(ph * 10) / 10 : 0, tiers };
+    }
+
     const key = name.toLowerCase();
     if (!this.members.has(key) && this.members.size >= MAX_MEMBERS)
       return json({ error: "group full" }, 409);
@@ -60,6 +91,8 @@ export class GroupRoom {
       name,
       dps: Math.round(dps * 10) / 10,
       sdps: Number.isFinite(sdps) && sdps >= 0 ? Math.round(sdps * 10) / 10 : 0,
+      top,
+      motes,
       seen: now,
     });
 

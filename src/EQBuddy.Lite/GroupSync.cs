@@ -6,9 +6,22 @@ using EQBuddy.Core;
 
 namespace EQBuddy.Lite;
 
+/// <summary>One damage source in a member's breakdown ("Ignite", "melee", …).</summary>
+public sealed record BreakdownEntry(string Name, long Total);
+
+/// <summary>One mote tier a member has looted ("Mote of Greater Potential" ×3).</summary>
+public sealed record MoteEntry(string Name, int Count);
+
+/// <summary>A member's mote haul as shared over sync.</summary>
+public sealed record SyncedMotes(int Total, double PerHour, IReadOnlyList<MoteEntry> Tiers)
+{
+    public static readonly SyncedMotes None = new(0, 0, []);
+}
+
 /// <summary>One group member as reported by the relay (their own app parsing their
 /// own log — exact numbers, unlike the log-inferred board).</summary>
-public sealed record SyncedMember(string Name, double Dps, double SessionDps);
+public sealed record SyncedMember(string Name, double Dps, double SessionDps,
+    IReadOnlyList<BreakdownEntry> Breakdown, SyncedMotes Motes);
 
 /// <summary>
 /// Opt-in group DPS sync. While a group code is set, every few seconds we POST our
@@ -39,7 +52,8 @@ public sealed class GroupSync : IDisposable
     /// <summary>Latest own numbers, written by the UI tick, read by the sync loop —
     /// so the loop never touches SessionStats from its own thread.</summary>
     private volatile OwnStats? _own;
-    public sealed record OwnStats(string Name, double Dps, double SessionDps);
+    public sealed record OwnStats(string Name, double Dps, double SessionDps,
+        IReadOnlyList<BreakdownEntry> Top, MotesSummary Motes);
 
     /// <summary>Latest group roster from the relay; empty when off or unreachable.</summary>
     public IReadOnlyList<SyncedMember> Members { get; private set; } = [];
@@ -51,8 +65,9 @@ public sealed class GroupSync : IDisposable
     public string RelayUrl => _settings.RelayUrl;
     public bool Active => _settings.GroupCode.Length > 0 && _settings.RelayUrl.Length > 0;
 
-    public void Publish(string name, double dps, double sessionDps) =>
-        _own = new OwnStats(name, dps, sessionDps);
+    public void Publish(string name, double dps, double sessionDps,
+        IReadOnlyList<BreakdownEntry> top, MotesSummary motes) =>
+        _own = new OwnStats(name, dps, sessionDps, top, motes);
 
     /// <summary>Set (or clear, with an empty code) the group and restart the loop.</summary>
     public void Configure(string groupCode, string relayUrl)
@@ -87,12 +102,33 @@ public sealed class GroupSync : IDisposable
                 if (_own is { Name.Length: > 0 } own)
                 {
                     using var response = await Http.PostAsJsonAsync(url,
-                        new { name = own.Name, dps = own.Dps, sdps = own.SessionDps }, ct);
+                        new
+                        {
+                            name = own.Name,
+                            dps = own.Dps,
+                            sdps = own.SessionDps,
+                            top = own.Top.Select(t => new { n = t.Name, t = t.Total }),
+                            motes = new
+                            {
+                                tot = own.Motes.Total,
+                                ph = own.Motes.PerHour,
+                                tiers = own.Motes.Tiers.Select(t => new { n = t.Item, c = t.Count }),
+                            },
+                        }, ct);
                     if (response.IsSuccessStatusCode)
                     {
                         var roster = await response.Content.ReadFromJsonAsync<Roster>(ct);
                         Members = roster?.Members?
-                            .Select(m => new SyncedMember(m.Name ?? "?", m.Dps, m.Sdps))
+                            .Select(m => new SyncedMember(m.Name ?? "?", m.Dps, m.Sdps,
+                                m.Top?.Where(t => t.N is { Length: > 0 })
+                                    .Select(t => new BreakdownEntry(t.N!, t.T))
+                                    .ToList() ?? [],
+                                m.Motes is { } mm
+                                    ? new SyncedMotes(mm.Tot, mm.Ph,
+                                        mm.Tiers?.Where(t => t.N is { Length: > 0 })
+                                            .Select(t => new MoteEntry(t.N!, t.C))
+                                            .ToList() ?? [])
+                                    : SyncedMotes.None))
                             .ToList() ?? [];
                         LastError = null;
                     }
@@ -127,6 +163,27 @@ public sealed class GroupSync : IDisposable
         public string? Name { get; set; }
         public double Dps { get; set; }
         public double Sdps { get; set; }
+        public List<TopEntry>? Top { get; set; }
+        public RosterMotes? Motes { get; set; }
+    }
+
+    private sealed class TopEntry
+    {
+        public string? N { get; set; }
+        public long T { get; set; }
+    }
+
+    private sealed class RosterMotes
+    {
+        public int Tot { get; set; }
+        public double Ph { get; set; }
+        public List<MoteTierEntry>? Tiers { get; set; }
+    }
+
+    private sealed class MoteTierEntry
+    {
+        public string? N { get; set; }
+        public int C { get; set; }
     }
 
     /// <summary>The default relay URL before the EQdps rename. A settings file that

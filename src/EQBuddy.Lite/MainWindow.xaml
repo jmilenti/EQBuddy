@@ -36,8 +36,15 @@
                        MouseLeftButtonDown="OnUpdateClick" TextWrapping="Wrap"
                        Foreground="#8BE28B" FontSize="12" Margin="0,0,0,6"/>
 
-            <TextBlock x:Name="DpsText" Text="⚔ 0 dps" FontSize="21"
-                       Foreground="White" FontWeight="SemiBold"/>
+            <DockPanel>
+                <TextBlock x:Name="BreakdownChevron" DockPanel.Dock="Right" Text="▸"
+                           FontSize="12" Foreground="#8A97A3" Cursor="Hand"
+                           VerticalAlignment="Bottom" Margin="6,0,0,4"
+                           ToolTip="Show/hide your damage breakdown"
+                           MouseLeftButtonDown="OnBreakdownToggle"/>
+                <TextBlock x:Name="DpsText" Text="⚔ 0 dps" FontSize="21"
+                           Foreground="White" FontWeight="SemiBold"/>
+            </DockPanel>
             <ItemsControl x:Name="BreakdownList" Margin="14,2,0,0" Visibility="Collapsed">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -50,6 +57,19 @@
                        Foreground="#B8C4CE" Margin="0,3,0,0"/>
             <TextBlock x:Name="MotesText" Text="✨ no motes yet" FontSize="13"
                        Foreground="#D9C46B" TextWrapping="Wrap" Margin="0,3,0,0"/>
+
+            <TextBlock x:Name="LootHeader" Visibility="Collapsed" Cursor="Hand"
+                       FontSize="9.5" Foreground="#7B8794" Margin="0,7,0,0"
+                       ToolTip="Show/hide session loot"
+                       MouseLeftButtonDown="OnLootToggle"/>
+            <ItemsControl x:Name="LootList" Margin="4,2,0,0" Visibility="Collapsed">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5"
+                                   Foreground="#9FB0BE"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <StackPanel x:Name="SpawnSection" Visibility="Collapsed">
                 <Rectangle Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
@@ -73,7 +93,9 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12.5"
-                                   Foreground="#CFE3F5"/>
+                                   Foreground="#CFE3F5" Cursor="Hand"
+                                   ToolTip="Click for their breakdown"
+                                   MouseLeftButtonDown="OnGroupRowClick"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
