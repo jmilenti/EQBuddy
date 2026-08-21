@@ -1,24 +1,24 @@
-; EQBuddy installer — EverQuest Legends session tracker widget
-#define AppName "EQBuddy"
+; EQdps installer — EverQuest Legends session tracker widget
+#define AppName "EQdps"
 ; Overridden by scripts\release.ps1 via /DAppVersion=<csproj Version>
 #ifndef AppVersion
   #define AppVersion "1.1.0"
 #endif
 #define AppPublisher "David Edwards"
-#define AppExe "EQBuddy.exe"
+#define AppExe "EQdps.exe"
 
 [Setup]
-AppId={{7E1B6A94-3C2D-4B77-9F41-EQBUDDY10000}
+AppId={{9C4F2B71-5A8E-4D03-B662-EQDPS0100000}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
-DefaultDirName={autopf}\EQBuddy
-DefaultGroupName=EQBuddy
+DefaultDirName={autopf}\EQdps
+DefaultGroupName=EQdps
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=..\dist
-OutputBaseFilename=EQBuddySetup
+OutputBaseFilename=EQdpsSetup
 SetupIconFile=..\src\EQBuddy\Assets\EQBuddy.ico
 Compression=lzma2/max
 SolidCompression=yes
@@ -40,9 +40,9 @@ Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\NOTICE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\EQBuddy"; Filename: "{app}\{#AppExe}"
-Name: "{autodesktop}\EQBuddy"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
+Name: "{group}\EQdps"; Filename: "{app}\{#AppExe}"
+Name: "{autodesktop}\EQdps"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Run]
 ; No skipifsilent: silent self-updates must relaunch the widget when done.
-Filename: "{app}\{#AppExe}"; Description: "Launch EQBuddy now"; Flags: nowait postinstall
+Filename: "{app}\{#AppExe}"; Description: "Launch EQdps now"; Flags: nowait postinstall

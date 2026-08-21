@@ -2,6 +2,13 @@ name = "eqbuddy-relay"
 main = "src/index.js"
 compatibility_date = "2026-08-01"
 
+# The permanent public address. workers_dev must stay true — v1.52.0 shipped
+# with the workers.dev URL baked in, so it must keep answering.
+workers_dev = true
+routes = [
+  { pattern = "eqdps.dystopia-tech.com", custom_domain = true }
+]
+
 [[durable_objects.bindings]]
 name = "ROOMS"
 class_name = "GroupRoom"

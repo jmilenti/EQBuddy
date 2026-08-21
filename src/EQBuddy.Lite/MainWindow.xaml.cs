@@ -31,7 +31,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        VersionItem.Header = $"EQBuddy Lite v{UpdateChecker.CurrentVersion}";
+        VersionItem.Header = $"EQdps v{UpdateChecker.CurrentVersion}";
 
         if (_settings.LogFolder is { } saved && !Directory.Exists(saved))
             _settings.LogFolder = null; // stale saved path (game moved) — re-detect
@@ -116,7 +116,7 @@ public partial class MainWindow : Window
         var s = _stats.Snapshot();
 
         TitleText.Text = string.IsNullOrEmpty(_stats.CharacterName)
-            ? "EQBuddy Lite" : _stats.CharacterName;
+            ? "EQdps" : _stats.CharacterName;
         StatusDot.Fill = _watcher.LastGrowth is { } g && now - g < TimeSpan.FromSeconds(30)
             ? Brushes.LimeGreen : new SolidColorBrush(Color.FromRgb(0x66, 0x66, 0x66));
 

@@ -40,21 +40,21 @@ jobs:
         run: |
           $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
           if (-not $iscc) { choco install innosetup -y --no-progress; $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
-          & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" installer\EQBuddy.iss
+          & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" installer\EQdps.iss
           if ($LASTEXITCODE -ne 0) { throw 'installer compile failed' }
 
       - name: Hash + portable zip
         run: |
-          (Get-FileHash dist\EQBuddySetup.exe -Algorithm SHA256).Hash | Set-Content dist\EQBuddySetup.exe.sha256 -NoNewline
+          (Get-FileHash dist\EQdpsSetup.exe -Algorithm SHA256).Hash | Set-Content dist\EQdpsSetup.exe.sha256 -NoNewline
           Copy-Item LICENSE, NOTICE, README.md dist\publish\
-          Compress-Archive -Path dist\publish\EQBuddy.exe, README.md, LICENSE, NOTICE -DestinationPath dist\EQBuddy-portable.zip -Force
-          Get-FileHash dist\EQBuddySetup.exe, dist\publish\EQBuddy.exe -Algorithm SHA256 | Format-List
+          Compress-Archive -Path dist\publish\EQdps.exe, README.md, LICENSE, NOTICE -DestinationPath dist\EQdps-portable.zip -Force
+          Get-FileHash dist\EQdpsSetup.exe, dist\publish\EQdps.exe -Algorithm SHA256 | Format-List
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
           gh release create "v${{ steps.ver.outputs.version }}"
-          dist\EQBuddySetup.exe dist\EQBuddySetup.exe.sha256 dist\EQBuddy-portable.zip
-          --title "EQBuddy v${{ steps.ver.outputs.version }} (trusted fork)"
-          --notes "Built by GitHub Actions from this repository's source. Verify EQBuddySetup.exe against EQBuddySetup.exe.sha256. In-app updates point at this repo's releases."
+          dist\EQdpsSetup.exe dist\EQdpsSetup.exe.sha256 dist\EQdps-portable.zip
+          --title "EQdps v${{ steps.ver.outputs.version }}"
+          --notes "Built by GitHub Actions from this repository's source. Verify EQdpsSetup.exe against EQdpsSetup.exe.sha256. In-app updates point at this repo's releases."

@@ -6,10 +6,9 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Same assembly name as the full app on purpose: the installer, shortcuts, and
-         the auto-updater all know the product as EQBuddy.exe, so Lite slots into the
-         existing install/update channel without touching either. -->
-    <AssemblyName>EQBuddy</AssemblyName>
+    <!-- The product is EQdps (renamed pre-launch, v1.53.0): its own exe, installer
+         identity, and release asset names, distinct from the original EQBuddy. -->
+    <AssemblyName>EQdps</AssemblyName>
     <RootNamespace>EQBuddy.Lite</RootNamespace>
     <!-- Version comes from Directory.Build.props (repo root). -->
     <ApplicationIcon>..\EQBuddy\Assets\EQBuddy.ico</ApplicationIcon>

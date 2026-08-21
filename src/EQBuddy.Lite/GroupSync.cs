@@ -19,8 +19,9 @@ public sealed record SyncedMember(string Name, double Dps, double SessionDps);
 /// </summary>
 public sealed class GroupSync : IDisposable
 {
-    /// <summary>The trusted fork's relay (relay/ in this repo, deployed to Cloudflare).</summary>
-    public const string DefaultRelay = "https://eqbuddy-relay.milentis-jason.workers.dev";
+    /// <summary>The relay (relay/ in this repo, deployed to Cloudflare) at its custom
+    /// domain; the older workers.dev URL stays live as an alias.</summary>
+    public const string DefaultRelay = "https://eqdps.dystopia-tech.com";
 
     private static readonly string SettingsPath = AppPaths.File("lite-sync.json");
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(8) };

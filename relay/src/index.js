@@ -1,4 +1,4 @@
-// EQBuddy group-DPS relay: a mailbox, not a database.
+// EQdps group-DPS relay: a mailbox, not a database.
 //
 // Each client POSTs its own numbers every few seconds and gets everyone else's
 // back in the same response. One Durable Object per group code holds the latest
@@ -107,7 +107,7 @@ function viewPage(code) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>EQBuddy · ${code}</title>
+<title>EQdps · ${code}</title>
 <style>
   body { margin: 0; min-height: 100vh; display: flex; align-items: center;
          justify-content: center; background: #0a0d10; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -126,7 +126,7 @@ function viewPage(code) {
 </head>
 <body>
 <div class="panel">
-  <div class="head"><div class="dot" id="dot"></div><div class="title">EQBuddy · ${code}</div></div>
+  <div class="head"><div class="dot" id="dot"></div><div class="title">EQdps · ${code}</div></div>
   <div class="label">GROUP · live from the relay</div>
   <div class="rows" id="rows"><span class="empty">connecting…</span></div>
   <div class="foot" id="foot"></div>

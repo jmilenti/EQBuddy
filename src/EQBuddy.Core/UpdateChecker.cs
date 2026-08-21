@@ -22,7 +22,10 @@ public sealed record UpdateInfo(Version Latest, string? SetupPath, string? Downl
 public static class UpdateChecker
 {
     private const string FolderName = "EQBuddyDownload";
-    private const string SetupName = "EQBuddySetup.exe";
+    // Renamed from EQBuddySetup.exe with the EQdps rebrand (v1.53.0). Safe because no
+    // installs predating the rename exist — an old updater would look for the old asset
+    // name in new releases, find nothing, and fail closed.
+    private const string SetupName = "EQdpsSetup.exe";
     public const string LinuxTarballName = "EQBuddy-linux-x64.tar.gz";
     private const string GitHubLatestApi = "https://api.github.com/repos/jmilenti/EQBuddy/releases/latest";
     public const string GitHubLatestPage = "https://github.com/jmilenti/EQBuddy/releases/latest";
