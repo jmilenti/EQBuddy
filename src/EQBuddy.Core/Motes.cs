@@ -30,6 +30,17 @@ public static partial class Motes
 
     public static bool IsMote(string itemName) => MotePattern().IsMatch(itemName.Trim());
 
+    /// <summary>Ladder position for a SHORT tier name ("Greater", "Major"); "Base" (the
+    /// bare mote) sorts below the ladder and an unknown name above it — the same rules
+    /// <see cref="Summarize"/> applies. For callers laying tiers from several players
+    /// side by side, where first-seen order stops being rank order.</summary>
+    public static int LadderRank(string tier)
+    {
+        if (tier.Equals("Base", StringComparison.OrdinalIgnoreCase)) return -1;
+        var rank = Array.FindIndex(Ladder, t => t.Equals(tier, StringComparison.OrdinalIgnoreCase));
+        return rank < 0 ? Ladder.Length : rank;
+    }
+
     public static MotesSummary Summarize(IEnumerable<LootDetail> loot, TimeSpan elapsed)
     {
         var rows = new List<(int Rank, string Item, int Count)>();

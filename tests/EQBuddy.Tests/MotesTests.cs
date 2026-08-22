@@ -54,4 +54,14 @@ public class MotesTests
         Assert.Equal(120, s.PerHour, 0);
         Assert.Equal(MotesSummary.Empty, Motes.Summarize([], TimeSpan.FromHours(1)));
     }
+
+    /// <summary>The table view lays several players' tiers side by side, so rank must be
+    /// answerable for a short name alone: Base below the ladder, unknowns above it.</summary>
+    [Fact]
+    public void LadderRankOrdersShortTierNames()
+    {
+        string[] shortNames = ["Superior", "Base", "Major", "Greater", "Weird"];
+        Assert.Equal(["Base", "Greater", "Major", "Superior", "Weird"],
+            shortNames.OrderBy(Motes.LadderRank).ToArray());
+    }
 }

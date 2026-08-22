@@ -211,25 +211,11 @@
                 <TextBlock x:Name="MotesHeader" Text="MOTES · none yet" Cursor="Hand"
                            FontSize="9.5" Foreground="#A8985A"
                            ToolTip="Click to show/hide · drag to pop out"/>
-                <ItemsControl x:Name="MotesList" Margin="4,2,0,0" Visibility="Collapsed">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5"
-                                       Foreground="#D9C46B"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <TextBlock x:Name="GroupMotesHeader" Visibility="Collapsed" FontSize="9.5"
-                           Foreground="#7B8794" Margin="0,7,0,0"
-                           ToolTip="Motes looted by group members sharing via sync — your log can't see anyone else's loot"/>
-                <ItemsControl x:Name="GroupMotesList" Margin="4,2,0,0" Visibility="Collapsed">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5"
-                                       Foreground="#D9C46B"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <!-- One aligned table, players down and tiers across (RenderMotesTable):
+                     the loot race is a comparison, and a comparison wants columns —
+                     per-player indented tier lists made everyone count for themselves. -->
+                <Grid x:Name="MotesTable" Margin="2,4,0,0" Visibility="Collapsed"
+                      ToolTip="Group rows come over sync — your log never sees anyone else's loot"/>
             </StackPanel>
 
             <StackPanel x:Name="LootSection">

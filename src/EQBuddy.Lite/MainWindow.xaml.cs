@@ -231,25 +231,43 @@ public partial class MainWindow : Window
         var fightMode = _ui.DpsScope == "fight";
         var lastFight = s.LastFight;
 
+        // The dim suffix is how long the data behind the number spans — the fight's
+        // length in fight scope, the session's in session scope — so a rate is never
+        // read without its denominator.
+        void SetDps(string main, TimeSpan? span)
+        {
+            DpsText.Inlines.Clear();
+            DpsText.Inlines.Add(new System.Windows.Documents.Run(main));
+            if (span is { TotalSeconds: >= 1 } t)
+                DpsText.Inlines.Add(new System.Windows.Documents.Run($"   {FmtDur(t)}")
+                {
+                    FontSize = 12,
+                    FontWeight = FontWeights.Normal,
+                    Foreground = MoteDim,
+                });
+        }
+
         List<SourceDamage> damageSource;
         if (fightMode)
         {
             if (lastFight is null)
             {
-                DpsText.Text = "⚔ 0 dps";
+                SetDps("⚔ 0 dps", null);
                 damageSource = [];
             }
             else
             {
-                DpsText.Text = $"⚔ {lastFight.Dps:0} dps" + (lastFight.InProgress ? "" : "  (last fight)");
+                SetDps($"⚔ {lastFight.Dps:0} dps" + (lastFight.InProgress ? "" : "  (last fight)"),
+                    TimeSpan.FromSeconds(lastFight.DurationSeconds));
                 damageSource = lastFight.ByAbility;
             }
         }
         else
         {
-            DpsText.Text = s.CurrentDps > 0
-                ? $"⚔ {s.SessionDps:0} dps  (now {s.CurrentDps:0})"
-                : $"⚔ {s.SessionDps:0} dps";
+            SetDps(s.CurrentDps > 0
+                    ? $"⚔ {s.SessionDps:0} dps  (now {s.CurrentDps:0})"
+                    : $"⚔ {s.SessionDps:0} dps",
+                s.Elapsed);
             damageSource = s.DamageBySource;
         }
 
@@ -310,47 +328,24 @@ public partial class MainWindow : Window
             .Take(8)
             .ToList();
         var motesExpandable = motes.Total > 0 || groupMotes.Count > 0;
+        var sharingTag = groupMotes.Count == 0 ? ""
+            : _resetAt is null ? $" · {groupMotes.Count + 1} racing"
+            : $" · {groupMotes.Count + 1} racing since reset";
         MotesHeader.Text = motesExpandable
-            ? $"{(_ui.ShowMotes ? "▾" : "▸")} MOTES · {motes.Total} ({motes.PerHour:0.#}/h)"
+            ? $"{(_ui.ShowMotes ? "▾" : "▸")} MOTES · {motes.Total} ({motes.PerHour:0.#}/h){sharingTag}"
             : "MOTES · none yet";
-        var showMotesDetail = motesExpandable && _ui.ShowMotes;
-        if (showMotesDetail && motes.Total > 0)
+        if (motesExpandable && _ui.ShowMotes)
         {
-            MotesList.ItemsSource = motes.Tiers
-                .Select(t => $"{Pad(TierShort(t.Item), 14)} ×{t.Count}")
-                .ToList();
-            MotesList.Visibility = Visibility.Visible;
-        }
-        else MotesList.Visibility = Visibility.Collapsed;
-
-        if (showMotesDetail && groupMotes.Count > 0)
-        {
-            GroupMotesHeader.Text = _resetAt is null
-                ? $"GROUP · motes · {groupMotes.Count} sharing"
-                : $"GROUP · motes · {groupMotes.Count} sharing · since reset";
-            // Their shared per-hour covers their whole session, so after a reset it would
-            // contradict the count beside it — recompute over the time you have counted.
+            // A member's shared per-hour covers their whole session; after a reset it
+            // would contradict the rebased count beside it, so recompute over the time
+            // you have been counting.
             var moteHours = _resetAt is { } from
                 ? Math.Max((now - from).TotalHours, 1.0 / 60)
                 : 0;
-            // Member line, then their tiers indented under it — same shape as your own
-            // list above, so the two halves of the section read as one board.
-            var moteRows = new List<string>();
-            foreach (var m in groupMotes)
-            {
-                moteRows.Add($"{Pad(m.Name, 12)} ×{m.Total,-4} " +
-                             $"{(moteHours > 0 ? m.Total / moteHours : m.PerHour):0.#}/h");
-                moteRows.AddRange(m.Tiers.Select(t => $"  {Pad(TierShort(t.Name), 12)} ×{t.Count}"));
-            }
-            GroupMotesList.ItemsSource = moteRows;
-            GroupMotesHeader.Visibility = Visibility.Visible;
-            GroupMotesList.Visibility = Visibility.Visible;
+            RenderMotesTable(motes, groupMotes, moteHours);
+            MotesTable.Visibility = Visibility.Visible;
         }
-        else
-        {
-            GroupMotesHeader.Visibility = Visibility.Collapsed;
-            GroupMotesList.Visibility = Visibility.Collapsed;
-        }
+        else MotesTable.Visibility = Visibility.Collapsed;
 
         // Section separators only make sense inside the main panel — a torn-off
         // window has its own chrome.
@@ -1106,7 +1101,84 @@ public partial class MainWindow : Window
             : $"{left.Minutes}:{left.Seconds:00}";
     }
 
-    /// <summary>"Mote of Greater Potential" → "Greater"; the tierless base mote → "Base".</summary>
+    private static readonly Brush MoteGold = Frozen(0xD9, 0xC4, 0x6B);
+    private static readonly Brush MoteBright = Frozen(0xE8, 0xCE, 0x9C);
+    private static readonly Brush MoteDim = Frozen(0x7B, 0x87, 0x94);
+    private static readonly Brush MoteFaint = Frozen(0x4A, 0x54, 0x5E);
+    private static readonly Brush MoteMemberName = Frozen(0xCF, 0xE3, 0xF5);
+
+    /// <summary>The MOTES board as one aligned table — players down, tiers across,
+    /// total and rate at the end. Your row leads; a dim dot marks a tier a player
+    /// hasn't seen. Replaces per-player indented tier lists, which made the loot race
+    /// unreadable: a comparison wants its numbers in columns.</summary>
+    private void RenderMotesTable(MotesSummary yours,
+        List<(string Name, int Total, double PerHour, IReadOnlyList<MoteEntry> Tiers)> members,
+        double rebasedHours)
+    {
+        var rows = new List<(string Name, bool IsYou, int Total, double Rate, Dictionary<string, int> ByTier)>();
+        if (yours.Total > 0)
+            rows.Add(("you", true, yours.Total, yours.PerHour,
+                yours.Tiers.ToDictionary(t => TierShort(t.Item), t => t.Count)));
+        foreach (var m in members)
+            rows.Add((m.Name, false, m.Total,
+                rebasedHours > 0 ? m.Total / rebasedHours : m.PerHour,
+                m.Tiers.ToDictionary(t => TierShort(t.Name), t => t.Count)));
+
+        // Union of everyone's tiers in ladder order — first-seen order breaks down the
+        // moment two players hold disjoint tiers.
+        var tiers = rows
+            .SelectMany(r => r.ByTier.Keys)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(Motes.LadderRank)
+            .ToList();
+
+        MotesTable.Children.Clear();
+        MotesTable.RowDefinitions.Clear();
+        MotesTable.ColumnDefinitions.Clear();
+        for (var c = 0; c < tiers.Count + 3; c++)
+            MotesTable.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        for (var r = 0; r <= rows.Count; r++)
+            MotesTable.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        void Cell(int row, int col, string text, Brush brush, double size = 11.5,
+            bool mono = true, bool right = true, bool bold = false)
+        {
+            var tb = new TextBlock
+            {
+                Text = text,
+                FontSize = size,
+                Foreground = brush,
+                FontWeight = bold ? FontWeights.SemiBold : FontWeights.Normal,
+                HorizontalAlignment = right ? HorizontalAlignment.Right : HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                Margin = new Thickness(col == 0 ? 0 : 11, row == 0 ? 0 : 2, 0, 0),
+            };
+            if (mono) tb.FontFamily = new FontFamily("Consolas");
+            Grid.SetRow(tb, row);
+            Grid.SetColumn(tb, col);
+            MotesTable.Children.Add(tb);
+        }
+
+        for (var c = 0; c < tiers.Count; c++)
+            Cell(0, c + 1, tiers[c], MoteDim, size: 9, mono: false);
+        Cell(0, tiers.Count + 1, "all", MoteDim, size: 9, mono: false);
+        Cell(0, tiers.Count + 2, "/h", MoteDim, size: 9, mono: false);
+
+        for (var r = 0; r < rows.Count; r++)
+        {
+            var (name, isYou, total, rate, byTier) = rows[r];
+            Cell(r + 1, 0, name, isYou ? MoteBright : MoteMemberName,
+                size: 12, mono: false, right: false, bold: isYou);
+            for (var c = 0; c < tiers.Count; c++)
+                Cell(r + 1, c + 1,
+                    byTier.TryGetValue(tiers[c], out var n) ? n.ToString() : "·",
+                    byTier.ContainsKey(tiers[c]) ? MoteGold : MoteFaint);
+            Cell(r + 1, tiers.Count + 1, total.ToString(), MoteBright, bold: true);
+            Cell(r + 1, tiers.Count + 2, $"{rate:0.#}", MoteDim, size: 10.5);
+        }
+    }
+
+    /// <summary>"Mote of Greater Potential" → "Greater"; the tierless base mote → "Base".</summary>    /// <summary>"Mote of Greater Potential" → "Greater"; the tierless base mote → "Base".</summary>
     private static string TierShort(string item)
     {
         var t = item.Replace("Mote of", "", StringComparison.OrdinalIgnoreCase)
