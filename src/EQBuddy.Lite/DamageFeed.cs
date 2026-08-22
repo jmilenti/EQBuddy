@@ -9,7 +9,14 @@ internal enum FeedWho { You, Pet, Group }
 /// filters can ask about. Ability is the melee skill label or spell name; Note is the
 /// log's trailing annotation (Riposte, Crippling Blow, Slay Undead, …) when present.</summary>
 internal sealed record FeedEntry(DateTime Time, FeedWho Who, FeedKind Kind, string Actor,
-    string Target, int Amount, string Ability, bool Crit, string? Note, bool Incoming);
+    string Target, int Amount, string Ability, bool Crit, string? Note, bool Incoming)
+{
+    /// <summary>The log line this event was parsed from, message part only — what the
+    /// feed actually displays. The parsed fields above stay the filters' material, so
+    /// a row reads exactly as the game wrote it while still being filterable by who,
+    /// kind, crit, and amount. Null only for entries captured before 1.68.1.</summary>
+    public string? Raw { get; set; }
+}
 
 /// <summary>
 /// The FEED section's engine: a rolling buffer of combat events from your own log,
@@ -38,6 +45,13 @@ internal sealed class DamageFeed
     }
 
     private readonly Queue<FeedEntry> _entries = new();
+
+    /// <summary>Entries made from the line currently being processed, waiting for that
+    /// line's text. LogWatcher parses a line and fires Tap, THEN fires RawTap with the
+    /// same line on the same thread — so whatever is sitting here when a raw line
+    /// arrives came from it. (A line yields at most one event today; a list keeps that
+    /// from being load-bearing.)</summary>
+    private readonly List<FeedEntry> _awaitingRaw = [];
 
     /// <summary>Raw-mode buffer: every log line verbatim (message part), timestamped.
     /// MinValue marks a line whose prefix didn't parse — shown without a clock.</summary>
@@ -96,6 +110,7 @@ internal sealed class DamageFeed
         lock (_lock)
         {
             _entries.Enqueue(entry);
+            _awaitingRaw.Add(entry);
             while (_entries.Count > _capacity) _entries.Dequeue();
         }
     }
@@ -114,9 +129,14 @@ internal sealed class DamageFeed
                 time = t;
             text = line[27..];
         }
-        if (text.Length == 0) return;
         lock (_lock)
         {
+            // Hand this line's text to the entry parsed from it (see _awaitingRaw), and
+            // clear the slate either way — an unclaimed entry must not adopt the NEXT
+            // line's text.
+            foreach (var pending in _awaitingRaw) pending.Raw = text;
+            _awaitingRaw.Clear();
+            if (text.Length == 0) return;
             _raw.Enqueue((time, text));
             while (_raw.Count > _capacity) _raw.Dequeue();
         }
@@ -206,7 +226,9 @@ internal sealed class DamageFeed
         // "crit" both the flag and a "(Critical)" note.
         if (f.SearchTerms is { Count: > 0 } terms)
         {
-            var hay = $"{e.Actor} {e.Ability} {e.Target} {e.Note} {e.Kind}"
+            // The haystack carries the displayed line too, so a chip matches what the
+            // reader can actually see on the row.
+            var hay = $"{e.Actor} {e.Ability} {e.Target} {e.Note} {e.Kind} {e.Raw}"
                 + (e.Crit ? " critical" : "");
             var any = false;
             foreach (var term in terms)

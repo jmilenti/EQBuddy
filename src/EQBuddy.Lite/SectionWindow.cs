@@ -25,6 +25,23 @@ public sealed class SectionWindow : Window
     private readonly MainWindow _owner;
     private readonly Grid _grid;
     private readonly ScaleTransform _scale = new(1, 1);
+    private readonly Button _close;
+    private Action? _closeOverride;
+
+    private const string DockBackTip = "Hook back under the main stack";
+
+    /// <summary>What this window's ✕ does. Null (the default) re-docks it under the
+    /// main stack. Spawned FEED windows set a real close here: re-docking a window the
+    /// user asked to close looks exactly like the close silently failing.</summary>
+    public Action? CloseOverride
+    {
+        get => _closeOverride;
+        set
+        {
+            _closeOverride = value;
+            _close.ToolTip = value is null ? DockBackTip : "Close this window for good";
+        }
+    }
 
     public SectionWindow(string sectionKey, FrameworkElement content, MainWindow owner)
     {
@@ -40,17 +57,33 @@ public sealed class SectionWindow : Window
         ResizeMode = ResizeMode.NoResize;
         SizeToContent = SizeToContent.WidthAndHeight;
 
-        var close = new TextBlock
+        // A Button, not a bare glyph: a 10 px ✕ only hit-tests over its own strokes, so
+        // most of what looks like the control isn't clickable. Templated flat and
+        // transparent, it looks the same but the whole padded box is the target.
+        _close = new Button
         {
-            Text = "✕",
+            Content = "✕",
             Foreground = new SolidColorBrush(Color.FromRgb(0x8A, 0x97, 0xA3)),
+            Background = Brushes.Transparent,
+            BorderBrush = Brushes.Transparent,
             FontSize = 10,
+            Focusable = false,
             Cursor = Cursors.Hand,
+            Padding = new Thickness(5, 1, 4, 2),
+            Margin = new Thickness(0, -3, -6, 0),
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
-            ToolTip = "Hook back under the main stack",
+            ToolTip = DockBackTip,
+            Template = (ControlTemplate)owner.FindResource("FlatButtonTemplate"),
         };
-        close.MouseLeftButtonDown += (_, e) => { e.Handled = true; _owner.DockToStack(this); };
+        System.Windows.Automation.AutomationProperties.SetAutomationId(_close, "SectionClose");
+        _close.Click += (_, _) =>
+        {
+            // A section the app ships can only be re-docked (hiding it is the ⚙'s job);
+            // a window the USER created is one they expect ✕ to destroy.
+            if (CloseOverride is { } close) close();
+            else _owner.DockToStack(this);
+        };
 
         // Resize grip: horizontal drag sets this section's width; on the FEED the
         // vertical half adjusts how many rows it shows. Double-click resets to auto.
@@ -66,7 +99,8 @@ public sealed class SectionWindow : Window
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = new Thickness(6, 2, -6, -8),
             ToolTip = "Drag to resize · double-click for auto width" +
-                      (sectionKey == "feed" ? " · up/down changes rows shown" : ""),
+                      (sectionKey.StartsWith("feed", StringComparison.Ordinal)
+                          ? " · up/down changes rows shown" : ""),
         };
         var resizing = false;
         var resizeStart = default(Point);
@@ -96,7 +130,7 @@ public sealed class SectionWindow : Window
 
         _grid = new Grid();
         _grid.Children.Add(content);
-        _grid.Children.Add(close);
+        _grid.Children.Add(_close);
         _grid.Children.Add(grip);
 
         Content = new Border

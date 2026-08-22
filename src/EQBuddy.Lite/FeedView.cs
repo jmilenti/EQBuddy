@@ -84,45 +84,43 @@ internal sealed class FeedView
             ToolTip = "Click to show/hide · drag to pop out · a live feed of combat "
                 + "from your log, with filters",
         };
-        // + and ✕ sit beside the heading, outside its drag/toggle surface. The ✕ only
-        // exists on spawned windows — the original FEED can be hidden in ⚙ but never
-        // closed, so there is always a window to press + on.
-        var spawn = new TextBlock
+        // The + is a real Button parked at the RIGHT end of the heading row, away from
+        // the heading's own drag/toggle surface. It was a bare "+" TextBlock beside the
+        // title in 1.68.0 and went unclicked: a 10 px glyph only hit-tests over its own
+        // strokes, so most of what looks like the button isn't. A templated Button has
+        // padding, a border, and a hover state — the whole pill is the target.
+        // (Closing lives on the section window's ✕, which spawned feeds repoint to a
+        // real close; the original FEED can be hidden in ⚙ but never closed, so there
+        // is always a window left to press + on.)
+        var spawn = new Button
         {
-            Text = "+",
-            FontSize = 10,
-            Foreground = LinkBrush,
-            Cursor = Cursors.Hand,
-            Margin = new Thickness(8, -1, 0, 0),
+            Content = "+",
             ToolTip = "Open another FEED window — its own filters, starting as a copy "
                 + "of this one's",
+            Cursor = Cursors.Hand,
+            Focusable = false,
+            FontSize = 11,
+            Foreground = PillOnFg,
+            Background = PillOffBg,
+            BorderBrush = PillOnBorder,
+            Padding = new Thickness(7, 0, 7, 1),
+            // Clear of the section window's ✕, which overlays the same top-right
+            // corner: the two controls do opposite things and must not share a pixel.
+            Margin = new Thickness(8, 0, 16, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Template = (ControlTemplate)owner.FindResource("FlatButtonTemplate"),
         };
-        spawn.MouseLeftButtonDown += (_, e) =>
-        {
-            e.Handled = true;
-            _owner.SpawnFeedPane(this);
-        };
-        var headRow = new StackPanel { Orientation = Orientation.Horizontal };
-        headRow.Children.Add(Header);
+        System.Windows.Automation.AutomationProperties.SetAutomationId(spawn, "SpawnFeed");
+        spawn.Click += (_, _) => _owner.SpawnFeedPane(this);
+
+        // DockPanel, not StackPanel: the + rides the right edge of whatever width the
+        // ◢ grip has given this window, so it reads as its own control rather than
+        // punctuation after the title.
+        var headRow = new DockPanel { LastChildFill = true };
+        DockPanel.SetDock(spawn, Dock.Right);
         headRow.Children.Add(spawn);
-        if (Key != "feed")
-        {
-            var close = new TextBlock
-            {
-                Text = "✕",
-                FontSize = 9.5,
-                Foreground = LinkBrush,
-                Cursor = Cursors.Hand,
-                Margin = new Thickness(7, 0, 0, 0),
-                ToolTip = "Close this FEED window for good (its filters are forgotten)",
-            };
-            close.MouseLeftButtonDown += (_, e) =>
-            {
-                e.Handled = true;
-                _owner.CloseFeedPane(this);
-            };
-            headRow.Children.Add(close);
-        }
+        headRow.Children.Add(Header);
+        Header.VerticalAlignment = VerticalAlignment.Center;
 
         _searchRow = new WrapPanel { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 4, 0, 0) };
         _pillRow = new WrapPanel { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 2, 0, 2) };
@@ -248,6 +246,11 @@ internal sealed class FeedView
     private static FeedRow RowOf(FeedEntry e)
     {
         var t = e.Time.ToString("HH:mm:ss");
+        // The line as the game wrote it, colour-coded by what the parser made of it.
+        // The reformatted version below is only a fallback for entries with no raw text
+        // (captured before 1.68.1): a filtered feed is easier to read when its rows say
+        // exactly what the log says, and it stops the two modes looking like two apps.
+        if (e.Raw is { Length: > 0 } raw) return new FeedRow($"{t}  {raw}", BrushFor(e));
         // The log's own annotation wins (it already says "Riposte Critical" when both
         // apply); a bare crit flag gets the plain tag.
         var tag = e.Note is { Length: > 0 } n ? $" ({n})" : e.Crit ? " (Crit)" : "";
@@ -279,6 +282,22 @@ internal sealed class FeedView
                 $"{t}  {(e.Ability.Length > 0 ? e.Ability : "spell")} fizzled", DimBrush),
         };
     }
+
+    /// <summary>Row colour by what the line turned out to be — the one piece of reading
+    /// help a verbatim log line can't give you itself.</summary>
+    private static Brush BrushFor(FeedEntry e) => e.Kind switch
+    {
+        FeedKind.Kill => KillBrush,
+        FeedKind.Heal => HealBrush,
+        FeedKind.Taken => TakenBrush,
+        FeedKind.Miss or FeedKind.Resist or FeedKind.Fizzle => DimBrush,
+        _ => e.Crit ? CritBrush : e.Who switch
+        {
+            FeedWho.Pet => PetBrush,
+            FeedWho.Group => GroupBrush,
+            _ => YouBrush,
+        },
+    };
 
     /// <summary>The filter pills — sixteen toggles sharing one tiny template. Each pill
     /// owns its refresh closure; clicking saves and re-renders THIS view only, so two

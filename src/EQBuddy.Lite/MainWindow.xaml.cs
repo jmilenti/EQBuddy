@@ -1192,6 +1192,13 @@ public partial class MainWindow : Window
         RootStack.Children.Remove(el);
         var win = new SectionWindow(key, el, this);
         win.SetScale(RootScale.ScaleX);
+        // A user-spawned feed window's ✕ closes it for good; every shipped section's ✕
+        // keeps its "hook back under the stack" meaning.
+        if (key != "feed" && _feedViews.ContainsKey(key))
+            win.CloseOverride = () =>
+            {
+                if (_feedViews.TryGetValue(key, out var view)) CloseFeedPane(view);
+            };
         var at = Mouse.GetPosition(this);
         win.Left = Left + at.X - 24;
         win.Top = Top + at.Y - 10;
@@ -1256,9 +1263,37 @@ public partial class MainWindow : Window
         _ui.FeedPanes.Add(pane);
         AddFeedView(pane);
         Detach(pane.Key, tearOff: false);
-        DockToStack(_sectionWindows[pane.Key]);
+
+        // Beside the window it came from, floating — NOT hooked under the stack's tail
+        // like other new sections. A full stack already reaches the bottom of the
+        // screen, so a window added below it lands off-screen, which reads as the +
+        // having done nothing at all.
+        var win = _sectionWindows[pane.Key];
+        var src = _sectionWindows.TryGetValue(from.Key, out var s) && s.IsVisible
+            ? (Window)s : this;
+        win.DockHost = null;
+        win.Left = src.Left + Math.Max(src.ActualWidth, 200) + DockGap;
+        win.Top = src.Top;
         _ui.Save();
         Tick();
+        // Its height is only known once it has laid out its rows; nudge it back onto
+        // the desktop then, and bank the layout afterwards.
+        Dispatcher.BeginInvoke(() =>
+        {
+            ClampToDesktop(win);
+            SaveLayout();
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    /// <summary>Slide a window back inside the virtual desktop if it would open past an
+    /// edge — same reachability rule the main window uses for its saved position.</summary>
+    private static void ClampToDesktop(Window w)
+    {
+        double left = SystemParameters.VirtualScreenLeft, top = SystemParameters.VirtualScreenTop;
+        var right = left + SystemParameters.VirtualScreenWidth;
+        var bottom = top + SystemParameters.VirtualScreenHeight;
+        w.Left = Math.Clamp(w.Left, left, Math.Max(left, right - Math.Max(200, w.ActualWidth)));
+        w.Top = Math.Clamp(w.Top, top, Math.Max(top, bottom - Math.Max(80, w.ActualHeight)));
     }
 
     /// <summary>The ✕ on a spawned FEED's heading: the window, its pane, and every
