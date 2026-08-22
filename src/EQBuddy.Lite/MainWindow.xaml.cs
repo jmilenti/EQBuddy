@@ -103,8 +103,8 @@ public partial class MainWindow : Window
         WireSection(SpawnHeader, "spawns", () => _ui.ShowSpawns = !_ui.ShowSpawns);
         WireSection(GroupLabel, "group", () => _ui.ShowGroup = !_ui.ShowGroup);
         Loaded += (_, _) => SetupSectionWindows();
-        LocationChanged += (_, _) => RepositionFollowers(this);
-        SizeChanged += (_, _) => RepositionFollowers(this);
+        LocationChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
+        SizeChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
 
         _timer.Tick += (_, _) => Tick();
         _timer.Start();
@@ -369,13 +369,33 @@ public partial class MainWindow : Window
         RefreshPopup();
     }
 
-    /// <summary>Keep the member popup parked at the panel's right edge and fed with the
+    /// <summary>The window a popup belongs beside: fight popups ride the FIGHTS window,
+    /// spawn popups the SPAWNS window, member popups the GROUP window — wherever those
+    /// have been dragged.</summary>
+    private Window PopupAnchor(string key)
+    {
+        var section = key.StartsWith("fight:", StringComparison.Ordinal) ? "fights"
+            : key.StartsWith("spawn:", StringComparison.Ordinal) ? "spawns"
+            : "group";
+        return _sectionWindows.TryGetValue(section, out var win) ? win : this;
+    }
+
+    /// <summary>Park the open popup at the right edge of the window it belongs to.
+    /// Called from every anchor's move/resize so it follows a drag live.</summary>
+    internal void RefreshPopupPosition()
+    {
+        if (_popup is not { } popup) return;
+        var anchor = PopupAnchor(popup.MemberName);
+        popup.Left = anchor.Left + anchor.ActualWidth + 8;
+        popup.Top = anchor.Top;
+    }
+
+    /// <summary>Keep the member popup parked beside its section window and fed with the
     /// latest synced numbers. Called every tick and when the popup opens.</summary>
     private void RefreshPopup()
     {
         if (_popup is not { } popup) return;
-        popup.Left = Left + ActualWidth + 8;
-        popup.Top = Top;
+        RefreshPopupPosition();
 
         // A spawn popup (keyed "spawn:<zone>|<name>") reads from the timers.
         if (popup.MemberName.StartsWith("spawn:", StringComparison.Ordinal))

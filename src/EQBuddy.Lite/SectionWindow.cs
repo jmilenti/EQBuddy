@@ -73,8 +73,8 @@ public sealed class SectionWindow : Window
             if (e.ChangedButton != MouseButton.Left) return;
             BeginUserDrag();
         };
-        LocationChanged += (_, _) => _owner.RepositionFollowers(this);
-        SizeChanged += (_, _) => _owner.RepositionFollowers(this);
+        LocationChanged += (_, _) => { _owner.RepositionFollowers(this); _owner.RefreshPopupPosition(); };
+        SizeChanged += (_, _) => { _owner.RepositionFollowers(this); _owner.RefreshPopupPosition(); };
     }
 
     /// <summary>A user drag un-hooks first (you are pulling it away), then re-snaps on
