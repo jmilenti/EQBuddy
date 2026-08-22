@@ -14,6 +14,58 @@ public class UpdateCheckerTests : IDisposable
 
     private UpdateInfo Info => new(new Version(9, 9, 9), SetupPath);
 
+    // ---- the silent self-update command line ----
+    //
+    // The installer offers an all-users / just-me choice, and Inno shows that chooser
+    // EVEN UNDER /SILENT unless the mode is on the command line. Omitting it left the
+    // updater parked on an invisible "Select Setup Install Mode" dialog forever, having
+    // already closed the app — so these assert the mode is ALWAYS stated.
+
+    [Fact]
+    public void SilentInstallAlwaysStatesTheInstallModeSoNoDialogCanAppear()
+    {
+        foreach (var path in new[]
+                 {
+                     @"C:\Users\a\AppData\Local\Programs\EQdps\EQdps.exe",
+                     @"C:\Program Files\EQdps\EQdps.exe",
+                     @"C:\portable\EQdps.exe",
+                     "",
+                     null,
+                 })
+        {
+            var args = UpdateChecker.SilentInstallArgs(path);
+            Assert.Contains("/SILENT", args);
+            Assert.True(args.Contains("/CURRENTUSER") || args.Contains("/ALLUSERS"),
+                $"no install mode stated for '{path}': {args}");
+        }
+    }
+
+    /// <summary>The mode follows the running copy, so an update lands on top of the
+    /// existing install rather than beside it.</summary>
+    [Fact]
+    public void AMachineWideInstallUpdatesMachineWideAndEverythingElseIsPerUser()
+    {
+        var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        Assert.Equal("/SILENT /ALLUSERS",
+            UpdateChecker.SilentInstallArgs(Path.Combine(pf, "EQdps", "EQdps.exe")));
+
+        var perUser = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Programs", "EQdps", "EQdps.exe");
+        Assert.Equal("/SILENT /CURRENTUSER", UpdateChecker.SilentInstallArgs(perUser));
+        Assert.Equal("/SILENT /CURRENTUSER", UpdateChecker.SilentInstallArgs(@"D:\portable\EQdps.exe"));
+        Assert.Equal("/SILENT /CURRENTUSER", UpdateChecker.SilentInstallArgs(null));
+    }
+
+    /// <summary>A folder that merely starts with the same letters is not inside it.</summary>
+    [Fact]
+    public void ALookalikeFolderNextToProgramFilesIsNotAMachineWideInstall()
+    {
+        var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        Assert.False(UpdateChecker.IsMachineWideInstall(pf + @"Portable\EQdps.exe"));
+        Assert.True(UpdateChecker.IsMachineWideInstall(Path.Combine(pf, "EQdps.exe")));
+    }
+
     // ---- choosing between the shared folder and the GitHub feed ----
 
     private static UpdateInfo Local(int minor) => new(new Version(1, minor, 0), "C:\\setup.exe");

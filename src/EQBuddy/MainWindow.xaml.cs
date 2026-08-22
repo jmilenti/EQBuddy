@@ -2524,7 +2524,7 @@ public partial class MainWindow : Window
             try
             {
                 var staged = await UpdateChecker.StageForInstall(info);
-                System.Diagnostics.Process.Start(staged, "/SILENT");
+                System.Diagnostics.Process.Start(staged, UpdateChecker.SilentInstallArgs(Environment.ProcessPath));
                 Dispatcher.Invoke(() => Application.Current.Shutdown());
             }
             catch (Exception ex)

@@ -196,6 +196,36 @@ public static class UpdateChecker
     /// asset. Either way, when a sibling "EQBuddySetup.exe.sha256" is published alongside
     /// it, the staged copy must match it — a corrupted or tampered installer is never run.
     /// </summary>
+    /// <summary>Command line for a silent self-update.
+    ///
+    /// "/SILENT" alone is NOT enough. The installer lets a person choose between an
+    /// all-users and a just-me install (PrivilegesRequiredOverridesAllowed=dialog), and
+    /// Inno shows that chooser EVEN IN SILENT MODE unless the mode is stated on the
+    /// command line. A self-update therefore closed the app and then sat forever on a
+    /// "Select Setup Install Mode" dialog — behind a fullscreen game, so invisible —
+    /// and nothing was ever installed.
+    ///
+    /// The mode follows wherever this copy actually lives, so an update lands on top of
+    /// the existing install rather than beside it: a machine-wide install under Program
+    /// Files stays machine-wide, anything else (the default per-user install, a portable
+    /// unzip, a dev build) stays per-user and needs no elevation.</summary>
+    public static string SilentInstallArgs(string? runningExePath) =>
+        IsMachineWideInstall(runningExePath) ? "/SILENT /ALLUSERS" : "/SILENT /CURRENTUSER";
+
+    internal static bool IsMachineWideInstall(string? exePath)
+    {
+        if (string.IsNullOrWhiteSpace(exePath)) return false;
+        foreach (var folder in new[]
+                 { Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolder.ProgramFilesX86 })
+        {
+            var root = Environment.GetFolderPath(folder);
+            if (root.Length > 0 &&
+                exePath.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
+
     public static async Task<string> StageForInstall(UpdateInfo info)
     {
         var staged = Path.Combine(Path.GetTempPath(), SetupName);

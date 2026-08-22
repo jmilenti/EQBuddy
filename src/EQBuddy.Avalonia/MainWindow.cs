@@ -1919,7 +1919,7 @@ public sealed class MainWindow : Window
             try
             {
                 var staged = await UpdateChecker.StageForInstall(info);
-                Process.Start(staged, "/SILENT");
+                Process.Start(staged, UpdateChecker.SilentInstallArgs(Environment.ProcessPath));
                 Dispatcher.UIThread.Post(Shutdown);
             }
             catch (Exception ex)
