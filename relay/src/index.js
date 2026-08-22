@@ -151,8 +151,13 @@ function viewPage(code) {
   .dot.live { background: limegreen; }
   .title { color: #dde5ec; font-weight: 600; font-size: 14px; }
   .label { color: #7b8794; font-size: 10px; letter-spacing: .5px; margin: 4px 0; }
-  .rows { font-family: Consolas, Menlo, monospace; font-size: 14px; color: #cfe3f5;
-          white-space: pre; line-height: 1.5; }
+  .rows { font-family: Consolas, Menlo, monospace; font-size: 14px; color: #cfe3f5; }
+  .mrow { cursor: pointer; padding: 4px 8px; margin: 2px 0; border-radius: 6px;
+          background: #ffffff14; border: 1px solid #ffffff1e; white-space: pre; }
+  .mrow:hover { background: #ffffff30; border-color: #ffffff55; }
+  .mdetail { font-size: 12px; color: #9fb0be; white-space: pre; margin: 2px 0 6px 14px;
+             line-height: 1.45; }
+  .mdetail .motes { color: #d9c46b; }
   .empty { color: #7b8794; font-style: italic; font-size: 13px; }
   .foot { color: #55616c; font-size: 10px; margin-top: 10px; }
 </style>
@@ -168,22 +173,54 @@ function viewPage(code) {
 const rows = document.getElementById('rows');
 const dot = document.getElementById('dot');
 const foot = document.getElementById('foot');
+const open = new Set(); // member names whose breakdown is expanded
 const pad = (s, w) => s.length >= w ? s.slice(0, w) : s + ' '.repeat(w - s.length);
+const fmt = (n) => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M'
+  : n >= 1e4 ? Math.round(n / 1e3) + 'k'
+  : n >= 1e3 ? (n / 1e3).toFixed(1) + 'k' : String(n);
+function render(members) {
+  rows.innerHTML = '';
+  for (const m of members) {
+    const row = document.createElement('div');
+    row.className = 'mrow';
+    row.textContent = pad(m.name, 13) + String(Math.round(m.dps)).padStart(5)
+      + ' dps  (session ' + Math.round(m.sdps) + ')';
+    row.title = 'Click for breakdown';
+    row.onclick = () => { open.has(m.name) ? open.delete(m.name) : open.add(m.name); tick(); };
+    rows.appendChild(row);
+    if (!open.has(m.name)) continue;
+    const det = document.createElement('div');
+    det.className = 'mdetail';
+    const top = m.top || [];
+    const total = top.reduce((a, e) => a + e.t, 0);
+    let text = total > 0
+      ? top.map(e => pad(e.n, 14) + fmt(e.t).padStart(7)
+          + String(Math.round(e.t * 100 / total)).padStart(4) + '%').join('\\n')
+      : '(no breakdown shared)';
+    det.textContent = text;
+    if (m.motes && m.motes.tot > 0) {
+      const mo = document.createElement('div');
+      mo.className = 'motes';
+      mo.textContent = '\\u2728 ' + m.motes.tot + ' motes (' + m.motes.ph + '/h)  '
+        + (m.motes.tiers || []).map(t => t.n.replace(/^Mote of\\s*/i, '').replace(/\\s*Potential$/i, '') .trim().replace(/^$/, 'Base') + '\\u00d7' + t.c).join(', ');
+      det.appendChild(document.createElement('br'));
+      det.appendChild(mo);
+    }
+    rows.appendChild(det);
+  }
+}
 async function tick() {
   try {
     const r = await fetch('/v1/group/${code}');
     const data = await r.json();
     const m = data.members || [];
     dot.className = 'dot' + (m.length ? ' live' : '');
-    rows.innerHTML = '';
     if (!m.length) {
       rows.innerHTML = '<span class="empty">(no one posting — apps send only while running)</span>';
     } else {
-      rows.textContent = m.map(x =>
-        pad(x.name, 13) + String(Math.round(x.dps)).padStart(5) + ' dps  (session ' + Math.round(x.sdps) + ')'
-      ).join('\\n');
+      render(m);
     }
-    foot.textContent = 'refreshes every 3s · read-only';
+    foot.textContent = 'refreshes every 3s · click a name for their breakdown · read-only';
   } catch (e) {
     dot.className = 'dot';
     foot.textContent = 'relay unreachable — retrying…';

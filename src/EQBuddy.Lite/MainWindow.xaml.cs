@@ -474,10 +474,26 @@ public partial class MainWindow : Window
         string rows;
         var total = member.Breakdown.Sum(b => b.Total);
         if (total > 0)
+        {
             rows = string.Join("\n", member.Breakdown.Select(b =>
                 $"{Pad(b.Name, 13)} {FmtDamage(b.Total),6} {b.Total * 100 / total,3}%"));
+        }
         else
-            rows = "(no damage yet)";
+        {
+            // Their app shared no breakdown (older version, or nothing yet) — fall
+            // back to what YOUR log saw of them before declaring a blank.
+            var seen = _group.Snapshot(DateTime.Now, _snap?.PetName)
+                .FirstOrDefault(r => r.Name.StartsWith(popup.MemberName, StringComparison.OrdinalIgnoreCase));
+            var seenTotal = seen?.Breakdown.Sum(b => b.Total) ?? 0;
+            if (seen is not null && seenTotal > 0)
+                rows = "from your log · approximate\n" + string.Join("\n",
+                    seen.Breakdown.Take(8).Select(b =>
+                        $"{Pad(b.Name, 13)} {FmtDamage(b.Total),6} {b.Total * 100 / seenTotal,3}%"));
+            else if (member.Dps > 0 || member.SessionDps > 0)
+                rows = "(no breakdown shared — their\n app may be an older version)";
+            else
+                rows = "(no damage yet)";
+        }
 
         var m = member.Motes;
         var motesSummary = m.Total > 0
