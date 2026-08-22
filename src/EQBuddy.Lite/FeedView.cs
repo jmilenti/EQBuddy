@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -32,6 +33,26 @@ internal sealed class FeedView
     private readonly ListBox _list;
     private readonly TextBox _searchBox;
     private readonly List<Action> _pillRefreshers = [];
+
+    /// <summary>The bound row list, newest first. Held for the life of the window and
+    /// mutated in place: a live feed inserts the handful of rows that arrived since the
+    /// last frame at the top and drops the same number off the bottom. Rebuilding it (the
+    /// old behaviour, once a second) reset the ListBox, threw away every realised row
+    /// container, and made the arrival of a line something you saw happen in a lump.</summary>
+    private readonly ObservableCollection<FeedRow> _rows = [];
+
+    /// <summary>How far into <see cref="DamageFeed"/>'s sequence <see cref="_rows"/> has
+    /// been filled, or -1 when the next render must rebuild from scratch (a filter moved,
+    /// the mode flipped, the window was re-opened).</summary>
+    private long _cursor = -1;
+
+    /// <summary>The list is showing the "nothing matching yet" placeholder, which the
+    /// first real row has to clear.</summary>
+    private bool _placeholder;
+
+    /// <summary>Rows kept per window. Deep enough to scroll back through a long fight;
+    /// virtualisation means only the visible dozen ever become controls.</summary>
+    private const int MaxRows = 2000;
 
     private static SolidColorBrush Frozen(byte r, byte g, byte b)
     {
@@ -133,6 +154,7 @@ internal sealed class FeedView
             BorderThickness = new Thickness(0),
             ItemContainerStyle = (Style)_owner.FindResource("FeedItemStyle"),
             ItemTemplate = (DataTemplate)_owner.FindResource("FeedRowTemplate"),
+            ItemsSource = _rows,
         };
         ScrollViewer.SetHorizontalScrollBarVisibility(_list, ScrollBarVisibility.Disabled);
         ScrollViewer.SetVerticalScrollBarVisibility(_list, ScrollBarVisibility.Auto);
@@ -184,14 +206,21 @@ internal sealed class FeedView
         _list.Width = cap;
     }
 
+    /// <summary>Throw away what is drawn and rebuild from the buffer on the next render.
+    /// Anything that changes which rows QUALIFY lands here — the incremental path only
+    /// knows how to add what is new, not to re-judge what is already on screen.</summary>
+    public void Invalidate() => _cursor = -1;
+
     public void Render()
     {
         if (!Pane.Show)
         {
-            Header.Text = $"▸ {Title} · live";
+            SetHeader($"▸ {Title} · live");
             _searchRow.Visibility = Visibility.Collapsed;
             _pillRow.Visibility = Visibility.Collapsed;
             _list.Visibility = Visibility.Collapsed;
+            // Nothing repaints a hidden list, so re-opening starts from scratch.
+            Invalidate();
             return;
         }
         var f = Pane.Filters;
@@ -208,31 +237,65 @@ internal sealed class FeedView
 
         // Newest-first means every refresh shifts rows under a reader who has scrolled
         // back — so while they're anywhere but the top, the list freezes and the header
-        // says so. Scrolling back up resumes live on the next tick.
+        // says so. The cursor doesn't advance either, so resuming catches up rather than
+        // skipping whatever landed while they were reading.
         if (Scroller() is { VerticalOffset: > 0.5 })
         {
-            Header.Text = $"▾ {Title} · paused — scroll to top to resume";
+            SetHeader($"▾ {Title} · paused — scroll to top to resume");
             return;
         }
-        List<FeedRow> rows;
+        SetHeader(raw ? $"▾ {Title} · raw log · live" : $"▾ {Title} · live");
+
+        var rebuild = _cursor < 0;
+        var since = rebuild ? 0 : _cursor;
+        List<FeedRow> fresh;
         if (raw)
         {
-            rows = _feed.SnapshotRaw(f.SearchTerms, 2000)
+            fresh = _feed.SnapshotRaw(f.SearchTerms, MaxRows, since, out var cursor)
                 .Select(l => new FeedRow(
                     l.Time == DateTime.MinValue ? l.Text : $"{l.Time:HH:mm:ss}  {l.Text}",
                     RawBrush))
                 .ToList();
-            Header.Text = $"▾ {Title} · raw log · live";
+            _cursor = cursor;
         }
         else
         {
-            rows = _feed.Snapshot(f, 2000).Select(RowOf).ToList();
-            Header.Text = $"▾ {Title} · live";
+            fresh = _feed.Snapshot(f, MaxRows, since, out var cursor).Select(RowOf).ToList();
+            _cursor = cursor;
         }
+        if (!rebuild && fresh.Count == 0) return;   // the common frame: nothing to do
+
+        // A rebuild starts empty; so does a list showing only the placeholder, which is
+        // not a row anyone wants pushed down the page.
+        if (rebuild || _placeholder)
+        {
+            _rows.Clear();
+            _placeholder = false;
+        }
+        if (_rows.Count == 0)
+        {
+            foreach (var row in fresh) _rows.Add(row);   // already newest-first
+        }
+        else
+        {
+            // Oldest of the new rows first, each pushed onto the top, so they end up
+            // newest-first above whatever was already there.
+            for (var i = fresh.Count - 1; i >= 0; i--) _rows.Insert(0, fresh[i]);
+        }
+        while (_rows.Count > MaxRows) _rows.RemoveAt(_rows.Count - 1);
+
         // An empty match set renders as one dim row INSIDE the fixed-height list —
         // swapping the list for a message would change the window's height.
-        if (rows.Count == 0) rows.Add(new FeedRow("(nothing matching yet)", DimBrush));
-        _list.ItemsSource = rows;
+        if (_rows.Count == 0)
+        {
+            _rows.Add(new FeedRow("(nothing matching yet)", DimBrush));
+            _placeholder = true;
+        }
+    }
+
+    private void SetHeader(string text)
+    {
+        if (Header.Text != text) Header.Text = text;
     }
 
     /// <summary>The ListBox's internal ScrollViewer, once templated (null before the
@@ -332,6 +395,7 @@ internal sealed class FeedView
                 click();
                 _ui.Save();
                 Refresh();
+                Invalidate();
                 Render();
             };
             Refresh();
@@ -387,6 +451,7 @@ internal sealed class FeedView
             f.SearchTerms.Add(term);
         _ui.Save();
         RefreshSearchRow();
+        Invalidate();
         Render();
     }
 
@@ -412,6 +477,7 @@ internal sealed class FeedView
             f.RawMode = !f.RawMode;
             _ui.Save();
             RefreshSearchRow();
+            Invalidate();
             Render();
         };
         _searchRow.Children.Add(all);
@@ -435,6 +501,7 @@ internal sealed class FeedView
                 f.SearchTerms.RemoveAll(t => string.Equals(t, term, StringComparison.OrdinalIgnoreCase));
                 _ui.Save();
                 RefreshSearchRow();
+                Invalidate();
                 Render();
             };
             var body = new StackPanel { Orientation = Orientation.Horizontal };

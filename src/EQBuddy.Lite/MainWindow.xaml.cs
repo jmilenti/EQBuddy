@@ -58,6 +58,19 @@ public partial class MainWindow : Window
     private bool Attached(string key) => !_sectionWindows.ContainsKey(key);
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
 
+    /// <summary>The FEED windows repaint on their own clock, ten times a second, because
+    /// they show a stream rather than a set of numbers: on the 1 s panel tick a burst of
+    /// combat arrived as one lump a second after the game showed it, which read as the
+    /// feed lagging the fight. Everything else on the panel is a rate or a total that
+    /// only means anything once a second anyway.
+    ///
+    /// It costs what an idle frame costs — each view asks its buffer for "anything after
+    /// sequence N", gets nothing, and returns. Normal priority, not the DispatcherTimer
+    /// default of Background: a background timer this short is starved by the layout work
+    /// the panel tick kicks off, which is exactly when the feed is busiest.</summary>
+    private readonly DispatcherTimer _feedTimer =
+        new(DispatcherPriority.Normal) { Interval = TimeSpan.FromMilliseconds(100) };
+
     private DateTime _lastCharScan = DateTime.MinValue;
     private DateTime _lastJanitor = DateTime.MinValue;
     private DateTime _lastUpdateCheck = DateTime.MinValue;
@@ -155,6 +168,8 @@ public partial class MainWindow : Window
 
         _timer.Tick += (_, _) => Tick();
         _timer.Start();
+        _feedTimer.Tick += (_, _) => RenderFeeds();
+        _feedTimer.Start();
         _sync.Start();
         CheckUpdates();
 
@@ -458,10 +473,8 @@ public partial class MainWindow : Window
 
         _feed.PetName = s.PetName;
         foreach (var view in _feedViews.Values)
-        {
             view.TopSep.Visibility = Attached(view.Key) ? Visibility.Visible : Visibility.Collapsed;
-            view.Render();
-        }
+        RenderFeeds();
 
         // Everything above may have changed a section's height; re-seat the stack once
         // the layout pass has actually run, so a section that shrank this tick doesn't
@@ -695,6 +708,14 @@ public partial class MainWindow : Window
     }
 
     // ---- FEED: lives in FeedView (one instance per spawned feed window) ----
+
+    /// <summary>Repaint every FEED window. Called from the 100 ms feed timer and from the
+    /// panel tick, since a tick can change what the views want to show (the pet name a
+    /// row is attributed by, a section becoming attached).</summary>
+    private void RenderFeeds()
+    {
+        foreach (var view in _feedViews.Values) view.Render();
+    }
 
     private static SolidColorBrush Frozen(byte r, byte g, byte b)
     {
@@ -1095,6 +1116,8 @@ public partial class MainWindow : Window
             if (!win.IsVisible) continue;
             _ui.SectionPositions[key] = [win.Left, win.Top];
             _ui.SectionDocks[key] = DockKey(win.DockHost);
+            if (win.DockSide == DockSide.Below) _ui.SectionDockSides.Remove(key);
+            else _ui.SectionDockSides[key] = win.DockSide == DockSide.Right ? "right" : "left";
         }
         _ui.Save();
         _settings.WindowLeft = Left;
@@ -1226,10 +1249,7 @@ public partial class MainWindow : Window
                 break;
             }
         }
-        w.DockHost = tail;
-        w.Left = tail.Left;
-        w.Top = tail.Top + tail.ActualHeight + DockGap;
-        RepositionFollowers(w);
+        Dock(w, tail, DockSide.Below);
         SaveLayout();   // the dock graph is remembered now, so every change to it is saved
     }
 
@@ -1260,14 +1280,23 @@ public partial class MainWindow : Window
             Filters = System.Text.Json.JsonSerializer.Deserialize<FeedFilters>(
                 System.Text.Json.JsonSerializer.Serialize(from.Pane.Filters)) ?? new FeedFilters(),
         };
+        // Same width as the window it came from, not the 340 px default: the pill rows
+        // WRAP on width, so a copy even slightly narrower stands a whole pill row taller
+        // than its source and the two can never be lined up however carefully they are
+        // dragged. Matching the width is what makes the heights match.
+        if (_ui.SectionWidths.TryGetValue(from.Key, out var srcWidth))
+            _ui.SectionWidths[pane.Key] = srcWidth;
         _ui.FeedPanes.Add(pane);
         AddFeedView(pane);
         Detach(pane.Key, tearOff: false);
+        ApplySectionWidth(pane.Key,
+            _ui.SectionWidths.TryGetValue(pane.Key, out var w) ? w : double.NaN);
 
-        // Beside the window it came from, floating — NOT hooked under the stack's tail
-        // like other new sections. A full stack already reaches the bottom of the
-        // screen, so a window added below it lands off-screen, which reads as the +
-        // having done nothing at all.
+        // BESIDE the window it came from, not under it: a full stack already reaches the
+        // bottom of the screen, so a window added below it opens off-screen and reads as
+        // the + having done nothing at all. Docked to that side rather than left loose,
+        // so the two stay top-aligned and move together — lining them up by hand was the
+        // fiddly part, and dropping one beside another now snaps anyway (SnapWindow).
         var win = _sectionWindows[pane.Key];
         var src = _sectionWindows.TryGetValue(from.Key, out var s) && s.IsVisible
             ? (Window)s : this;
@@ -1276,13 +1305,34 @@ public partial class MainWindow : Window
         win.Top = src.Top;
         _ui.Save();
         Tick();
-        // Its height is only known once it has laid out its rows; nudge it back onto
-        // the desktop then, and bank the layout afterwards.
+        // Its size is only known once it has laid out its rows, and which side it can
+        // take depends on that size — so choose the side, then bank the layout.
         Dispatcher.BeginInvoke(() =>
         {
-            ClampToDesktop(win);
+            SeatBeside(win, src);
             SaveLayout();
         }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    /// <summary>Park a freshly spawned window against its source: to the right, or to the
+    /// left when the right would hang off the screen (the panel's own default position is
+    /// hard against a screen's right edge, so that is the common case). Docked, so it keeps
+    /// its host's top edge from then on. If neither side fits — a source window wider than
+    /// the space around it — it stays where it is, merely dragged back onto the desktop and
+    /// left free-floating, which is what a spawned window always did.</summary>
+    private void SeatBeside(SectionWindow w, Window src)
+    {
+        // The source's OWN screen, not the whole virtual desktop: the panel sits at the
+        // right edge of a screen by default, and "there is room to the right" is true of
+        // the desktop while meaning the new window opens on the next monitor over.
+        var screen = Monitors.WorkAreaOf(src);
+        var width = Math.Max(200, w.ActualWidth);
+        if (src.Left + src.ActualWidth + DockGap + width <= screen.Right)
+            Dock(w, src, DockSide.Right);
+        else if (src.Left - DockGap - width >= screen.Left)
+            Dock(w, src, DockSide.Left);
+        else
+            ClampToDesktop(w);
     }
 
     /// <summary>Slide a window back inside the virtual desktop if it would open past an
@@ -1307,7 +1357,13 @@ public partial class MainWindow : Window
         {
             foreach (var follower in _sectionWindows.Values
                          .Where(f => ReferenceEquals(f.DockHost, win)))
+            {
+                // Inherit the slot, not just the host: a follower of a window that was
+                // itself docked to one SIDE belongs on that side too, or it drops into
+                // the vertical stack on top of whatever is already there.
+                follower.DockSide = win.DockSide;
                 follower.DockHost = win.DockHost ?? this;
+            }
             _sectionWindows.Remove(key);
             win.Close();
         }
@@ -1318,34 +1374,78 @@ public partial class MainWindow : Window
         _ui.SectionWidths.Remove(key);
         _ui.SectionPositions.Remove(key);
         _ui.SectionDocks.Remove(key);
+        _ui.SectionDockSides.Remove(key);
         _ui.HiddenSections.Remove(key);
         RepinStack();
         SaveLayout();
     }
 
-    /// <summary>Magnetise: dropped near another EQdps window's bottom edge, a section
-    /// window aligns under it and follows it from then on.</summary>
+    /// <summary>Magnetise: dropped near another EQdps window's bottom edge — or either
+    /// SIDE of it — a section window aligns there and follows it from then on. Sideways
+    /// docking is what lets a second column exist at all: two FEED windows side by side
+    /// share a top edge exactly, instead of being nudged towards each other by hand and
+    /// never quite landing on the same line.</summary>
     internal void SnapWindow(SectionWindow w)
     {
         const double snapX = 48, snapY = 28;
         w.DockHost = null;
         Window? best = null;
+        var bestSide = DockSide.Below;
         var bestDist = double.MaxValue;
         foreach (var host in SnapHosts(w))
+        foreach (var side in new[] { DockSide.Below, DockSide.Right, DockSide.Left })
         {
-            var dx = Math.Abs(w.Left - host.Left);
-            var dy = Math.Abs(w.Top - (host.Top + host.ActualHeight + DockGap));
-            if (dx > snapX || dy > snapY) continue;
-            if (dx + dy < bestDist) { bestDist = dx + dy; best = host; }
+            var (x, y) = SeatOf(w, host, side);
+            // The tolerances follow the axis the dock is ALONG: a side dock is aimed at
+            // by its top edge (fine) and reached across the host's width (coarse), the
+            // mirror of an under-dock.
+            var dx = Math.Abs(w.Left - x);
+            var dy = Math.Abs(w.Top - y);
+            if (side == DockSide.Below ? dx > snapX || dy > snapY : dx > snapY || dy > snapX)
+                continue;
+            if (dx + dy >= bestDist) continue;
+            bestDist = dx + dy;
+            best = host;
+            bestSide = side;
         }
-        if (best is not null)
-        {
-            w.DockHost = best;
-            w.Left = best.Left;
-            w.Top = best.Top + best.ActualHeight + DockGap;
-            RepositionFollowers(w);
-        }
+        if (best is not null) Dock(w, best, bestSide);
         SaveLayout();
+    }
+
+    /// <summary>Hook a window onto a host on the given side and seat it there.</summary>
+    private void Dock(SectionWindow w, Window host, DockSide side)
+    {
+        w.DockHost = host;
+        w.DockSide = side;
+        SeatOnHost(w);
+        RepositionFollowers(w);
+    }
+
+    /// <summary>Where <paramref name="w"/> sits when docked to <paramref name="host"/> on
+    /// the given side. A side dock shares the host's TOP edge (that is the alignment the
+    /// eye reads across a row of windows); an under-dock shares its left edge.</summary>
+    private (double X, double Y) SeatOf(Window w, Window host, DockSide side) => side switch
+    {
+        DockSide.Right => (host.Left + host.ActualWidth + DockGap, host.Top),
+        DockSide.Left => (host.Left - DockGap - w.ActualWidth, host.Top),
+        _ => (host.Left, host.Top + host.ActualHeight + DockGap),
+    };
+
+    /// <summary>Move a docked window to where its host says it belongs.</summary>
+    private void SeatOnHost(SectionWindow w)
+    {
+        if (w.DockHost is not { } host) return;
+        var (x, y) = SeatOf(w, host, w.DockSide);
+        w.Left = x;
+        w.Top = y;
+    }
+
+    /// <summary>A left-docked window hangs off its own right edge, so its position depends
+    /// on its own width — the one case where a size change has to re-seat the window
+    /// itself rather than its followers.</summary>
+    internal void ReseatSelf(SectionWindow w)
+    {
+        if (w.DockSide == DockSide.Left && w.DockHost is not null) SeatOnHost(w);
     }
 
     private IEnumerable<Window> SnapHosts(SectionWindow w)
@@ -1423,8 +1523,7 @@ public partial class MainWindow : Window
     {
         foreach (var follower in _sectionWindows.Values.Where(f => ReferenceEquals(f.DockHost, host)))
         {
-            follower.Left = host.Left;
-            follower.Top = host.Top + host.ActualHeight + DockGap;
+            SeatOnHost(follower);
             RepositionFollowers(follower);
         }
     }
@@ -1458,9 +1557,7 @@ public partial class MainWindow : Window
                 foreach (var key in SectionKeys)
                 {
                     var win = _sectionWindows[key];
-                    win.DockHost = previous;
-                    win.Left = previous.Left;
-                    win.Top = previous.Top + previous.ActualHeight + DockGap;
+                    Dock(win, previous, DockSide.Below);
                     previous = win;
                 }
             }
@@ -1478,6 +1575,14 @@ public partial class MainWindow : Window
                     "main" => this,
                     _ => _sectionWindows.GetValueOrDefault(hostKey),
                 };
+                win.DockSide = _ui.SectionDockSides.TryGetValue(key, out var side)
+                    ? side switch
+                    {
+                        "right" => DockSide.Right,
+                        "left" => DockSide.Left,
+                        _ => DockSide.Below,
+                    }
+                    : DockSide.Below;   // every dock was an under-dock before 1.69
                 // A remembered host that no longer ships (a section key retired in an
                 // update — "group2" lived for one release) would orphan this window
                 // exactly the way lost geometry used to; the tail is the safe spot.
@@ -1542,10 +1647,7 @@ public partial class MainWindow : Window
             if (gap < bestGap) { bestGap = gap; best = host; }
         }
         if (best is null) return;
-        w.DockHost = best;
-        w.Left = best.Left;
-        w.Top = best.Top + best.ActualHeight + DockGap;
-        RepositionFollowers(w);
+        Dock(w, best, DockSide.Below);
     }
 
     /// <summary>Re-seat every docked window under its host. LocationChanged/SizeChanged
@@ -1566,9 +1668,7 @@ public partial class MainWindow : Window
         foreach (var key in SectionKeys)
         {
             var win = _sectionWindows[key];
-            win.DockHost = previous;
-            win.Left = previous.Left;
-            win.Top = previous.Top + previous.ActualHeight + DockGap;
+            Dock(win, previous, DockSide.Below);
             previous = win;
         }
         RepositionFollowers(this);
@@ -1640,6 +1740,9 @@ public partial class MainWindow : Window
         _ui.HiddenSections = dlg.HiddenSections;
         _ui.FeedHistory = dlg.FeedHistory;
         _feed.SetCapacity(_ui.FeedHistory);
+        // Shrinking the buffer drops the oldest entries out from under rows already
+        // drawn; redraw from what survived.
+        foreach (var view in _feedViews.Values) view.Invalidate();
         _ui.Save();
         ApplySectionVisibility();
         Tick();
@@ -1660,7 +1763,10 @@ public partial class MainWindow : Window
             {
                 foreach (var follower in _sectionWindows.Values
                              .Where(f => ReferenceEquals(f.DockHost, win)))
+                {
+                    follower.DockSide = win.DockSide;   // takes over the hidden window's slot
                     follower.DockHost = win.DockHost ?? this;
+                }
                 win.DockHost = null;
                 win.Hide();
             }

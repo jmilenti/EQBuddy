@@ -16,6 +16,11 @@ internal sealed record FeedEntry(DateTime Time, FeedWho Who, FeedKind Kind, stri
     /// a row reads exactly as the game wrote it while still being filterable by who,
     /// kind, crit, and amount. Null only for entries captured before 1.68.1.</summary>
     public string? Raw { get; set; }
+
+    /// <summary>Monotonic id, assigned on enqueue. The feed views render incrementally —
+    /// each asks only for what arrived since the sequence it last drew — so a live feed
+    /// costs one insert per new line instead of rebuilding two thousand rows.</summary>
+    public long Seq { get; set; }
 }
 
 /// <summary>
@@ -39,12 +44,29 @@ internal sealed class DamageFeed
         lock (_lock)
         {
             _capacity = cap;
-            while (_entries.Count > cap) _entries.Dequeue();
-            while (_raw.Count > cap) _raw.Dequeue();
+            Trim(_entries, cap, force: true);
+            Trim(_raw, cap, force: true);
         }
     }
 
-    private readonly Queue<FeedEntry> _entries = new();
+    /// <summary>Lists, not queues: a render walks the newest end backwards by index, and
+    /// Queue.Reverse() would copy the whole buffer (up to 200k entries) to do that — once
+    /// per feed window per frame. Dropping the oldest entries is a block move, so it
+    /// happens in <see cref="TrimSlack"/>-sized batches rather than one item at a time.</summary>
+    private const int TrimSlack = 512;
+
+    private static void Trim<T>(List<T> buffer, int capacity, bool force = false)
+    {
+        var excess = buffer.Count - capacity;
+        if (excess <= 0 || (!force && excess < TrimSlack)) return;
+        buffer.RemoveRange(0, excess);
+    }
+
+    private readonly List<FeedEntry> _entries = [];
+
+    /// <summary>Ids handed out to entries and raw lines alike — one counter, so a view
+    /// holds a single cursor whichever buffer it happens to be reading.</summary>
+    private long _seq;
 
     /// <summary>Entries made from the line currently being processed, waiting for that
     /// line's text. LogWatcher parses a line and fires Tap, THEN fires RawTap with the
@@ -55,7 +77,11 @@ internal sealed class DamageFeed
 
     /// <summary>Raw-mode buffer: every log line verbatim (message part), timestamped.
     /// MinValue marks a line whose prefix didn't parse — shown without a clock.</summary>
-    private readonly Queue<(DateTime Time, string Text)> _raw = new();
+    private readonly List<RawLine> _raw = [];
+
+    /// <summary>One verbatim log line in the raw-mode buffer.</summary>
+    internal readonly record struct RawLine(long Seq, DateTime Time, string Text);
+
     private readonly object _lock = new();
 
     /// <summary>Current pet name, written by the UI tick, read on the watcher thread —
@@ -109,9 +135,10 @@ internal sealed class DamageFeed
         if (entry is null) return;
         lock (_lock)
         {
-            _entries.Enqueue(entry);
+            entry.Seq = ++_seq;
+            _entries.Add(entry);
             _awaitingRaw.Add(entry);
-            while (_entries.Count > _capacity) _entries.Dequeue();
+            Trim(_entries, _capacity);
         }
     }
 
@@ -137,21 +164,25 @@ internal sealed class DamageFeed
             foreach (var pending in _awaitingRaw) pending.Raw = text;
             _awaitingRaw.Clear();
             if (text.Length == 0) return;
-            _raw.Enqueue((time, text));
-            while (_raw.Count > _capacity) _raw.Dequeue();
+            _raw.Add(new RawLine(++_seq, time, text));
+            Trim(_raw, _capacity);
         }
     }
 
     /// <summary>Raw mode's view: newest-first lines containing ANY search term (all of
-    /// them when no chips are set), at most <paramref name="max"/>.</summary>
-    public List<(DateTime Time, string Text)> SnapshotRaw(IReadOnlyList<string> terms, int max)
+    /// them when no chips are set), at most <paramref name="max"/>, and only what arrived
+    /// after <paramref name="since"/> (0 = the whole buffer). <paramref name="cursor"/>
+    /// comes back as the sequence this snapshot has caught up to.</summary>
+    public List<RawLine> SnapshotRaw(IReadOnlyList<string> terms, int max, long since, out long cursor)
     {
         lock (_lock)
         {
-            var rows = new List<(DateTime, string)>(Math.Min(max, _raw.Count));
-            foreach (var line in _raw.Reverse())
+            cursor = _seq;
+            var rows = new List<RawLine>();
+            for (var i = _raw.Count - 1; i >= 0; i--)
             {
-                if (rows.Count >= max) break;
+                var line = _raw[i];
+                if (line.Seq <= since || rows.Count >= max) break;
                 if (terms.Count > 0)
                 {
                     var any = false;
@@ -178,15 +209,29 @@ internal sealed class DamageFeed
         : IsPet(actor) ? FeedWho.Pet
         : FeedWho.Group;
 
-    /// <summary>Newest-first rows passing the filters, at most <paramref name="max"/>.</summary>
-    public List<FeedEntry> Snapshot(FeedFilters f, int max)
+    /// <summary>Newest-first rows passing the filters, at most <paramref name="max"/>,
+    /// and only what arrived after <paramref name="since"/> (0 = the whole buffer, i.e. a
+    /// full rebuild). <paramref name="cursor"/> comes back as the sequence this snapshot
+    /// has caught up to — hand it back next time to be given only the newer rows.
+    ///
+    /// The cursor stops SHORT of an entry still waiting for its raw text (see
+    /// <see cref="_awaitingRaw"/>): the watcher fires Tap and RawTap under two separate
+    /// lock acquisitions, so a render landing between them would otherwise publish the row
+    /// in its fallback shape and — being incremental — never redraw it.</summary>
+    public List<FeedEntry> Snapshot(FeedFilters f, int max, long since, out long cursor)
     {
         lock (_lock)
         {
-            var rows = new List<FeedEntry>(max);
-            foreach (var e in _entries.Reverse())
+            var pending = long.MaxValue;
+            foreach (var e in _awaitingRaw) pending = Math.Min(pending, e.Seq);
+            cursor = Math.Max(since, pending == long.MaxValue ? _seq : pending - 1);
+
+            var rows = new List<FeedEntry>();
+            for (var i = _entries.Count - 1; i >= 0; i--)
             {
-                if (rows.Count >= max) break;
+                var e = _entries[i];
+                if (e.Seq <= since || rows.Count >= max) break;
+                if (e.Seq >= pending) continue;
                 if (Matches(e, f)) rows.Add(e);
             }
             return rows;

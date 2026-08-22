@@ -6,6 +6,11 @@ using System.Windows.Threading;
 
 namespace EQBuddy.Lite;
 
+/// <summary>Which edge of its host a docked window hangs off. Below is the stack every
+/// section starts in; the sides are how a second column exists — two windows dropped
+/// beside each other share a top edge exactly rather than being nudged towards it.</summary>
+public enum DockSide { Below, Right, Left }
+
 /// <summary>
 /// A torn-off panel section as its own floating window. The section's element is
 /// re-parented here verbatim (its x:Name fields in MainWindow stay live, so Tick keeps
@@ -21,6 +26,10 @@ public sealed class SectionWindow : Window
     /// Maintained by MainWindow.SnapWindow; followers are repositioned whenever the
     /// host moves or resizes.</summary>
     public Window? DockHost { get; set; }
+
+    /// <summary>Which side of <see cref="DockHost"/> this window sits on. Below (the
+    /// stack) unless it was dropped against a host's left or right edge.</summary>
+    public DockSide DockSide { get; set; } = DockSide.Below;
 
     private readonly MainWindow _owner;
     private readonly Grid _grid;
@@ -151,7 +160,14 @@ public sealed class SectionWindow : Window
             BeginUserDrag();
         };
         LocationChanged += (_, _) => { _owner.RepositionFollowers(this); _owner.RefreshPopupPosition(); };
-        SizeChanged += (_, _) => { _owner.RepositionFollowers(this); _owner.RefreshPopupPosition(); };
+        SizeChanged += (_, _) =>
+        {
+            // A left-docked window is positioned by its RIGHT edge, so its own width
+            // change moves it; every other dock only moves what hangs off it.
+            _owner.ReseatSelf(this);
+            _owner.RepositionFollowers(this);
+            _owner.RefreshPopupPosition();
+        };
     }
 
     /// <summary>A user drag un-hooks first (you are pulling it away), then re-snaps on
@@ -159,6 +175,7 @@ public sealed class SectionWindow : Window
     public void BeginUserDrag()
     {
         DockHost = null;
+        DockSide = DockSide.Below;
         try { DragMove(); } catch (InvalidOperationException) { /* button already up */ }
         _owner.SnapWindow(this);
     }

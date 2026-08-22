@@ -97,6 +97,11 @@ public sealed class LiteUiSettings
     /// is a settings file written before docks were saved.</summary>
     public Dictionary<string, string> SectionDocks { get; set; } = new();
 
+    /// <summary>Which side of its host a section is docked on: "right" or "left" for the
+    /// windows that form a second column, absent for the ordinary under-the-stack dock
+    /// (which is every dock a file written before 1.69 can describe).</summary>
+    public Dictionary<string, string> SectionDockSides { get; set; } = new();
+
     private static readonly string SettingsPath = AppPaths.File("lite-ui.json");
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
 
