@@ -16,6 +16,7 @@
                 <MenuItem x:Name="VersionItem" IsEnabled="False"/>
                 <MenuItem Header="Check for updates" Click="OnCheckUpdatesMenu"/>
                 <MenuItem Header="Group sync…" Click="OnGroupSyncMenu"/>
+                <MenuItem Header="Reset session" Click="OnResetSession"/>
                 <Separator/>
                 <MenuItem Header="Exit" Click="OnClose"/>
             </ContextMenu>
@@ -74,6 +75,21 @@
                     <DataTemplate>
                         <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5"
                                    Foreground="#9FB0BE"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock x:Name="FightsHeader" Visibility="Collapsed" Cursor="Hand"
+                       FontSize="9.5" Foreground="#7B8794" Margin="0,7,0,0"
+                       ToolTip="Click to show/hide past fights; click a fight for its breakdown"
+                       MouseLeftButtonDown="OnFightsToggle"/>
+            <ItemsControl x:Name="FightsList" Margin="4,2,0,0" Visibility="Collapsed">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Text}" FontFamily="Consolas" FontSize="12"
+                                   Foreground="#B9C8D6" Cursor="Hand"
+                                   ToolTip="Click for this fight's breakdown"
+                                   MouseLeftButtonDown="OnFightRowClick"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

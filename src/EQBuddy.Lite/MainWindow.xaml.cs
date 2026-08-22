@@ -22,6 +22,11 @@ public partial class MainWindow : Window
     private readonly SpawnTimers _spawnTimers;
     private readonly LiteUiSettings _ui = LiteUiSettings.Load();
     private BreakdownPopup? _popup;
+    private StatsSnapshot? _snap;
+
+    /// <summary>One row of the FIGHTS list; Key is the fight's Start ticks — the stable
+    /// identity a repeat of the same mob name can't fake.</summary>
+    private sealed record FightRow(string Text, long Key);
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     private DateTime _lastCharScan = DateTime.MinValue;
@@ -123,6 +128,7 @@ public partial class MainWindow : Window
         if (now - _lastUpdateCheck > TimeSpan.FromHours(6)) CheckUpdates();
 
         var s = _stats.Snapshot();
+        _snap = s; // the popups read fight details from the latest snapshot
 
         // Class combo, derived from the AA ledger: each owned AA names its class in the
         // catalog, and the ledger persists per character — so the combo fills in as AAs
@@ -225,6 +231,26 @@ public partial class MainWindow : Window
             LootList.Visibility = Visibility.Collapsed;
         }
 
+        // Past fights of this session, newest first; click a row for that fight's popup.
+        if (s.RecentEncounters.Count > 0)
+        {
+            FightsHeader.Text = $"{(_ui.ShowFights ? "▾" : "▸")} FIGHTS · {s.EncounterCount} this session";
+            FightsHeader.Visibility = Visibility.Visible;
+            if (_ui.ShowFights)
+            {
+                FightsList.ItemsSource = s.RecentEncounters
+                    .Select(f => new FightRow($"{Pad(f.Name, 14)} {f.Dps,5:0} dps", f.Start.Ticks))
+                    .ToList();
+                FightsList.Visibility = Visibility.Visible;
+            }
+            else FightsList.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            FightsHeader.Visibility = Visibility.Collapsed;
+            FightsList.Visibility = Visibility.Collapsed;
+        }
+
         // Spawn timers: soonest first (Core's Snapshot order), section hidden entirely
         // when no camp is running — an empty list isn't worth panel height.
         var timers = _spawnTimers.Snapshot(now);
@@ -279,6 +305,29 @@ public partial class MainWindow : Window
         if (_popup is not { } popup) return;
         popup.Left = Left + ActualWidth + 8;
         popup.Top = Top;
+
+        // A fight popup (keyed "fight:<start ticks>") reads from the snapshot; the
+        // member popups below read from sync.
+        if (popup.MemberName.StartsWith("fight:", StringComparison.Ordinal))
+        {
+            if (!long.TryParse(popup.MemberName.AsSpan(6), out var ticks)) return;
+            var f = _snap?.Encounters.FirstOrDefault(en => en.Start.Ticks == ticks);
+            if (f is null)
+            {
+                popup.Update("fight", "(no longer tracked — session\n pruned or reset)", "", "");
+                return;
+            }
+            var abilityTotal = f.ByAbility.Sum(b => b.Total);
+            var detail =
+                $"{FmtDur(TimeSpan.FromSeconds(f.DurationSeconds))} · {f.Outcome} · {FmtDamage(f.DamageOut)} dmg"
+                + (f.DamageIn > 0 ? $" · took {FmtDamage(f.DamageIn)}" : "")
+                + (abilityTotal > 0
+                    ? "\n" + string.Join("\n", f.ByAbility.Take(8).Select(b =>
+                        $"{Pad(b.Name, 13)} {FmtDamage(b.Total),6} {b.Total * 100 / abilityTotal,3}%"))
+                    : "");
+            popup.Update($"{f.Name} · {f.Dps:0} dps", detail, "", "");
+            return;
+        }
 
         var member = _sync.Members.FirstOrDefault(m =>
             m.Name.StartsWith(popup.MemberName, StringComparison.OrdinalIgnoreCase));
@@ -509,26 +558,58 @@ public partial class MainWindow : Window
         Tick();
     }
 
+    private void OnFightsToggle(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        _ui.ShowFights = !_ui.ShowFights;
+        Tick();
+    }
+
+    private void OnFightRowClick(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is not FrameworkElement { DataContext: FightRow row }) return;
+        TogglePopup($"fight:{row.Key}");
+    }
+
+    /// <summary>One satellite popup at a time — a fight's or a member's. Clicking the
+    /// same thing again closes it; clicking something else switches to it.</summary>
+    private void TogglePopup(string key)
+    {
+        if (_popup is { } open &&
+            string.Equals(open.MemberName, key, StringComparison.OrdinalIgnoreCase))
+        {
+            open.Close();
+            _popup = null;
+            return;
+        }
+        _popup?.Close();
+        var popup = _popup = new BreakdownPopup(key, this);
+        popup.Closed += (_, _) => { if (ReferenceEquals(_popup, popup)) _popup = null; };
+        RefreshPopup();
+        popup.Show();
+    }
+
+    private void OnResetSession(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show(this,
+                "Start a new session? DPS, fights, loot, and motes counters reset " +
+                "from now; spawn timers and group sync keep running.",
+                "Reset session", MessageBoxButton.YesNo, MessageBoxImage.Question)
+            != MessageBoxResult.Yes) return;
+        _stats.Reset();
+        _group.Reset();
+        _popup?.Close();
+        Tick();
+    }
+
     private void OnGroupRowClick(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
         if (sender is not System.Windows.Controls.TextBlock tb) return;
         var name = tb.Text.TrimStart('~').Split(' ')[0].Trim();
         if (name.Length == 0 || name.StartsWith('(')) return; // placeholder rows
-
-        if (_popup is { } open &&
-            string.Equals(open.MemberName, name, StringComparison.OrdinalIgnoreCase))
-        {
-            open.Close();
-            _popup = null;
-            return;
-        }
-
-        _popup?.Close();
-        var popup = _popup = new BreakdownPopup(name, this);
-        popup.Closed += (_, _) => { if (ReferenceEquals(_popup, popup)) _popup = null; };
-        RefreshPopup();
-        popup.Show();
+        TogglePopup(name);
     }
 
     private void OnGroupSyncMenu(object sender, RoutedEventArgs e)
