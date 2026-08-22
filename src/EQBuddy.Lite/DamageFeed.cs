@@ -61,15 +61,15 @@ internal sealed class DamageFeed
 
             ThirdMeleeEvent tm when Interesting(tm.Attacker) => new FeedEntry(tm.Time,
                 WhoIs(tm.Attacker), FeedKind.Melee, tm.Attacker, tm.Target, tm.Amount,
-                tm.Skill.Length > 0 ? tm.Skill : "melee", tm.Critical, null, Incoming: false),
+                tm.Skill.Length > 0 ? tm.Skill : "melee", tm.Critical, tm.Note, Incoming: false),
 
             ThirdDotEvent td when Interesting(td.Caster) => new FeedEntry(td.Time,
                 WhoIs(td.Caster), FeedKind.Dot, td.Caster, td.Target, td.Amount,
-                td.Spell, td.Critical, null, Incoming: false),
+                td.Spell, td.Critical, td.Note, Incoming: false),
 
             ThirdSchoolEvent ts when Interesting(ts.Attacker) => new FeedEntry(ts.Time,
                 WhoIs(ts.Attacker), FeedKind.Spell, ts.Attacker, ts.Target, ts.Amount,
-                ts.Spell, ts.Critical, null, Incoming: false),
+                ts.Spell, ts.Critical, ts.Note, Incoming: false),
 
             _ => null,
         };

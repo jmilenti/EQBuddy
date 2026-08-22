@@ -177,6 +177,32 @@ public class LogParserTests
         Assert.Equal(("A puma", "Ghoul", 11), (e.Attacker, e.Target, e.Amount));
     }
 
+    /// <summary>Third-party lines carry the same trailing annotation your own hits do,
+    /// and the note must survive parsing — a group member's feed shows a friend's
+    /// "(Slay Undead)" only if the text comes through, not just the crit flag it implies.</summary>
+    [Theory]
+    [InlineData("Xastazi crushes a ghoul for 512 points of damage. (Slay Undead)", "Slay Undead", false)]
+    [InlineData("Lizzid slashes orc centurion for 13 points of damage. (Critical)", "Critical", true)]
+    [InlineData("Lizzid slashes orc centurion for 13 points of damage. (Riposte Critical)", "Riposte Critical", true)]
+    [InlineData("Lizzid slashes orc centurion for 13 points of damage.", null, false)]
+    public void ThirdPartyNotesSurviveParsing(string msg, string? note, bool crit)
+    {
+        var e = Parse<ThirdMeleeEvent>(msg);
+        Assert.Equal((note, crit), (e.Note, e.Critical));
+    }
+
+    [Fact]
+    public void ThirdPartySpellNotesSurviveToo()
+    {
+        var school = Parse<ThirdSchoolEvent>(
+            "Jibekn hit orc centurion for 110 points of magic damage by Lifespike. (Critical)");
+        Assert.Equal(("Critical", true), (school.Note, school.Critical));
+
+        var dot = Parse<ThirdDotEvent>(
+            "Orc centurion has taken 40 damage from Ignite by Lizzid. (Critical)");
+        Assert.Equal(("Critical", true), (dot.Note, dot.Critical));
+    }
+
     /// <summary>"reaves" surfaced in unmatched-line analysis 2026-08-01 — 1,381 lines of a
     /// party member's damage in one week of eqlog_Hugzee, all invisible to party stats.
     /// "smites" appeared once in the same sweep.</summary>

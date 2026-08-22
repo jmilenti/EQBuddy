@@ -465,7 +465,7 @@ public static partial class LogParser
             if ((r = ThirdMeleeRx().Match(msg)).Success)
                 return new ThirdMeleeEvent(ts, r.Groups["attacker"].Value.Trim(),
                     Normalize(r.Groups["target"].Value), int.Parse(r.Groups["dmg"].Value),
-                    ThirdVerbToSkill(r.Groups["verb"].Value), IsCritNote(r));
+                    ThirdVerbToSkill(r.Groups["verb"].Value), IsCritNote(r), NoteOf(r));
 
             if ((r = ThirdMissRx().Match(msg)).Success)
                 return new ThirdMissEvent(ts, r.Groups["attacker"].Value.Trim());
@@ -679,17 +679,17 @@ public static partial class LogParser
         if ((r = ThirdMeleeRx().Match(msg)).Success)
             return new ThirdMeleeEvent(ts, r.Groups["attacker"].Value.Trim(),
                 Normalize(r.Groups["target"].Value), int.Parse(r.Groups["dmg"].Value),
-                ThirdVerbToSkill(r.Groups["verb"].Value), IsCritNote(r));
+                ThirdVerbToSkill(r.Groups["verb"].Value), IsCritNote(r), NoteOf(r));
 
         if ((r = ThirdDotRx().Match(msg)).Success)
             return new ThirdDotEvent(ts, r.Groups["caster"].Value.Trim(),
                 Normalize(r.Groups["target"].Value), int.Parse(r.Groups["dmg"].Value),
-                r.Groups["spell"].Value, IsCritNote(r));
+                r.Groups["spell"].Value, IsCritNote(r), NoteOf(r));
 
         if ((r = ThirdSchoolRx().Match(msg)).Success)
             return new ThirdSchoolEvent(ts, r.Groups["attacker"].Value.Trim(),
                 Normalize(r.Groups["target"].Value), int.Parse(r.Groups["dmg"].Value),
-                r.Groups["spell"].Value, IsCritNote(r));
+                r.Groups["spell"].Value, IsCritNote(r), NoteOf(r));
 
         if ((r = ThirdMissRx().Match(msg)).Success)
             return new ThirdMissEvent(ts, r.Groups["attacker"].Value.Trim());

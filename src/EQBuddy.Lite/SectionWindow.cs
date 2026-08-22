@@ -52,9 +52,52 @@ public sealed class SectionWindow : Window
         };
         close.MouseLeftButtonDown += (_, e) => { e.Handled = true; _owner.DockToStack(this); };
 
+        // Resize grip: horizontal drag sets this section's width; on the FEED the
+        // vertical half adjusts how many rows it shows. Double-click resets to auto.
+        // Screen coordinates throughout — the window itself moves and resizes under
+        // the drag, so window-relative positions would feed back into themselves.
+        var grip = new TextBlock
+        {
+            Text = "◢",
+            FontSize = 9,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x55, 0x61, 0x6C)),
+            Cursor = Cursors.SizeNWSE,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Bottom,
+            Margin = new Thickness(6, 2, -6, -8),
+            ToolTip = "Drag to resize · double-click for auto width" +
+                      (sectionKey == "feed" ? " · up/down changes rows shown" : ""),
+        };
+        var resizing = false;
+        var resizeStart = default(Point);
+        grip.MouseLeftButtonDown += (_, e) =>
+        {
+            e.Handled = true;   // keep the window's own handler from starting a drag-move
+            if (e.ClickCount == 2) { _owner.ResetSectionSize(this); return; }
+            resizing = true;
+            resizeStart = PointToScreen(e.GetPosition(this));
+            _owner.BeginSectionResize(this);
+            grip.CaptureMouse();
+        };
+        grip.MouseMove += (_, e) =>
+        {
+            if (!resizing || !grip.IsMouseCaptured) return;
+            var at = PointToScreen(e.GetPosition(this));
+            _owner.SectionResizeDelta(this, at.X - resizeStart.X, at.Y - resizeStart.Y);
+        };
+        grip.MouseLeftButtonUp += (_, e) =>
+        {
+            if (!resizing) return;
+            e.Handled = true;
+            resizing = false;
+            grip.ReleaseMouseCapture();
+            _owner.EndSectionResize();
+        };
+
         _grid = new Grid();
         _grid.Children.Add(content);
         _grid.Children.Add(close);
+        _grid.Children.Add(grip);
 
         Content = new Border
         {

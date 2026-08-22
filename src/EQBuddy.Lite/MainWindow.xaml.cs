@@ -689,7 +689,7 @@ public partial class MainWindow : Window
             FeedEmptyText.Visibility = Visibility.Collapsed;
             return;
         }
-        var rows = _feed.Snapshot(_ui.FeedFilters, 12);
+        var rows = _feed.Snapshot(_ui.FeedFilters, FeedRowsClamped());
         FeedHeader.Text = "\u25be FEED \u00b7 live";
         FeedPillRow.Visibility = Visibility.Visible;
         FeedList.ItemsSource = rows.Select(RowOf).ToList();
@@ -1190,6 +1190,66 @@ public partial class MainWindow : Window
         }
     }
 
+    // ---- section resize (the ◢ grip on every SectionWindow) ----
+
+    private double _sectionResizeStartWidth;
+    private int _sectionResizeStartRows;
+
+    internal void BeginSectionResize(SectionWindow w)
+    {
+        _sectionResizeStartWidth = _ui.SectionWidths.TryGetValue(w.SectionKey, out var saved)
+            ? saved
+            : SectionElement(w.SectionKey).ActualWidth;
+        _sectionResizeStartRows = FeedRowsClamped();
+    }
+
+    internal void SectionResizeDelta(SectionWindow w, double dx, double dy)
+    {
+        var width = Math.Clamp(_sectionResizeStartWidth + dx, 170, 720);
+        _ui.SectionWidths[w.SectionKey] = width;
+        ApplySectionWidth(w.SectionKey, width);
+        if (w.SectionKey == "feed")
+        {
+            // ~14 px per Consolas 11 row: dragging down grows the list, up shrinks it.
+            _ui.FeedRows = Math.Clamp(_sectionResizeStartRows + (int)Math.Round(dy / 14), 4, 40);
+            RenderFeed();
+        }
+    }
+
+    internal void EndSectionResize()
+    {
+        _ui.Save();
+        SaveLayout();   // followers moved with the new size; bank where they ended up
+    }
+
+    internal void ResetSectionSize(SectionWindow w)
+    {
+        _ui.SectionWidths.Remove(w.SectionKey);
+        ApplySectionWidth(w.SectionKey, double.NaN);
+        if (w.SectionKey == "feed")
+        {
+            _ui.FeedRows = 12;
+            RenderFeed();
+        }
+        _ui.Save();
+    }
+
+    /// <summary>Give a section an explicit width (NaN = back to auto). The feed's inner
+    /// caps must track it — they exist to stop SizeToContent growing without bound, and
+    /// a fixed cap would hold the content at 340 px inside a wider window.</summary>
+    private void ApplySectionWidth(string key, double width)
+    {
+        SectionElement(key).Width = width;
+        if (key == "feed")
+        {
+            var cap = double.IsNaN(width) ? 340 : Math.Max(150, width);
+            FeedPillRow.MaxWidth = cap;
+            FeedList.MaxWidth = cap;
+        }
+    }
+
+    private int FeedRowsClamped() => Math.Clamp(_ui.FeedRows, 4, 40);
+
     internal void RepositionFollowers(Window host)
     {
         foreach (var follower in _sectionWindows.Values.Where(f => ReferenceEquals(f.DockHost, host)))
@@ -1208,6 +1268,8 @@ public partial class MainWindow : Window
         foreach (var key in SectionKeys)
         {
             Detach(key, tearOff: false);
+            if (_ui.SectionWidths.TryGetValue(key, out var w) && w is > 100 and < 2000)
+                ApplySectionWidth(key, w);
             if (_ui.SectionPositions.TryGetValue(key, out var p) && p is [var x, var y]
                 && !double.IsNaN(x) && !double.IsNaN(y))
             {

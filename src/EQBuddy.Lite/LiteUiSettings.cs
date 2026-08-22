@@ -51,6 +51,15 @@ public sealed class LiteUiSettings
     /// restart.</summary>
     public FeedFilters FeedFilters { get; set; } = new();
 
+    /// <summary>Rows the FEED shows at once — the vertical half of its resize grip.</summary>
+    public int FeedRows { get; set; } = 12;
+
+    /// <summary>Explicit width per section window, set by its ◢ grip; a missing key
+    /// means auto (size to content). Height is deliberately NOT here: these windows
+    /// size to their content, so height is content — the feed's grip maps vertical
+    /// drag to FeedRows instead.</summary>
+    public Dictionary<string, double> SectionWidths { get; set; } = new();
+
     /// <summary>Where in the log your last session reset happened — the log file and the
     /// byte offset reached at that moment. Replayed at the next launch so a restart
     /// resumes the session you started instead of re-reading everything you cleared.
