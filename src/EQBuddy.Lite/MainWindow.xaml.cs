@@ -27,6 +27,9 @@ public partial class MainWindow : Window
     /// <summary>One row of the FIGHTS list; Key is the fight's Start ticks — the stable
     /// identity a repeat of the same mob name can't fake.</summary>
     private sealed record FightRow(string Text, long Key);
+
+    /// <summary>One row of the SPAWNS list; Zone+Name identify the timer.</summary>
+    private sealed record SpawnRow(string Name, string Due, string Zone);
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     private DateTime _lastCharScan = DateTime.MinValue;
@@ -256,11 +259,17 @@ public partial class MainWindow : Window
         var timers = _spawnTimers.Snapshot(now);
         if (timers.Count > 0)
         {
-            SpawnList.ItemsSource = timers
-                .Take(6)
-                .Select(t => $"{Pad(t.Name, 13)} {FmtSpawn(t, now)}")
-                .ToList();
+            SpawnHeader.Text = $"{(_ui.ShowSpawns ? "▾" : "▸")} SPAWNS · {timers.Count}";
             SpawnSection.Visibility = Visibility.Visible;
+            if (_ui.ShowSpawns)
+            {
+                SpawnList.ItemsSource = timers
+                    .Take(6)
+                    .Select(t => new SpawnRow(t.Name, FmtSpawn(t, now), t.Zone))
+                    .ToList();
+                SpawnList.Visibility = Visibility.Visible;
+            }
+            else SpawnList.Visibility = Visibility.Collapsed;
         }
         else SpawnSection.Visibility = Visibility.Collapsed;
 
@@ -279,9 +288,9 @@ public partial class MainWindow : Window
         List<string> rows;
         if (_sync.Active)
         {
-            GroupLabel.Text = _sync.LastError is { } err
+            GroupLabel.Text = (_ui.ShowGroup ? "▾ " : "▸ ") + (_sync.LastError is { } err
                 ? $"GROUP · sync {_sync.GroupCode} · {err}"
-                : $"GROUP · synced · {_sync.GroupCode}";
+                : $"GROUP · synced · {_sync.GroupCode}");
             var synced = _sync.Members;
             var syncedNames = new HashSet<string>(synced.Select(m => m.Name),
                 StringComparer.OrdinalIgnoreCase);
@@ -295,7 +304,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            GroupLabel.Text = "GROUP · from your log, near you";
+            GroupLabel.Text = (_ui.ShowGroup ? "▾ " : "▸ ") + "GROUP · from your log, near you";
             rows = _group.Snapshot(now, s.PetName)
                 .Take(8)
                 .Select(r => $"{Pad(r.Name, 12)} {r.WindowDps,5:0} dps")
@@ -303,7 +312,9 @@ public partial class MainWindow : Window
             GroupEmptyText.Text = "(no group activity nearby)";
         }
         GroupList.ItemsSource = rows;
-        GroupEmptyText.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        GroupList.Visibility = _ui.ShowGroup ? Visibility.Visible : Visibility.Collapsed;
+        GroupEmptyText.Visibility = _ui.ShowGroup && rows.Count == 0
+            ? Visibility.Visible : Visibility.Collapsed;
         RefreshPopup();
     }
 
@@ -314,6 +325,30 @@ public partial class MainWindow : Window
         if (_popup is not { } popup) return;
         popup.Left = Left + ActualWidth + 8;
         popup.Top = Top;
+
+        // A spawn popup (keyed "spawn:<zone>|<name>") reads from the timers.
+        if (popup.MemberName.StartsWith("spawn:", StringComparison.Ordinal))
+        {
+            var parts = popup.MemberName[6..].Split('|', 2);
+            var t = parts.Length == 2
+                ? _spawnTimers.Snapshot(DateTime.Now).FirstOrDefault(x =>
+                    string.Equals(x.Zone, parts[0], StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(x.Name, parts[1], StringComparison.OrdinalIgnoreCase))
+                : null;
+            if (t is null)
+            {
+                popup.Update("spawn", "(timer expired or cleared)", "", "");
+                return;
+            }
+            var detail = $"zone    {t.Zone}\nkilled  {t.KilledAt:HH:mm:ss}";
+            detail += t.DueAt is { } due
+                ? $"\ndue     {due:HH:mm:ss}"
+                : "\ndue     unknown respawn time";
+            if (t is { CampLocY: { } y, CampLocX: { } x })
+                detail += $"\ncamp    /loc {y:0}, {x:0}";
+            popup.Update($"{t.Name} · {FmtSpawn(t, DateTime.Now)}", detail, "", "");
+            return;
+        }
 
         // A fight popup (keyed "fight:<start ticks>") reads from the snapshot; the
         // member popups below read from sync.
@@ -438,7 +473,7 @@ public partial class MainWindow : Window
         if (now >= due) return "DUE!";
         var left = due - now;
         return left.TotalHours >= 1
-            ? $"{(int)left.TotalHours}h{left.Minutes:00}m"
+            ? $"{(int)left.TotalHours}:{left.Minutes:00}:{left.Seconds:00}"
             : $"{left.Minutes}:{left.Seconds:00}";
     }
 
@@ -593,6 +628,27 @@ public partial class MainWindow : Window
         e.Handled = true;
         if (sender is not FrameworkElement { DataContext: FightRow row }) return;
         TogglePopup($"fight:{row.Key}");
+    }
+
+    private void OnSpawnsToggle(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        _ui.ShowSpawns = !_ui.ShowSpawns;
+        Tick();
+    }
+
+    private void OnGroupToggle(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        _ui.ShowGroup = !_ui.ShowGroup;
+        Tick();
+    }
+
+    private void OnSpawnRowClick(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is not FrameworkElement { DataContext: SpawnRow row }) return;
+        TogglePopup($"spawn:{row.Zone}|{row.Name}");
     }
 
     /// <summary>One satellite popup at a time — a fight's or a member's. Clicking the

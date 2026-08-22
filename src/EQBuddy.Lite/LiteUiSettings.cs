@@ -21,6 +21,13 @@ public sealed class LiteUiSettings
     /// <summary>Recent-fights list expanded under the FIGHTS heading. Same opt-in default.</summary>
     public bool ShowFights { get; set; }
 
+    /// <summary>Spawn timers expanded. Default ON — a countdown you can't see is a
+    /// countdown you camp past.</summary>
+    public bool ShowSpawns { get; set; } = true;
+
+    /// <summary>Group board expanded. Default ON — it's the panel's second headline.</summary>
+    public bool ShowGroup { get; set; } = true;
+
     private static readonly string SettingsPath = AppPaths.File("lite-ui.json");
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
 
