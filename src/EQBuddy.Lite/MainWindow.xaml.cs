@@ -271,29 +271,19 @@ public partial class MainWindow : Window
             damageSource = s.DamageBySource;
         }
 
-        // DPS breakdown behind its own clickable heading, collapsed by default — the
-        // summary line is always there, the detail is opt-in.
+        // Your breakdown lives in a side popup (key "own:") so a long ability list
+        // never pushes the sections below it down the screen. The heading stays as the
+        // toggle and says how many sources there are to see.
         var totalDamage = damageSource.Sum(d => d.Total);
         if (totalDamage > 0)
         {
-            DamageHeader.Text =
-                $"{(_ui.ShowBreakdown ? "▾" : "▸")} DAMAGE · {(fightMode ? "this fight" : "session")}";
+            var open = _popup?.MemberName == "own:";
+            DamageHeader.Text = $"{(open ? "▾" : "▸")} DAMAGE · "
+                + (fightMode ? "this fight" : "session")
+                + $" · {damageSource.Count} source{(damageSource.Count == 1 ? "" : "s")}";
             DamageHeader.Visibility = Visibility.Visible;
-            if (_ui.ShowBreakdown)
-            {
-                BreakdownList.ItemsSource = damageSource
-                    .Take(5)
-                    .Select(d => $"{Pad(d.Name, 13)} {d.Hits,4}× {FmtDamage(d.Total),6} {d.Total * 100 / totalDamage,3}%")
-                    .ToList();
-                BreakdownList.Visibility = Visibility.Visible;
-            }
-            else BreakdownList.Visibility = Visibility.Collapsed;
         }
-        else
-        {
-            DamageHeader.Visibility = Visibility.Collapsed;
-            BreakdownList.Visibility = Visibility.Collapsed;
-        }
+        else DamageHeader.Visibility = Visibility.Collapsed;
 
         // Charm provenance when Core proved it (blink/charmed/glaze landings), with how
         // long the charm has held; the charm spell rides the tooltip. A pet without a
@@ -478,9 +468,9 @@ public partial class MainWindow : Window
                 StringComparer.OrdinalIgnoreCase);
             rows = synced.Select(m => $"{Pad(m.Name, 12)} {ScopedDps(m, fightMode),5:0} dps").ToList();
             // Players near you who aren't running the app still show, marked approximate.
-            rows.AddRange(_group.Snapshot(now, s.PetName)
+            rows.AddRange(InferredRows(fightMode, lastFight, s)
                 .Where(r => !syncedNames.Contains(r.Name))
-                .Select(r => $"{Pad("~" + r.Name, 12)} {ScopedDps(r, fightMode, s.CombatSeconds),5:0} dps"));
+                .Select(r => $"{Pad("~" + r.Name, 12)} {r.Dps,5:0} dps"));
             rows = rows.Take(8).ToList();
             GroupEmptyText.Text = "(waiting for group…)";
         }
@@ -488,9 +478,9 @@ public partial class MainWindow : Window
         {
             GroupLabel.Text = (_ui.ShowGroup ? "▾ " : "▸ ")
                 + $"GROUP · from your log · {scopeTag}";
-            rows = _group.Snapshot(now, s.PetName)
+            rows = InferredRows(fightMode, lastFight, s)
                 .Take(8)
-                .Select(r => $"{Pad(r.Name, 12)} {ScopedDps(r, fightMode, s.CombatSeconds),5:0} dps")
+                .Select(r => $"{Pad("~" + r.Name, 12)} {r.Dps,5:0} dps")
                 .ToList();
             GroupEmptyText.Text = "(no group activity nearby)";
         }
@@ -515,6 +505,7 @@ public partial class MainWindow : Window
     /// have been dragged.</summary>
     private Window PopupAnchor(string key)
     {
+        if (key == "own:") return this;
         var section = key.StartsWith("fight:", StringComparison.Ordinal) ? "fights"
             : key.StartsWith("spawn:", StringComparison.Ordinal) ? "spawns"
             : "group";
@@ -538,6 +529,26 @@ public partial class MainWindow : Window
         if (_popup is not { } popup) return;
         RefreshPopupPosition();
         var fightScope = _ui.DpsScope == "fight";
+
+        // Your own breakdown (keyed "own:"): every source, not a top-N — this popup
+        // exists because the inline list capped at five and squeezed the panel.
+        if (popup.MemberName == "own:")
+        {
+            var src = fightScope ? _snap?.LastFight?.ByAbility : _snap?.DamageBySource;
+            var dps = fightScope ? _snap?.LastFight?.Dps ?? 0 : _snap?.SessionDps ?? 0;
+            var totalOwn = src?.Sum(d => d.Total) ?? 0;
+            if (src is null || totalOwn == 0)
+            {
+                popup.Update("your damage", "(nothing in this scope yet)");
+                return;
+            }
+            popup.Update(
+                $"{(_stats.CharacterName is { Length: > 0 } cn ? cn : "You")} · {dps:0} dps · "
+                    + (fightScope ? "this fight" : "session"),
+                string.Join("\n", src.Select(d =>
+                    $"{Pad(d.Name, 13)} {d.Hits,4}× {FmtDamage(d.Total),6} {d.Total * 100 / totalOwn,3}%")));
+            return;
+        }
 
         // A spawn popup (keyed "spawn:<zone>|<name>") reads from the timers.
         if (popup.MemberName.StartsWith("spawn:", StringComparison.Ordinal))
@@ -1039,6 +1050,33 @@ public partial class MainWindow : Window
         return b;
     }
 
+    /// <summary>Log-inferred board rows for the current scope. "Each fight" reads the
+    /// ledger's damage on the current/last pull's creatures over the pull's duration —
+    /// the same numbers the fight popup shows — because the old 60-second sliding
+    /// window meant "right now", which is a third thing the scope dropdown never
+    /// offered. "Session" divides their running damage by YOUR combat seconds, the
+    /// span you were fighting together; ~ rows carry no clock of their own.</summary>
+    private List<(string Name, double Dps)> InferredRows(bool fightMode, LastFightInfo? lastFight,
+        StatsSnapshot s)
+    {
+        if (!fightMode)
+            return _group.Snapshot(DateTime.Now, s.PetName)
+                .Select(r => (r.Name, r.SessionDamage / Math.Max(1.0, s.CombatSeconds)))
+                .OrderByDescending(r => r.Item2)
+                .ToList();
+
+        if (lastFight is null || lastFight.Fights.Count == 0) return [];
+        var byPlayer = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        foreach (var fight in lastFight.Fights)
+            foreach (var (name, _, total) in _ledger.DamageOn(
+                         fight.Name, fight.Start, TimeSpan.FromSeconds(fight.DurationSeconds), s.PetName))
+                byPlayer[name] = byPlayer.GetValueOrDefault(name) + total;
+        return byPlayer
+            .Select(kv => (kv.Key, kv.Value / Math.Max(1.0, lastFight.DurationSeconds)))
+            .OrderByDescending(r => r.Item2)
+            .ToList();
+    }
+
     /// <summary>A log-inferred member's row under the current scope. Your log gives them
     /// a 60-second sliding window (the "right now" number) and a session total, but no
     /// clock of their own — so session mode divides their damage by YOUR combat seconds,
@@ -1124,7 +1162,8 @@ public partial class MainWindow : Window
         var rows = new List<(string Name, bool IsYou, int Total, double Rate,
             TimeSpan Span, Dictionary<string, int> ByTier)>();
         if (yours.Total > 0)
-            rows.Add(("you", true, yours.Total, yours.PerHour, yourElapsed,
+            rows.Add((_stats.CharacterName is { Length: > 0 } cn ? cn : "You",
+                true, yours.Total, yours.PerHour, yourElapsed,
                 yours.Tiers.ToDictionary(t => TierShort(t.Item), t => t.Count)));
         foreach (var m in members)
         {
@@ -1781,7 +1820,7 @@ public partial class MainWindow : Window
     private void OnBreakdownToggle(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        _ui.ShowBreakdown = !_ui.ShowBreakdown;
+        TogglePopup("own:");
         Tick(); // instant feedback rather than waiting up to a second
     }
 

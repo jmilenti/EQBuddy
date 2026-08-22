@@ -165,19 +165,19 @@
                 </ComboBox>
                 <Border Style="{StaticResource ActionPill}" ToolTip="Group sync settings"
                         MouseLeftButtonDown="OnSyncPill">
-                    <TextBlock Style="{StaticResource ActionPillText}" Text="⇄ sync"/>
+                    <TextBlock Style="{StaticResource ActionPillText}" Text="⇄"/>
                 </Border>
                 <Border Style="{StaticResource ActionPill}" ToolTip="Reset session stats"
                         MouseLeftButtonDown="OnResetSessionPill">
-                    <TextBlock Style="{StaticResource ActionPillText}" Text="↺ session"/>
+                    <TextBlock Style="{StaticResource ActionPillText}" Text="↺"/>
                 </Border>
                 <Border Style="{StaticResource ActionPill}" ToolTip="Reset window layout"
                         MouseLeftButtonDown="OnResetLayoutPill">
-                    <TextBlock Style="{StaticResource ActionPillText}" Text="▦ layout"/>
+                    <TextBlock Style="{StaticResource ActionPillText}" Text="▦"/>
                 </Border>
                 <Border Style="{StaticResource ActionPill}" ToolTip="Check for updates"
                         MouseLeftButtonDown="OnUpdatePill">
-                    <TextBlock Style="{StaticResource ActionPillText}" Text="⟳ update"/>
+                    <TextBlock Style="{StaticResource ActionPillText}" Text="⟳"/>
                 </Border>
                 <Border Style="{StaticResource ActionPill}"
                         ToolTip="Settings — which features read group sync vs your own log"
@@ -192,18 +192,13 @@
 
             <TextBlock x:Name="DpsText" Text="⚔ 0 dps" FontSize="21"
                        Foreground="White" FontWeight="SemiBold"/>
+            <!-- The breakdown itself is a side popup (key "own:", anchored to this
+                 window) rather than an inline list — a long ability list was pushing
+                 every section below it down the screen. -->
             <TextBlock x:Name="DamageHeader" Visibility="Collapsed" Cursor="Hand"
                        FontSize="9.5" Foreground="#7B8794" Margin="0,4,0,0"
-                       ToolTip="Click to show/hide your damage breakdown"
+                       ToolTip="Click for your full damage breakdown (opens beside the panel)"
                        MouseLeftButtonDown="OnBreakdownToggle"/>
-            <ItemsControl x:Name="BreakdownList" Margin="4,2,0,0" Visibility="Collapsed">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5"
-                                   Foreground="#9FB0BE"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
             <TextBlock x:Name="PetText" Text="🐾 no pet" FontSize="13"
                        Foreground="#B8C4CE" Margin="0,3,0,0"/>
             <StackPanel x:Name="MotesSection">
