@@ -15,7 +15,7 @@ const CODE_RE = /^[A-Z0-9-]{3,16}$/;     // group codes, case-folded upper
 
 export class GroupRoom {
   constructor(state, env) {
-    this.members = new Map(); // name (lower) -> {name, dps, fdps, sdps, dmg, csec, seen}
+    this.members = new Map(); // name (lower) -> {name, dps, fdps, sdps, dmg, csec, sec, seen}
   }
 
   prune(now) {
@@ -28,7 +28,7 @@ export class GroupRoom {
       .sort((a, b) => b.dps - a.dps)
       .map((m) => ({
         name: m.name, dps: m.dps, fdps: m.fdps, sdps: m.sdps,
-        dmg: m.dmg, csec: m.csec,
+        dmg: m.dmg, csec: m.csec, sec: m.sec,
         top: m.top || [], motes: m.motes || null, ageMs: now - m.seen,
       }));
   }
@@ -60,6 +60,9 @@ export class GroupRoom {
     // against these, so they must be cumulative, never windowed.
     const dmg = Number(body.dmg);
     const csec = Number(body.csec);
+    // Session elapsed seconds — lets a viewer show how LONG a member took to gather
+    // what they have, not just the totals.
+    const sec = Number(body.sec);
     if (!NAME_RE.test(name) || !Number.isFinite(dps) || dps < 0)
       return json({ error: "bad member" }, 400);
 
@@ -104,6 +107,7 @@ export class GroupRoom {
       sdps: Number.isFinite(sdps) && sdps >= 0 ? Math.round(sdps * 10) / 10 : 0,
       dmg: Number.isFinite(dmg) && dmg >= 0 ? Math.round(dmg) : 0,
       csec: Number.isFinite(csec) && csec >= 0 ? Math.round(csec) : 0,
+      sec: Number.isFinite(sec) && sec >= 0 ? Math.round(sec) : 0,
       top,
       motes,
       seen: now,

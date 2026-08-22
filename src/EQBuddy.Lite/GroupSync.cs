@@ -26,7 +26,7 @@ public sealed record SyncedMotes(int Total, double PerHour, IReadOnlyList<MoteEn
 /// dropdown picks which one every row shows. FightDps is 0 from clients too old to
 /// send it; callers fall back to Dps.</summary>
 public sealed record SyncedMember(string Name, double Dps, double FightDps, double SessionDps,
-    long SessionDamage, double CombatSeconds,
+    long SessionDamage, double CombatSeconds, double SessionSeconds,
     IReadOnlyList<BreakdownEntry> Breakdown, SyncedMotes Motes);
 
 /// <summary>
@@ -64,7 +64,7 @@ public sealed class GroupSync : IDisposable
     /// <paramref name="CombatSeconds"/>) let one rebase the board on its own session
     /// reset, since the relay only ever knows cumulative figures.</summary>
     public sealed record OwnStats(string Name, double Dps, double FightDps, double SessionDps,
-        long SessionDamage, double CombatSeconds,
+        long SessionDamage, double CombatSeconds, double SessionSeconds,
         IReadOnlyList<BreakdownEntry> Top, MotesSummary Motes);
 
     /// <summary>Latest group roster from the relay; empty when off or unreachable.</summary>
@@ -120,6 +120,7 @@ public sealed class GroupSync : IDisposable
                             sdps = own.SessionDps,
                             dmg = own.SessionDamage,
                             csec = own.CombatSeconds,
+                            sec = own.SessionSeconds,
                             top = own.Top.Select(t => new { n = t.Name, t = t.Total, h = t.Hits }),
                             motes = new
                             {
@@ -133,7 +134,7 @@ public sealed class GroupSync : IDisposable
                         var roster = await response.Content.ReadFromJsonAsync<Roster>(ct);
                         Members = roster?.Members?
                             .Select(m => new SyncedMember(m.Name ?? "?", m.Dps, m.Fdps, m.Sdps,
-                                m.Dmg, m.Csec,
+                                m.Dmg, m.Csec, m.Sec,
                                 m.Top?.Where(t => t.N is { Length: > 0 })
                                     .Select(t => new BreakdownEntry(t.N!, t.T, t.H))
                                     .ToList() ?? [],
@@ -180,6 +181,7 @@ public sealed class GroupSync : IDisposable
         public double Sdps { get; set; }
         public long Dmg { get; set; }
         public double Csec { get; set; }
+        public double Sec { get; set; }
         public List<TopEntry>? Top { get; set; }
         public RosterMotes? Motes { get; set; }
     }
