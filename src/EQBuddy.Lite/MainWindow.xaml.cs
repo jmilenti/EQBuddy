@@ -283,7 +283,7 @@ public partial class MainWindow : Window
                 .Where(r => !syncedNames.Contains(r.Name))
                 .Select(r => $"{Pad("~" + r.Name, 12)} {r.WindowDps,5:0} dps"));
             rows = rows.Take(8).ToList();
-            if (rows.Count == 0) rows.Add("(waiting for group…)");
+            GroupEmptyText.Text = "(waiting for group…)";
         }
         else
         {
@@ -292,9 +292,10 @@ public partial class MainWindow : Window
                 .Take(8)
                 .Select(r => $"{Pad(r.Name, 12)} {r.WindowDps,5:0} dps")
                 .ToList();
-            if (rows.Count == 0) rows.Add("(no group activity nearby)");
+            GroupEmptyText.Text = "(no group activity nearby)";
         }
         GroupList.ItemsSource = rows;
+        GroupEmptyText.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         RefreshPopup();
     }
 
@@ -606,9 +607,9 @@ public partial class MainWindow : Window
     private void OnGroupRowClick(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        if (sender is not System.Windows.Controls.TextBlock tb) return;
-        var name = tb.Text.TrimStart('~').Split(' ')[0].Trim();
-        if (name.Length == 0 || name.StartsWith('(')) return; // placeholder rows
+        if (sender is not FrameworkElement { DataContext: string row }) return;
+        var name = row.TrimStart('~').Split(' ')[0].Trim();
+        if (name.Length == 0) return;
         TogglePopup(name);
     }
 
