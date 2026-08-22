@@ -7,16 +7,14 @@ namespace EQBuddy.Lite;
 
 /// <summary>Satellite panel showing one group member's damage breakdown, parked to the
 /// right of the main window. One at a time; clicking the same name again closes it.
-/// Built in code, same visual language as the main panel.</summary>
+/// Built in code, same visual language as the main panel. Motes deliberately aren't
+/// here — the whole group's hauls sit together in the MOTES section instead.</summary>
 public sealed class BreakdownPopup : Window
 {
     public string MemberName { get; }
 
     private readonly TextBlock _header;
     private readonly TextBlock _rows;
-    private readonly TextBlock _motesHeader;
-    private readonly TextBlock _motesRows;
-    private bool _motesExpanded;
 
     public BreakdownPopup(string memberName, Window owner)
     {
@@ -60,35 +58,9 @@ public sealed class BreakdownPopup : Window
             Margin = new Thickness(0, 6, 0, 0),
         };
 
-        _motesHeader = new TextBlock
-        {
-            FontSize = 12,
-            Foreground = new SolidColorBrush(Color.FromRgb(0xD9, 0xC4, 0x6B)),
-            Cursor = Cursors.Hand,
-            Margin = new Thickness(0, 7, 0, 0),
-            Visibility = Visibility.Collapsed,
-            ToolTip = "Show/hide mote tiers",
-        };
-        _motesHeader.MouseLeftButtonDown += (_, e) =>
-        {
-            e.Handled = true;
-            _motesExpanded = !_motesExpanded;
-            RefreshMotesVisibility();
-        };
-        _motesRows = new TextBlock
-        {
-            FontFamily = new FontFamily("Consolas"),
-            FontSize = 12,
-            Foreground = new SolidColorBrush(Color.FromRgb(0xD9, 0xC4, 0x6B)),
-            Margin = new Thickness(14, 2, 0, 0),
-            Visibility = Visibility.Collapsed,
-        };
-
         var stack = new StackPanel { MinWidth = 170 };
         stack.Children.Add(head);
         stack.Children.Add(_rows);
-        stack.Children.Add(_motesHeader);
-        stack.Children.Add(_motesRows);
 
         Content = new Border
         {
@@ -101,35 +73,9 @@ public sealed class BreakdownPopup : Window
         };
     }
 
-    private string _motesSummary = "";
-    private string _motesDetail = "";
-
-    /// <summary>motesSummary empty hides the motes section; motesDetail empty makes the
-    /// summary line plain text (nothing to expand).</summary>
-    public void Update(string header, string rows, string motesSummary, string motesDetail)
+    public void Update(string header, string rows)
     {
         _header.Text = header;
         _rows.Text = rows;
-        _motesSummary = motesSummary;
-        _motesDetail = motesDetail;
-        RefreshMotesVisibility();
-    }
-
-    private void RefreshMotesVisibility()
-    {
-        if (_motesSummary.Length == 0)
-        {
-            _motesHeader.Visibility = Visibility.Collapsed;
-            _motesRows.Visibility = Visibility.Collapsed;
-            return;
-        }
-        var expandable = _motesDetail.Length > 0;
-        _motesHeader.Text = expandable
-            ? (_motesExpanded ? "▾ " : "▸ ") + _motesSummary
-            : _motesSummary;
-        _motesHeader.Visibility = Visibility.Visible;
-        _motesRows.Text = _motesDetail;
-        _motesRows.Visibility = expandable && _motesExpanded
-            ? Visibility.Visible : Visibility.Collapsed;
     }
 }

@@ -15,7 +15,7 @@ const CODE_RE = /^[A-Z0-9-]{3,16}$/;     // group codes, case-folded upper
 
 export class GroupRoom {
   constructor(state, env) {
-    this.members = new Map(); // name (lower) -> {name, dps, sdps, seen}
+    this.members = new Map(); // name (lower) -> {name, dps, fdps, sdps, seen}
   }
 
   prune(now) {
@@ -27,7 +27,7 @@ export class GroupRoom {
     return [...this.members.values()]
       .sort((a, b) => b.dps - a.dps)
       .map((m) => ({
-        name: m.name, dps: m.dps, sdps: m.sdps,
+        name: m.name, dps: m.dps, fdps: m.fdps, sdps: m.sdps,
         top: m.top || [], motes: m.motes || null, ageMs: now - m.seen,
       }));
   }
@@ -51,6 +51,9 @@ export class GroupRoom {
 
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const dps = Number(body.dps);
+    // Current-or-last fight rate, so viewers can show a per-fight board; older
+    // clients omit it and read as 0.
+    const fdps = Number(body.fdps);
     const sdps = Number(body.sdps);
     if (!NAME_RE.test(name) || !Number.isFinite(dps) || dps < 0)
       return json({ error: "bad member" }, 400);
@@ -92,6 +95,7 @@ export class GroupRoom {
     this.members.set(key, {
       name,
       dps: Math.round(dps * 10) / 10,
+      fdps: Number.isFinite(fdps) && fdps >= 0 ? Math.round(fdps * 10) / 10 : 0,
       sdps: Number.isFinite(sdps) && sdps >= 0 ? Math.round(sdps * 10) / 10 : 0,
       top,
       motes,

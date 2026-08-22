@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -56,6 +57,7 @@ public partial class MainWindow : Window
     private DateTime _lastUpdateCheck = DateTime.MinValue;
     private UpdateInfo? _pendingUpdate;
     private bool _installing;
+    private bool _scopeReady;
 
     public MainWindow()
     {
@@ -111,6 +113,11 @@ public partial class MainWindow : Window
         Loaded += (_, _) => SetupSectionWindows();
         LocationChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
         SizeChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
+
+        // Seed the scope dropdown before the ticker runs; the guard keeps its
+        // SelectionChanged from firing a Tick mid-construction.
+        ScopeCombo.SelectedIndex = _ui.DpsScope == "session" ? 1 : 0;
+        _scopeReady = true;
 
         _timer.Tick += (_, _) => Tick();
         _timer.Start();
@@ -180,11 +187,12 @@ public partial class MainWindow : Window
             ? Brushes.LimeGreen : new SolidColorBrush(Color.FromRgb(0x66, 0x66, 0x66));
 
         // DPS scope: "each fight" reads the current fight (or the last one while
-        // idle); "whole session" reads the accumulating totals. Sync always shares
-        // session numbers regardless — the toggle is a local lens.
+        // idle); "whole session" reads the accumulating totals. It is a local lens
+        // over every DPS number on the panel — yours, your pet's, and the group
+        // board's — not something the sync protocol carries: we always publish both
+        // rates and each client picks with its own dropdown.
         var fightMode = _ui.DpsScope == "fight";
         var lastFight = s.LastFight;
-        ScopePillText.Text = fightMode ? "⚔ each fight" : "⚔ whole session";
 
         List<SourceDamage> damageSource;
         if (fightMode)
@@ -252,25 +260,43 @@ public partial class MainWindow : Window
         PetText.ToolTip = s.PetCharmSpell is { Length: > 0 } charmSpell
             ? $"Charmed with {charmSpell}" : null;
 
-        // Motes as their own heading, tier list behind the same click-to-expand.
+        // Motes as their own heading, tier list behind the same click-to-expand — and
+        // the group's hauls underneath, because motes are a loot race and reading them
+        // one member-popup at a time made that impossible to see. Sync is the only
+        // source for other players: your log records nobody else's loot lines.
         var motes = Motes.Summarize(s.Loot, s.Elapsed);
-        if (motes.Total == 0)
+        var groupMotes = _sync.Members
+            .Where(m => m.Motes.Total > 0 && !IsSelf(m.Name))
+            .OrderByDescending(m => m.Motes.Total)
+            .Take(8)
+            .ToList();
+        var motesExpandable = motes.Total > 0 || groupMotes.Count > 0;
+        MotesHeader.Text = motesExpandable
+            ? $"{(_ui.ShowMotes ? "▾" : "▸")} MOTES · {motes.Total} ({motes.PerHour:0.#}/h)"
+            : "MOTES · none yet";
+        var showMotesDetail = motesExpandable && _ui.ShowMotes;
+        if (showMotesDetail && motes.Total > 0)
         {
-            MotesHeader.Text = "MOTES · none yet";
-            MotesList.Visibility = Visibility.Collapsed;
+            MotesList.ItemsSource = motes.Tiers
+                .Select(t => $"{Pad(TierShort(t.Item), 14)} ×{t.Count}")
+                .ToList();
+            MotesList.Visibility = Visibility.Visible;
+        }
+        else MotesList.Visibility = Visibility.Collapsed;
+
+        if (showMotesDetail && groupMotes.Count > 0)
+        {
+            GroupMotesHeader.Text = $"GROUP · motes · {groupMotes.Count} sharing";
+            GroupMotesList.ItemsSource = groupMotes
+                .Select(m => $"{Pad(m.Name, 12)} ×{m.Motes.Total,-4} {m.Motes.PerHour:0.#}/h")
+                .ToList();
+            GroupMotesHeader.Visibility = Visibility.Visible;
+            GroupMotesList.Visibility = Visibility.Visible;
         }
         else
         {
-            MotesHeader.Text =
-                $"{(_ui.ShowMotes ? "▾" : "▸")} MOTES · {motes.Total} ({motes.PerHour:0.#}/h)";
-            if (_ui.ShowMotes)
-            {
-                MotesList.ItemsSource = motes.Tiers
-                    .Select(t => $"{Pad(TierShort(t.Item), 14)} ×{t.Count}")
-                    .ToList();
-                MotesList.Visibility = Visibility.Visible;
-            }
-            else MotesList.Visibility = Visibility.Collapsed;
+            GroupMotesHeader.Visibility = Visibility.Collapsed;
+            GroupMotesList.Visibility = Visibility.Collapsed;
         }
 
         // Section separators only make sense inside the main panel — a torn-off
@@ -372,33 +398,37 @@ public partial class MainWindow : Window
         }
         else SpawnSection.Visibility = Visibility.Collapsed;
 
-        _sync.Publish(_stats.CharacterName ?? "", s.CurrentDps, s.SessionDps,
+        // We publish every rate we have — live, current-fight, and session — so each
+        // client's own scope dropdown can pick one without a round trip.
+        _sync.Publish(_stats.CharacterName ?? "", s.CurrentDps, lastFight?.Dps ?? 0, s.SessionDps,
             s.DamageBySource.Take(6).Select(d => new BreakdownEntry(d.Name, d.Total, d.Hits)).ToList(),
             motes);
 
+        var scopeTag = fightMode ? "each fight" : "session";
         List<string> rows;
         if (_sync.Active)
         {
             GroupLabel.Text = (_ui.ShowGroup ? "▾ " : "▸ ") + (_sync.LastError is { } err
                 ? $"GROUP · sync {_sync.GroupCode} · {err}"
-                : $"GROUP · synced · {_sync.GroupCode}");
+                : $"GROUP · synced · {_sync.GroupCode} · {scopeTag}");
             var synced = _sync.Members;
             var syncedNames = new HashSet<string>(synced.Select(m => m.Name),
                 StringComparer.OrdinalIgnoreCase);
-            rows = synced.Select(m => $"{Pad(m.Name, 12)} {m.Dps,5:0} dps").ToList();
+            rows = synced.Select(m => $"{Pad(m.Name, 12)} {ScopedDps(m, fightMode),5:0} dps").ToList();
             // Players near you who aren't running the app still show, marked approximate.
             rows.AddRange(_group.Snapshot(now, s.PetName)
                 .Where(r => !syncedNames.Contains(r.Name))
-                .Select(r => $"{Pad("~" + r.Name, 12)} {r.WindowDps,5:0} dps"));
+                .Select(r => $"{Pad("~" + r.Name, 12)} {ScopedDps(r, fightMode, s.CombatSeconds),5:0} dps"));
             rows = rows.Take(8).ToList();
             GroupEmptyText.Text = "(waiting for group…)";
         }
         else
         {
-            GroupLabel.Text = (_ui.ShowGroup ? "▾ " : "▸ ") + "GROUP · from your log, near you";
+            GroupLabel.Text = (_ui.ShowGroup ? "▾ " : "▸ ")
+                + $"GROUP · from your log · {scopeTag}";
             rows = _group.Snapshot(now, s.PetName)
                 .Take(8)
-                .Select(r => $"{Pad(r.Name, 12)} {r.WindowDps,5:0} dps")
+                .Select(r => $"{Pad(r.Name, 12)} {ScopedDps(r, fightMode, s.CombatSeconds),5:0} dps")
                 .ToList();
             GroupEmptyText.Text = "(no group activity nearby)";
         }
@@ -436,6 +466,7 @@ public partial class MainWindow : Window
     {
         if (_popup is not { } popup) return;
         RefreshPopupPosition();
+        var fightScope = _ui.DpsScope == "fight";
 
         // A spawn popup (keyed "spawn:<zone>|<name>") reads from the timers.
         if (popup.MemberName.StartsWith("spawn:", StringComparison.Ordinal))
@@ -448,7 +479,7 @@ public partial class MainWindow : Window
                 : null;
             if (t is null)
             {
-                popup.Update("spawn", "(timer expired or cleared)", "", "");
+                popup.Update("spawn", "(timer expired or cleared)");
                 return;
             }
             var detail = $"zone    {t.Zone}\nkilled  {t.KilledAt:HH:mm:ss}";
@@ -457,7 +488,7 @@ public partial class MainWindow : Window
                 : "\ndue     unknown respawn time";
             if (t is { CampLocY: { } y, CampLocX: { } x })
                 detail += $"\ncamp    /loc {y:0}, {x:0}";
-            popup.Update($"{t.Name} · {FmtSpawn(t, DateTime.Now)}", detail, "", "");
+            popup.Update($"{t.Name} · {FmtSpawn(t, DateTime.Now)}", detail);
             return;
         }
 
@@ -469,7 +500,7 @@ public partial class MainWindow : Window
             var f = _snap?.Encounters.FirstOrDefault(en => en.Start.Ticks == ticks);
             if (f is null)
             {
-                popup.Update("fight", "(no longer tracked — session\n pruned or reset)", "", "");
+                popup.Update("fight", "(no longer tracked — session\n pruned or reset)");
                 return;
             }
             var abilityTotal = f.ByAbility.Sum(b => b.Total);
@@ -487,7 +518,7 @@ public partial class MainWindow : Window
                 detail += "\n\ngroup on this fight · from log\n" + string.Join("\n",
                     others.Take(6).Select(g =>
                         $"{Pad(g.Name, 13)} {g.Hits,4}× {FmtDamage(g.Total),6} {g.Total / Math.Max(1, f.DurationSeconds),4:0} dps"));
-            popup.Update($"{f.Name} · {f.Dps:0} dps", detail, "", "");
+            popup.Update($"{f.Name} · {f.Dps:0} dps", detail);
             return;
         }
 
@@ -506,14 +537,15 @@ public partial class MainWindow : Window
                 if (logTotal > 0)
                     lines += "\n" + string.Join("\n", logRow.Breakdown.Take(8).Select(b =>
                         $"{Pad(b.Name, 13)} {b.Hits,4}× {FmtDamage(b.Total),6} {b.Total * 100 / logTotal,3}%"));
-                popup.Update($"~{logRow.Name} · {logRow.WindowDps:0} dps", lines, "", "");
+                popup.Update(
+                    $"~{logRow.Name} · {ScopedDps(logRow, fightScope, _snap?.CombatSeconds ?? 0):0} dps",
+                    lines);
                 return;
             }
             popup.Update(popup.MemberName,
                 _sync.Active
                     ? "(no data — not in your log and\n not sharing via group sync)"
-                    : "(not in your log — exact numbers\n need group sync)",
-                "", "");
+                    : "(not in your log — exact numbers\n need group sync)");
             return;
         }
 
@@ -541,16 +573,29 @@ public partial class MainWindow : Window
                 rows = "(no damage yet)";
         }
 
-        var m = member.Motes;
-        var motesSummary = m.Total > 0
-            ? $"✨ {m.Total} motes ({m.PerHour:0.#}/h)"
-            : "✨ no motes yet";
-        var motesDetail = m.Total > 0
-            ? string.Join("\n", m.Tiers.Select(t => $"{Pad(TierShort(t.Name), 12)} ×{t.Count}"))
-            : "";
-
-        popup.Update($"{member.Name} · {member.Dps:0} dps", rows, motesSummary, motesDetail);
+        // Their motes are NOT here — they live beside yours in the MOTES section, where
+        // the whole group's hauls can be compared at a glance.
+        popup.Update($"{member.Name} · {ScopedDps(member, fightScope):0} dps", rows);
     }
+
+    private bool IsSelf(string name) =>
+        string.Equals(name, _stats.CharacterName, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>A synced member's row under the current scope. "Each fight" prefers the
+    /// current-or-last fight rate they shared; clients older than that field send 0, so
+    /// we fall back to their live rate (which reads 0 out of combat — the best the old
+    /// protocol could say).</summary>
+    private static double ScopedDps(SyncedMember m, bool fightMode) =>
+        !fightMode ? m.SessionDps
+        : m.FightDps > 0 ? m.FightDps
+        : m.Dps;
+
+    /// <summary>A log-inferred member's row under the current scope. Your log gives them
+    /// a 60-second sliding window (the "right now" number) and a session total, but no
+    /// clock of their own — so session mode divides their damage by YOUR combat seconds,
+    /// which is the span you were fighting together. Approximate, like every ~ row.</summary>
+    private static double ScopedDps(GroupMemberDps r, bool fightMode, double combatSeconds) =>
+        fightMode ? r.WindowDps : r.SessionDamage / Math.Max(1, combatSeconds);
 
     private static string Pad(string s, int width) =>
         s.Length >= width ? s[..width] : s.PadRight(width);
@@ -940,12 +985,12 @@ public partial class MainWindow : Window
         Dispatcher.BeginInvoke(StackAllSections, System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
-    private void OnScopePill(object sender, MouseButtonEventArgs e)
+    private void OnScopeChanged(object sender, SelectionChangedEventArgs e)
     {
-        e.Handled = true;
-        _ui.DpsScope = _ui.DpsScope == "fight" ? "session" : "fight";
+        if (!_scopeReady) return;
+        _ui.DpsScope = (ScopeCombo.SelectedItem as ComboBoxItem)?.Tag as string ?? "fight";
         _ui.Save();
-        Tick();
+        Tick(); // instant feedback rather than waiting up to a second
     }
 
     private void OnSyncPill(object sender, MouseButtonEventArgs e)

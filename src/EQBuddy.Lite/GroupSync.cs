@@ -20,8 +20,12 @@ public sealed record SyncedMotes(int Total, double PerHour, IReadOnlyList<MoteEn
 }
 
 /// <summary>One group member as reported by the relay (their own app parsing their
-/// own log — exact numbers, unlike the log-inferred board).</summary>
-public sealed record SyncedMember(string Name, double Dps, double SessionDps,
+/// own log — exact numbers, unlike the log-inferred board). <paramref name="Dps"/> is
+/// their live rate (0 out of combat), <paramref name="FightDps"/> their current-or-last
+/// fight, <paramref name="SessionDps"/> their running total — the panel's scope
+/// dropdown picks which one every row shows. FightDps is 0 from clients too old to
+/// send it; callers fall back to Dps.</summary>
+public sealed record SyncedMember(string Name, double Dps, double FightDps, double SessionDps,
     IReadOnlyList<BreakdownEntry> Breakdown, SyncedMotes Motes);
 
 /// <summary>
@@ -53,7 +57,7 @@ public sealed class GroupSync : IDisposable
     /// <summary>Latest own numbers, written by the UI tick, read by the sync loop —
     /// so the loop never touches SessionStats from its own thread.</summary>
     private volatile OwnStats? _own;
-    public sealed record OwnStats(string Name, double Dps, double SessionDps,
+    public sealed record OwnStats(string Name, double Dps, double FightDps, double SessionDps,
         IReadOnlyList<BreakdownEntry> Top, MotesSummary Motes);
 
     /// <summary>Latest group roster from the relay; empty when off or unreachable.</summary>
@@ -66,9 +70,9 @@ public sealed class GroupSync : IDisposable
     public string RelayUrl => _settings.RelayUrl;
     public bool Active => _settings.GroupCode.Length > 0 && _settings.RelayUrl.Length > 0;
 
-    public void Publish(string name, double dps, double sessionDps,
+    public void Publish(string name, double dps, double fightDps, double sessionDps,
         IReadOnlyList<BreakdownEntry> top, MotesSummary motes) =>
-        _own = new OwnStats(name, dps, sessionDps, top, motes);
+        _own = new OwnStats(name, dps, fightDps, sessionDps, top, motes);
 
     /// <summary>Set (or clear, with an empty code) the group and restart the loop.</summary>
     public void Configure(string groupCode, string relayUrl)
@@ -107,6 +111,7 @@ public sealed class GroupSync : IDisposable
                         {
                             name = own.Name,
                             dps = own.Dps,
+                            fdps = own.FightDps,
                             sdps = own.SessionDps,
                             top = own.Top.Select(t => new { n = t.Name, t = t.Total, h = t.Hits }),
                             motes = new
@@ -120,7 +125,7 @@ public sealed class GroupSync : IDisposable
                     {
                         var roster = await response.Content.ReadFromJsonAsync<Roster>(ct);
                         Members = roster?.Members?
-                            .Select(m => new SyncedMember(m.Name ?? "?", m.Dps, m.Sdps,
+                            .Select(m => new SyncedMember(m.Name ?? "?", m.Dps, m.Fdps, m.Sdps,
                                 m.Top?.Where(t => t.N is { Length: > 0 })
                                     .Select(t => new BreakdownEntry(t.N!, t.T, t.H))
                                     .ToList() ?? [],
@@ -163,6 +168,7 @@ public sealed class GroupSync : IDisposable
     {
         public string? Name { get; set; }
         public double Dps { get; set; }
+        public double Fdps { get; set; }
         public double Sdps { get; set; }
         public List<TopEntry>? Top { get; set; }
         public RosterMotes? Motes { get; set; }

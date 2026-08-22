@@ -8,7 +8,8 @@ namespace EQBuddy.Lite;
 /// settings.json is shared with the full app, whose loader drops unknown keys.</summary>
 public sealed class LiteUiSettings
 {
-    /// <summary>DPS scope for the headline, breakdown, and pet line: "fight" (current
+    /// <summary>DPS scope for every rate the panel shows — headline, breakdown, pet
+    /// line, and the group board (synced and log-inferred rows alike): "fight" (current
     /// fight, or the last one when idle) or "session" (accumulating totals).</summary>
     public string DpsScope { get; set; } = "fight";
 
