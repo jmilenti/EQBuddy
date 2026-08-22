@@ -47,6 +47,14 @@ public sealed class LiteUiSettings
     /// <summary>Last position of each detached section window, keyed by section, [x, y].</summary>
     public Dictionary<string, double[]> SectionPositions { get; set; } = new();
 
+    /// <summary>What each section is magnetised under: "main" for the main panel, another
+    /// section's key for one of its windows, or "" for free-floating. Remembered rather
+    /// than re-derived, because geometry cannot recover it: a section whose content shrank
+    /// since the last run leaves the window below it sitting too far from its host to look
+    /// docked, and that window would then never follow anything again. A key missing here
+    /// is a settings file written before docks were saved.</summary>
+    public Dictionary<string, string> SectionDocks { get; set; } = new();
+
     private static readonly string SettingsPath = AppPaths.File("lite-ui.json");
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
 

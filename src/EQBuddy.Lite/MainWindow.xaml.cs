@@ -482,6 +482,12 @@ public partial class MainWindow : Window
         GroupList.Visibility = _ui.ShowGroup ? Visibility.Visible : Visibility.Collapsed;
         GroupEmptyText.Visibility = _ui.ShowGroup && rows.Count == 0
             ? Visibility.Visible : Visibility.Collapsed;
+
+        // Everything above may have changed a section's height; re-seat the stack once
+        // the layout pass has actually run, so a section that shrank this tick doesn't
+        // leave the windows under it stranded.
+        Dispatcher.BeginInvoke(() => { RepinStack(); RefreshPopupPosition(); },
+            System.Windows.Threading.DispatcherPriority.Loaded);
         RefreshPopup();
     }
 
@@ -822,7 +828,10 @@ public partial class MainWindow : Window
     internal void SaveLayout()
     {
         foreach (var (key, win) in _sectionWindows)
+        {
             _ui.SectionPositions[key] = [win.Left, win.Top];
+            _ui.SectionDocks[key] = DockKey(win.DockHost);
+        }
         _ui.Save();
         _settings.WindowLeft = Left;
         _settings.WindowTop = Top;
@@ -950,6 +959,7 @@ public partial class MainWindow : Window
         w.Left = tail.Left;
         w.Top = tail.Top + tail.ActualHeight + DockGap;
         RepositionFollowers(w);
+        SaveLayout();   // the dock graph is remembered now, so every change to it is saved
     }
 
     /// <summary>Magnetise: dropped near another EQdps window's bottom edge, a section
@@ -1034,11 +1044,84 @@ public partial class MainWindow : Window
                     previous = win;
                 }
             }
-            // Saved free positions re-magnetise by adjacency, top-down.
+            // Put the remembered stack back. This is restored, never re-derived: the
+            // saved coordinates describe last run's content heights, so a section that
+            // shrank in between leaves the window below it stranded far from its host.
+            foreach (var key in SectionKeys)
+            {
+                var win = _sectionWindows[key];
+                if (win.DockHost is not null) continue;
+                if (!_ui.SectionDocks.TryGetValue(key, out var hostKey)) continue;
+                win.DockHost = hostKey switch
+                {
+                    "" => null,                                   // deliberately floating
+                    "main" => this,
+                    _ => _sectionWindows.GetValueOrDefault(hostKey),
+                };
+            }
+            BreakDockCycles();
+            // Anything with no remembered host — a settings file from before docks were
+            // saved — re-magnetises by adjacency.
             foreach (var win in _sectionWindows.Values.OrderBy(v => v.Top).ToList())
-                if (win.DockHost is null) SnapWindow(win);
-            RepositionFollowers(this);
+                if (win.DockHost is null && !_ui.SectionDocks.ContainsKey(win.SectionKey))
+                    Remagnetise(win);
+            RepinStack();
+            SaveLayout();     // bank the graph so the guessing never has to happen again
         }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private string DockKey(Window? host) =>
+        host is null ? ""
+        : ReferenceEquals(host, this) ? "main"
+        : ((SectionWindow)host).SectionKey;
+
+    /// <summary>A hand-edited or half-written settings file could describe a loop, and
+    /// RepositionFollowers walks the chain — so cut loose anything that doesn't reach a
+    /// root rather than recurse forever.</summary>
+    private void BreakDockCycles()
+    {
+        foreach (var win in _sectionWindows.Values)
+        {
+            var hops = 0;
+            var host = win.DockHost;
+            while (host is SectionWindow link && hops++ <= _sectionWindows.Count)
+                host = link.DockHost;
+            if (hops > _sectionWindows.Count) win.DockHost = null;
+        }
+    }
+
+    /// <summary>Restore a window into the stack when nothing remembers where it belongs.
+    /// Deliberately looser than the drag-drop snap: dropping a window says "exactly here",
+    /// whereas a stack being restored has drifted by however much the content above it
+    /// shrank since last run. Same column, nearest edge above.</summary>
+    private void Remagnetise(SectionWindow w)
+    {
+        const double columnX = 48, reachY = 260;
+        Window? best = null;
+        var bestGap = double.MaxValue;
+        foreach (var host in SnapHosts(w))
+        {
+            if (Math.Abs(w.Left - host.Left) > columnX) continue;
+            var gap = w.Top - (host.Top + host.ActualHeight + DockGap);
+            if (gap < -DockGap || gap > reachY) continue;   // must sit below that host
+            if (gap < bestGap) { bestGap = gap; best = host; }
+        }
+        if (best is null) return;
+        w.DockHost = best;
+        w.Left = best.Left;
+        w.Top = best.Top + best.ActualHeight + DockGap;
+        RepositionFollowers(w);
+    }
+
+    /// <summary>Re-seat every docked window under its host. LocationChanged/SizeChanged
+    /// already do this as things move; running it on the tick as well means a gap can
+    /// never simply sit there — several sections shrink at once on a session reset, and
+    /// anything missed then would otherwise stay spread apart until the next drag.</summary>
+    private void RepinStack()
+    {
+        RepositionFollowers(this);
+        foreach (var win in _sectionWindows.Values)
+            if (win.DockHost is null) RepositionFollowers(win);
     }
 
     private void StackAllSections()
