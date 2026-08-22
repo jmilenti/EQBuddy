@@ -179,20 +179,46 @@ public partial class MainWindow : Window
         StatusDot.Fill = _watcher.LastGrowth is { } g && now - g < TimeSpan.FromSeconds(30)
             ? Brushes.LimeGreen : new SolidColorBrush(Color.FromRgb(0x66, 0x66, 0x66));
 
-        DpsText.Text = s.CurrentDps > 0
-            ? $"⚔ {s.SessionDps:0} dps  (now {s.CurrentDps:0})"
-            : $"⚔ {s.SessionDps:0} dps";
+        // DPS scope: "each fight" reads the current fight (or the last one while
+        // idle); "whole session" reads the accumulating totals. Sync always shares
+        // session numbers regardless — the toggle is a local lens.
+        var fightMode = _ui.DpsScope == "fight";
+        var lastFight = s.LastFight;
+        ScopePillText.Text = fightMode ? "⚔ each fight" : "⚔ whole session";
+
+        List<SourceDamage> damageSource;
+        if (fightMode)
+        {
+            if (lastFight is null)
+            {
+                DpsText.Text = "⚔ 0 dps";
+                damageSource = [];
+            }
+            else
+            {
+                DpsText.Text = $"⚔ {lastFight.Dps:0} dps" + (lastFight.InProgress ? "" : "  (last fight)");
+                damageSource = lastFight.ByAbility;
+            }
+        }
+        else
+        {
+            DpsText.Text = s.CurrentDps > 0
+                ? $"⚔ {s.SessionDps:0} dps  (now {s.CurrentDps:0})"
+                : $"⚔ {s.SessionDps:0} dps";
+            damageSource = s.DamageBySource;
+        }
 
         // DPS breakdown behind its own clickable heading, collapsed by default — the
         // summary line is always there, the detail is opt-in.
-        var totalDamage = s.DamageBySource.Sum(d => d.Total);
+        var totalDamage = damageSource.Sum(d => d.Total);
         if (totalDamage > 0)
         {
-            DamageHeader.Text = $"{(_ui.ShowBreakdown ? "▾" : "▸")} DAMAGE · top sources";
+            DamageHeader.Text =
+                $"{(_ui.ShowBreakdown ? "▾" : "▸")} DAMAGE · {(fightMode ? "this fight" : "session")}";
             DamageHeader.Visibility = Visibility.Visible;
             if (_ui.ShowBreakdown)
             {
-                BreakdownList.ItemsSource = s.DamageBySource
+                BreakdownList.ItemsSource = damageSource
                     .Take(5)
                     .Select(d => $"{Pad(d.Name, 13)} {d.Hits,4}× {FmtDamage(d.Total),6} {d.Total * 100 / totalDamage,3}%")
                     .ToList();
@@ -215,10 +241,13 @@ public partial class MainWindow : Window
             var dur = s.PetSince is { } since ? FmtDur(now - since) : "";
             charmTag = dur.Length > 0 ? $" · charmed {dur}" : " · charmed";
         }
-        var petDamage = s.PetAbilities.Sum(p => p.Total);
+        // Pet dps follows the same scope as the headline.
+        var petRows = fightMode ? lastFight?.PetAbilities ?? [] : s.PetAbilities;
+        var petSeconds = fightMode ? lastFight?.DurationSeconds ?? 1 : s.CombatSeconds;
+        var petDamage = petRows.Sum(p => p.Total);
         PetText.Text = s.PetName.Length > 0
-            ? $"🐾 {s.PetName}{charmTag}: {petDamage / Math.Max(1, s.CombatSeconds):0.#} dps"
-            : petDamage > 0 ? $"🐾 pet: {petDamage / Math.Max(1, s.CombatSeconds):0.#} dps"
+            ? $"🐾 {s.PetName}{charmTag}: {petDamage / Math.Max(1, petSeconds):0.#} dps"
+            : petDamage > 0 ? $"🐾 pet: {petDamage / Math.Max(1, petSeconds):0.#} dps"
             : "🐾 no pet";
         PetText.ToolTip = s.PetCharmSpell is { Length: > 0 } charmSpell
             ? $"Charmed with {charmSpell}" : null;
@@ -909,6 +938,14 @@ public partial class MainWindow : Window
         foreach (var win in _sectionWindows.Values) win.SetScale(1.0);
         // Let the size change from the scale reset settle before measuring the stack.
         Dispatcher.BeginInvoke(StackAllSections, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private void OnScopePill(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        _ui.DpsScope = _ui.DpsScope == "fight" ? "session" : "fight";
+        _ui.Save();
+        Tick();
     }
 
     private void OnSyncPill(object sender, MouseButtonEventArgs e)

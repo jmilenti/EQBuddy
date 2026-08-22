@@ -59,6 +59,12 @@
             </DockPanel>
 
             <WrapPanel Margin="0,0,0,6">
+                <Border Style="{StaticResource ActionPill}"
+                        ToolTip="Toggle between this fight's DPS and session totals"
+                        MouseLeftButtonDown="OnScopePill">
+                    <TextBlock x:Name="ScopePillText" Style="{StaticResource ActionPillText}"
+                               Text="⚔ each fight"/>
+                </Border>
                 <Border Style="{StaticResource ActionPill}" ToolTip="Group sync settings"
                         MouseLeftButtonDown="OnSyncPill">
                     <TextBlock Style="{StaticResource ActionPillText}" Text="⇄ sync"/>

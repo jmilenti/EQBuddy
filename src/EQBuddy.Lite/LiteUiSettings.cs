@@ -8,6 +8,10 @@ namespace EQBuddy.Lite;
 /// settings.json is shared with the full app, whose loader drops unknown keys.</summary>
 public sealed class LiteUiSettings
 {
+    /// <summary>DPS scope for the headline, breakdown, and pet line: "fight" (current
+    /// fight, or the last one when idle) or "session" (accumulating totals).</summary>
+    public string DpsScope { get; set; } = "fight";
+
     /// <summary>Own damage breakdown expanded under the DPS line. Off by default —
     /// the summary is always there; detail is opt-in.</summary>
     public bool ShowBreakdown { get; set; }
