@@ -128,7 +128,14 @@ public sealed class SettingsDialog : Window
             {
                 IsChecked = !hiddenSections.Contains(key),
                 Margin = new Thickness(0, 0, 8, 4),
-                Content = key.ToUpperInvariant(),
+                // The two GROUP boards share a name but not a clock — the key alone
+                // ("group2") would make the tick boxes a guessing game.
+                Content = key switch
+                {
+                    "group" => "GROUP · FIGHT",
+                    "group2" => "GROUP · SESSION",
+                    _ => key.ToUpperInvariant(),
+                },
             };
             _sections[key] = box;
             grid.Children.Add(box);

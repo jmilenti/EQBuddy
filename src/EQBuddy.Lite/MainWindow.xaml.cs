@@ -38,7 +38,7 @@ public partial class MainWindow : Window
     //      near another EQdps window's bottom edge, ✕ to rejoin the panel ----
 
     private const double DockGap = 6;
-    private static readonly string[] SectionKeys = ["motes", "loot", "fights", "spawns", "group", "feed"];
+    private static readonly string[] SectionKeys = ["motes", "loot", "fights", "spawns", "group", "group2", "feed"];
     private readonly Dictionary<string, SectionWindow> _sectionWindows = new();
 
     private FrameworkElement SectionElement(string key) => key switch
@@ -48,6 +48,7 @@ public partial class MainWindow : Window
         "fights" => FightsSection,
         "spawns" => SpawnSection,
         "feed" => FeedSection,
+        "group2" => Group2Section,
         _ => GroupSection,
     };
 
@@ -122,6 +123,7 @@ public partial class MainWindow : Window
         WireSection(FightsHeader, "fights", () => _ui.ShowFights = !_ui.ShowFights);
         WireSection(SpawnHeader, "spawns", () => _ui.ShowSpawns = !_ui.ShowSpawns);
         WireSection(GroupLabel, "group", () => _ui.ShowGroup = !_ui.ShowGroup);
+        WireSection(Group2Label, "group2", () => _ui.ShowGroup2 = !_ui.ShowGroup2);
         WireSection(FeedHeader, "feed", () => _ui.ShowFeed = !_ui.ShowFeed);
         _feed.SetCapacity(_ui.FeedHistory);
         BuildFeedPills();
@@ -317,6 +319,7 @@ public partial class MainWindow : Window
         MotesTopSep.Visibility = Attached("motes") ? Visibility.Visible : Visibility.Collapsed;
         SpawnTopSep.Visibility = Attached("spawns") ? Visibility.Visible : Visibility.Collapsed;
         GroupTopSep.Visibility = Attached("group") ? Visibility.Visible : Visibility.Collapsed;
+        Group2TopSep.Visibility = Attached("group2") ? Visibility.Visible : Visibility.Collapsed;
         FeedTopSep.Visibility = Attached("feed") ? Visibility.Visible : Visibility.Collapsed;
 
         // Session loot (motes excluded — they have their own line above), collapsed to
@@ -425,12 +428,13 @@ public partial class MainWindow : Window
             s.DamageBySource.Take(6).Select(d => new BreakdownEntry(d.Name, d.Total, d.Hits)).ToList(),
             motes));
 
-        // ONE session-scoped GROUP board. Fight-scope detail lives in the popups
-        // instead (a row's popup header carries both rates; your own row opens the
-        // full two-scope breakdown) — a second fight-scoped board was tried and
-        // retired within a day: the popups already said everything it did.
-        RenderGroupBoard(fightMode: false, _ui.ShowGroup,
+        // Two GROUP boards, the same roster under two clocks: "group" is this fight,
+        // "group2" the session. A popup opened from a board stays in that board's
+        // scope (_popupSource) — each window's popup shows only its own specifics.
+        RenderGroupBoard(fightMode: true, _ui.ShowGroup,
             GroupLabel, GroupList, GroupEmptyText, lastFight, s);
+        RenderGroupBoard(fightMode: false, _ui.ShowGroup2,
+            Group2Label, Group2List, Group2EmptyText, lastFight, s);
 
         _feed.PetName = s.PetName;
         RenderFeed();
@@ -446,11 +450,11 @@ public partial class MainWindow : Window
     /// <summary>The window a popup belongs beside: fight popups ride the FIGHTS window,
     /// spawn popups the SPAWNS window, member popups the GROUP window — wherever those
     /// have been dragged.</summary>
-    /// <summary>Which window the open popup was launched from: "main" or "group".
-    /// Member and own-breakdown popups park beside the window that was actually
-    /// clicked — your own row sits on the GROUP board, and anchoring its popup to a
-    /// fixed window put it at the top of the stack while the click happened at the
-    /// bottom.</summary>
+    /// <summary>Which window the open popup was launched from: "main", "group"
+    /// (fight board), or "group2" (session board). It decides two things: where the
+    /// popup parks (beside the window actually clicked), and what it SHOWS — a popup
+    /// stays in its board's scope, fight specifics from the fight board, session
+    /// specifics from the session board, both from the main panel.</summary>
     private string _popupSource = "main";
 
     private Window PopupAnchor(string key)
@@ -479,9 +483,9 @@ public partial class MainWindow : Window
         if (_popup is not { } popup) return;
         RefreshPopupPosition();
 
-        // Your own breakdown (keyed "own:"): every source, not a top-N — and BOTH
-        // scopes stacked, fight then session, since the headline stopped switching
-        // between them. This popup is where the session detail lives now.
+        // Your own breakdown (keyed "own:"): every source, not a top-N. Which scopes
+        // it shows follows where it was opened — the fight board's popup is fight
+        // only, the session board's session only, the main panel's both stacked.
         if (popup.MemberName == "own:")
         {
             var sections = new List<string>();
@@ -494,9 +498,11 @@ public partial class MainWindow : Window
                 sections.AddRange(src.Select(d =>
                     $"{Pad(d.Name, 13)} {d.Hits,4}× {FmtDamage(d.Total),6} {d.Total * 100 / total,3}%"));
             }
-            Section($"— this fight · {_snap?.LastFight?.Dps ?? 0:0} dps —",
-                _snap?.LastFight?.ByAbility);
-            Section($"— session · {_snap?.SessionDps ?? 0:0} dps —", _snap?.DamageBySource);
+            if (_popupSource != "group2")
+                Section($"— this fight · {_snap?.LastFight?.Dps ?? 0:0} dps —",
+                    _snap?.LastFight?.ByAbility);
+            if (_popupSource != "group")
+                Section($"— session · {_snap?.SessionDps ?? 0:0} dps —", _snap?.DamageBySource);
             popup.Update(
                 _stats.CharacterName is { Length: > 0 } cn ? cn : "You",
                 sections.Count > 0 ? string.Join("\n", sections) : "(no damage yet)");
@@ -574,6 +580,37 @@ public partial class MainWindow : Window
             ? _sync.Members.FirstOrDefault(m =>
                 m.Name.StartsWith(popup.MemberName, StringComparison.OrdinalIgnoreCase))
             : null;
+
+        // Opened from the FIGHT board: this-fight specifics only. The synced fight
+        // rate when their app shares one, plus what YOUR log saw of them on the
+        // current/last pull — per-ability fight detail never crosses the wire, and
+        // session numbers belong to the session board's popups.
+        if (_popupSource == "group")
+        {
+            var lf = _snap?.LastFight;
+            long dmg = 0;
+            var hits = 0;
+            if (lf is not null)
+                foreach (var fight in lf.Fights)
+                    foreach (var g in _ledger.DamageOn(fight.Name, fight.Start,
+                                 TimeSpan.FromSeconds(fight.DurationSeconds), _snap?.PetName))
+                        if (g.Name.StartsWith(popup.MemberName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            dmg += g.Total;
+                            hits += g.Hits;
+                        }
+            var dur = Math.Max(1.0, lf?.DurationSeconds ?? 1);
+            var syncedFight = member is not null ? ScopedDps(member, true) : 0;
+            var headDps = syncedFight > 0 ? syncedFight : dmg / dur;
+            var body = dmg > 0
+                ? $"on this pull · from your log\n{hits,4}× {FmtDamage(dmg),6} · {dmg / dur:0} dps"
+                : "(nothing seen on this pull)";
+            popup.Update(
+                $"{member?.Name ?? "~" + popup.MemberName} · this fight · {headDps:0} dps",
+                body);
+            return;
+        }
+
         if (member is null)
         {
             // Not synced — show what YOUR log knows about them instead (the ~ rows):
@@ -628,10 +665,9 @@ public partial class MainWindow : Window
 
         // Their motes are NOT here — they live beside yours in the MOTES section, where
         // the whole group's hauls can be compared at a glance.
-        // Both clocks in the header, mirroring the two GROUP boards the row was
-        // clicked on; the rows below are per-source session totals either way.
-        popup.Update($"{member.Name} · fight {ScopedDps(member, true):0} · "
-            + $"session {ScopedDps(member, false):0} dps", rows);
+        // Session board's popup, so the session clock only — the rows below are
+        // per-source session totals, which matches.
+        popup.Update($"{member.Name} · session · {ScopedDps(member, false):0} dps", rows);
     }
 
     // ---- FEED: a live, filterable view of combat from your own log ----
@@ -1902,8 +1938,10 @@ public partial class MainWindow : Window
         if (sender is not FrameworkElement { DataContext: string row }) return;
         var name = row.TrimStart('~').Split(' ')[0].Trim();
         if (name.Length == 0) return;
-        _popupSource = "group";
-        // Your own row (the local board leads with it) opens your full breakdown —
+        // Both boards share this handler; the popup parks beside — and scopes to —
+        // the board that was clicked.
+        _popupSource = sender is Visual v && Group2List.IsAncestorOf(v) ? "group2" : "group";
+        // Your own row (the local boards lead with it) opens your full breakdown —
         // the member popup only ever has the top sources that cross the wire.
         TogglePopup(IsSelf(name) ? "own:" : name);
     }
