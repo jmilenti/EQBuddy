@@ -371,6 +371,30 @@ public class SpawnTimerTests
         Assert.Equal(timer.KilledAt.AddDays(3), Assert.Single(t.Snapshot(DateTime.Now)).DueAt);
     }
 
+    /// <summary>The SPAWNS window's clear-all drops this server's camps and leaves any
+    /// other server's alone — those belong to a character you aren't playing.</summary>
+    [Fact]
+    public void ClearServerDropsThisServersTimersOnly()
+    {
+        var t = Tracker();
+        t.Apply(new ZoneEvent(T0, "Lower Guk"));
+        t.Apply(new KillEvent(T0, "froglok ghoul lord", "You"));
+        t.StartManual("Permafrost Keep", "Lady Vox", 604800);
+        Assert.Equal(2, t.Snapshot(T0).Count);
+
+        // A camp parked on another server, which must survive.
+        t.Server = "vaniki";
+        t.StartManual("Permafrost Keep", "Lady Vox", 604800);
+
+        t.Server = "freeport";
+        Assert.Equal(2, t.ClearServer());
+        Assert.Empty(t.Snapshot(T0));
+        Assert.Equal(0, t.ClearServer());   // nothing left to clear
+
+        t.Server = "vaniki";
+        Assert.Single(t.Snapshot(T0));
+    }
+
     /// <summary>DUE shows for one minute, then the timer clears itself — if nobody
     /// clicked it away, they've moved on and a stale DUE tells them nothing.</summary>
     [Fact]

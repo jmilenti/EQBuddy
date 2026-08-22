@@ -267,9 +267,28 @@
 
             <StackPanel x:Name="SpawnSection" Visibility="Collapsed">
                 <Rectangle x:Name="SpawnTopSep" Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
-                <TextBlock x:Name="SpawnHeader" Cursor="Hand" FontSize="9.5"
-                           Foreground="#7B8794" Margin="0,0,0,3"
-                           ToolTip="Click to show/hide · drag to pop out · click a timer for details"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                    <TextBlock x:Name="SpawnHeader" Cursor="Hand" FontSize="9.5"
+                               Foreground="#7B8794"
+                               ToolTip="Click to show/hide · drag to pop out · click a timer for details"/>
+                    <!-- Spawn timers survive a session reset on purpose (a respawn is
+                         real-world time), so clearing a camp gets its own action here. -->
+                    <TextBlock x:Name="SpawnClearLink" Text="↺ clear" Cursor="Hand"
+                               FontSize="9.5" Margin="10,0,0,0"
+                               ToolTip="Clear every spawn timer on this server — session reset leaves them running on purpose"
+                               MouseLeftButtonDown="OnClearSpawns">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#55616C"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="#E8CE9C"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
                 <ItemsControl x:Name="SpawnList">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>

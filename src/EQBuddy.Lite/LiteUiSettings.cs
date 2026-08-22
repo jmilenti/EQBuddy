@@ -33,6 +33,13 @@ public sealed class LiteUiSettings
     /// <summary>Group board expanded. Default ON — it's the panel's second headline.</summary>
     public bool ShowGroup { get; set; } = true;
 
+    /// <summary>Where in the log your last session reset happened — the log file and the
+    /// byte offset reached at that moment. Replayed at the next launch so a restart
+    /// resumes the session you started instead of re-reading everything you cleared.
+    /// Ignored when the file no longer matches or has since been emptied.</summary>
+    public string? ResetLogPath { get; set; }
+    public long ResetLogOffset { get; set; }
+
     /// <summary>Sections torn off into their own floating windows ("motes", "loot",
     /// "fights", "spawns", "group"), restored detached at the next launch.</summary>
     public List<string> DetachedSections { get; set; } = [];

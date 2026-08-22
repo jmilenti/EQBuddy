@@ -15,7 +15,7 @@ const CODE_RE = /^[A-Z0-9-]{3,16}$/;     // group codes, case-folded upper
 
 export class GroupRoom {
   constructor(state, env) {
-    this.members = new Map(); // name (lower) -> {name, dps, fdps, sdps, seen}
+    this.members = new Map(); // name (lower) -> {name, dps, fdps, sdps, dmg, csec, seen}
   }
 
   prune(now) {
@@ -28,6 +28,7 @@ export class GroupRoom {
       .sort((a, b) => b.dps - a.dps)
       .map((m) => ({
         name: m.name, dps: m.dps, fdps: m.fdps, sdps: m.sdps,
+        dmg: m.dmg, csec: m.csec,
         top: m.top || [], motes: m.motes || null, ageMs: now - m.seen,
       }));
   }
@@ -55,6 +56,10 @@ export class GroupRoom {
     // clients omit it and read as 0.
     const fdps = Number(body.fdps);
     const sdps = Number(body.sdps);
+    // Running session totals. A client that resets its own session rebases the board
+    // against these, so they must be cumulative, never windowed.
+    const dmg = Number(body.dmg);
+    const csec = Number(body.csec);
     if (!NAME_RE.test(name) || !Number.isFinite(dps) || dps < 0)
       return json({ error: "bad member" }, 400);
 
@@ -97,6 +102,8 @@ export class GroupRoom {
       dps: Math.round(dps * 10) / 10,
       fdps: Number.isFinite(fdps) && fdps >= 0 ? Math.round(fdps * 10) / 10 : 0,
       sdps: Number.isFinite(sdps) && sdps >= 0 ? Math.round(sdps * 10) / 10 : 0,
+      dmg: Number.isFinite(dmg) && dmg >= 0 ? Math.round(dmg) : 0,
+      csec: Number.isFinite(csec) && csec >= 0 ? Math.round(csec) : 0,
       top,
       motes,
       seen: now,

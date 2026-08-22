@@ -37,6 +37,11 @@ public sealed class LogWatcher : IDisposable
 
     public DateTime? LastGrowth { get; private set; }
     public string? CurrentPath => _path;
+
+    /// <summary>How far into the current log we have read. A caller that clears its stats
+    /// can note this and hand it back to <see cref="Select(string, long, long)"/> next
+    /// launch, so a restart resumes the session instead of replaying what was cleared.</summary>
+    public long Offset { get { lock (_lock) return _offset; } }
     public bool InitialIngestDone { get; private set; }
     public Exception? LastError { get; private set; }
 

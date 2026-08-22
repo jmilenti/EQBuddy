@@ -59,6 +59,15 @@ public partial class MainWindow : Window
     private bool _installing;
     private bool _scopeReady;
 
+    /// <summary>What a synced member had already banked when you last reset the session.
+    /// The relay only ever reports running totals — a member's app has no idea you reset
+    /// — so counting "from now on" like the rest of the panel does is a subtraction we
+    /// do here, in memory. Null <see cref="_resetAt"/> means no reset this run, and the
+    /// board shows their totals untouched.</summary>
+    private readonly record struct MemberBaseline(long Damage, double CombatSeconds, int Motes, bool Exact);
+    private readonly Dictionary<string, MemberBaseline> _groupBaseline = new(StringComparer.OrdinalIgnoreCase);
+    private DateTime? _resetAt;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -146,7 +155,27 @@ public partial class MainWindow : Window
         var m = LogWatcher.MostRecentlyActive(lf);
         if (m is null) return;
         if (force || !string.Equals(m.FilePath, _watcher.CurrentPath, StringComparison.OrdinalIgnoreCase))
-            _watcher.Select(m.FilePath);
+            _watcher.Select(m.FilePath, ResumeOffset(m.FilePath), long.MaxValue);
+    }
+
+    /// <summary>Where to start reading this log. Normally the top; after a session reset,
+    /// the point that reset happened — otherwise a restart replays the very lines you
+    /// cleared and hands back the session you just ended. The mark is dropped if the log
+    /// has since been emptied or rotated (the offset would land mid-nowhere), or if it
+    /// belongs to a different character.</summary>
+    private long ResumeOffset(string path)
+    {
+        if (_ui.ResetLogOffset <= 0 ||
+            !string.Equals(_ui.ResetLogPath, path, StringComparison.OrdinalIgnoreCase))
+            return 0;
+        try
+        {
+            return new FileInfo(path).Length >= _ui.ResetLogOffset ? _ui.ResetLogOffset : 0;
+        }
+        catch (IOException)
+        {
+            return 0;
+        }
     }
 
     private void RunJanitor()
@@ -266,8 +295,10 @@ public partial class MainWindow : Window
         // source for other players: your log records nobody else's loot lines.
         var motes = Motes.Summarize(s.Loot, s.Elapsed);
         var groupMotes = _sync.Members
-            .Where(m => m.Motes.Total > 0 && !IsSelf(m.Name))
-            .OrderByDescending(m => m.Motes.Total)
+            .Where(m => !IsSelf(m.Name))
+            .Select(m => (m.Name, Total: ScopedMotes(m), m.Motes.PerHour))
+            .Where(m => m.Total > 0)
+            .OrderByDescending(m => m.Total)
             .Take(8)
             .ToList();
         var motesExpandable = motes.Total > 0 || groupMotes.Count > 0;
@@ -286,9 +317,17 @@ public partial class MainWindow : Window
 
         if (showMotesDetail && groupMotes.Count > 0)
         {
-            GroupMotesHeader.Text = $"GROUP · motes · {groupMotes.Count} sharing";
+            GroupMotesHeader.Text = _resetAt is null
+                ? $"GROUP · motes · {groupMotes.Count} sharing"
+                : $"GROUP · motes · {groupMotes.Count} sharing · since reset";
+            // Their shared per-hour covers their whole session, so after a reset it would
+            // contradict the count beside it — recompute over the time you have counted.
+            var moteHours = _resetAt is { } from
+                ? Math.Max((now - from).TotalHours, 1.0 / 60)
+                : 0;
             GroupMotesList.ItemsSource = groupMotes
-                .Select(m => $"{Pad(m.Name, 12)} ×{m.Motes.Total,-4} {m.Motes.PerHour:0.#}/h")
+                .Select(m => $"{Pad(m.Name, 12)} ×{m.Total,-4} " +
+                             $"{(moteHours > 0 ? m.Total / moteHours : m.PerHour):0.#}/h")
                 .ToList();
             GroupMotesHeader.Visibility = Visibility.Visible;
             GroupMotesList.Visibility = Visibility.Visible;
@@ -376,6 +415,7 @@ public partial class MainWindow : Window
         // Spawn timers: soonest first (Core's Snapshot order), section hidden entirely
         // when no camp is running — an empty list isn't worth panel height.
         var timers = _spawnTimers.Snapshot(now);
+        SpawnClearLink.Visibility = timers.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         if (timers.Count > 0)
         {
             SpawnHeader.Text = $"{(_ui.ShowSpawns ? "▾" : "▸")} SPAWNS · {timers.Count}";
@@ -400,11 +440,17 @@ public partial class MainWindow : Window
 
         // We publish every rate we have — live, current-fight, and session — so each
         // client's own scope dropdown can pick one without a round trip.
-        _sync.Publish(_stats.CharacterName ?? "", s.CurrentDps, lastFight?.Dps ?? 0, s.SessionDps,
+        _sync.Publish(new GroupSync.OwnStats(
+            _stats.CharacterName ?? "", s.CurrentDps, lastFight?.Dps ?? 0, s.SessionDps,
+            // The damage BEHIND SessionDps, not DamageDealt: pairing it with CombatSeconds
+            // is what makes a receiver's "since your reset" rate mean the same thing as
+            // the session rate beside it.
+            (long)Math.Round(s.SessionDps * s.CombatSeconds), s.CombatSeconds,
             s.DamageBySource.Take(6).Select(d => new BreakdownEntry(d.Name, d.Total, d.Hits)).ToList(),
-            motes);
+            motes));
 
-        var scopeTag = fightMode ? "each fight" : "session";
+        var scopeTag = fightMode ? "each fight"
+            : _resetAt is null ? "session" : "session since reset";
         List<string> rows;
         if (_sync.Active)
         {
@@ -555,6 +601,9 @@ public partial class MainWindow : Window
         {
             rows = string.Join("\n", member.Breakdown.Select(b =>
                 $"{Pad(b.Name, 13)} {b.Hits,4}× {FmtDamage(b.Total),6} {b.Total * 100 / total,3}%"));
+            // Only per-source totals come over sync, so unlike the headline these rows
+            // can't be counted from your reset — say so rather than let them look stale.
+            if (_resetAt is not null) rows = "their whole session\n" + rows;
         }
         else
         {
@@ -584,11 +633,47 @@ public partial class MainWindow : Window
     /// <summary>A synced member's row under the current scope. "Each fight" prefers the
     /// current-or-last fight rate they shared; clients older than that field send 0, so
     /// we fall back to their live rate (which reads 0 out of combat — the best the old
-    /// protocol could say).</summary>
-    private static double ScopedDps(SyncedMember m, bool fightMode) =>
-        !fightMode ? m.SessionDps
-        : m.FightDps > 0 ? m.FightDps
-        : m.Dps;
+    /// protocol could say). "Session" counts from your last reset when there has been
+    /// one, so the board restarts with the rest of the panel instead of carrying their
+    /// running total across your fresh session.</summary>
+    private double ScopedDps(SyncedMember m, bool fightMode)
+    {
+        if (fightMode) return m.FightDps > 0 ? m.FightDps : m.Dps;
+        if (_resetAt is not { } since) return m.SessionDps;
+
+        var b = BaselineFor(m);
+        var damage = DamageOf(m).Damage - b.Damage;
+        // Their own combat clock keeps the number comparable to what their app shows;
+        // without one (pre-1.56 client) wall clock since your reset is the honest
+        // substitute, and it reads low while they idle.
+        var seconds = m.CombatSeconds > 0
+            ? m.CombatSeconds - b.CombatSeconds
+            : (DateTime.Now - since).TotalSeconds;
+        return damage <= 0 || seconds <= 0 ? 0 : damage / seconds;
+    }
+
+    /// <summary>Their mote haul under the same rule: everything they have, or everything
+    /// since your reset.</summary>
+    private int ScopedMotes(SyncedMember m) =>
+        _resetAt is null ? m.Motes.Total : Math.Max(0, m.Motes.Total - BaselineFor(m).Motes);
+
+    /// <summary>Cumulative damage a member has shared. 1.56+ sends the real total; before
+    /// that the best available is the sum of their top sources, which undercounts the
+    /// long tail — flagged so a baseline never mixes the two.</summary>
+    private static (long Damage, bool Exact) DamageOf(SyncedMember m) =>
+        m.SessionDamage > 0 ? (m.SessionDamage, true) : (m.Breakdown.Sum(b => b.Total), false);
+
+    /// <summary>The mark to subtract from. Re-taken whenever a member's totals fall below
+    /// it (they reset their own session) or switch source (they updated mid-session) —
+    /// either way the old mark is meaningless and a stale one would report nonsense.</summary>
+    private MemberBaseline BaselineFor(SyncedMember m)
+    {
+        var (damage, exact) = DamageOf(m);
+        if (!_groupBaseline.TryGetValue(m.Name, out var b) || b.Exact != exact
+            || damage < b.Damage || m.CombatSeconds < b.CombatSeconds || m.Motes.Total < b.Motes)
+            _groupBaseline[m.Name] = b = new MemberBaseline(damage, m.CombatSeconds, m.Motes.Total, exact);
+        return b;
+    }
 
     /// <summary>A log-inferred member's row under the current scope. Your log gives them
     /// a 60-second sliding window (the "right now" number) and a session total, but no
@@ -1005,6 +1090,23 @@ public partial class MainWindow : Window
         OnResetSession(sender, e);
     }
 
+    /// <summary>The SPAWNS window's own clear. Session reset deliberately leaves timers
+    /// running — a respawn countdown is real-world time, not session state — so breaking
+    /// camp needs its own action rather than a surprise inside "reset session".</summary>
+    private void OnClearSpawns(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        var running = _spawnTimers.Snapshot(DateTime.Now).Count;
+        if (running == 0) return;
+        if (MessageBox.Show(this,
+                $"Clear {running} spawn timer{(running == 1 ? "" : "s")}? Countdowns are gone for good — "
+                + "use this when you break camp, not to start a new session.",
+                "Clear spawn timers", MessageBoxButton.YesNo, MessageBoxImage.Question)
+            != MessageBoxResult.Yes) return;
+        _spawnTimers.ClearServer();
+        Tick();
+    }
+
     private void OnResetLayoutPill(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
@@ -1060,13 +1162,24 @@ public partial class MainWindow : Window
     private void OnResetSession(object sender, RoutedEventArgs e)
     {
         if (MessageBox.Show(this,
-                "Start a new session? DPS, fights, loot, and motes counters reset " +
-                "from now; spawn timers and group sync keep running.",
+                "Start a new session? DPS, fights, loot, and motes count from now — for " +
+                "the group board too — and the new session survives a restart. Spawn " +
+                "timers keep running: clear those from the SPAWNS window.",
                 "Reset session", MessageBoxButton.YesNo, MessageBoxImage.Question)
             != MessageBoxResult.Yes) return;
         _stats.Reset();
         _group.Reset();
         _ledger.Reset();
+        // Mark where every synced member stands right now, so their rows count from here
+        // like yours do. Members who show up later get marked the first time we see them.
+        _resetAt = DateTime.Now;
+        _groupBaseline.Clear();
+        foreach (var m in _sync.Members) BaselineFor(m);
+        // Remember how far into the log we had read, so a restart resumes this session
+        // rather than replaying the lines you just cleared.
+        _ui.ResetLogPath = _watcher.CurrentPath;
+        _ui.ResetLogOffset = _watcher.Offset;
+        _ui.Save();
         _popup?.Close();
         Tick();
     }

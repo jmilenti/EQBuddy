@@ -308,6 +308,25 @@ public sealed class SpawnTimers
         }
     }
 
+    /// <summary>Drop every timer on the current server and return how many went. This is
+    /// the SPAWNS window's own clear, deliberately NOT part of session reset: a respawn
+    /// countdown is real-world time, not session state, so zeroing your DPS must not
+    /// throw away the camp you are sitting on. Other servers' timers are left alone —
+    /// they belong to a character you are not playing right now.</summary>
+    public int ClearServer()
+    {
+        lock (_lock)
+        {
+            var mine = _timers.Values
+                .Where(t => string.Equals(t.Server, Server, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (mine.Count == 0) return 0;
+            foreach (var t in mine) _timers.Remove(Key(t.Server, t.Zone, t.Name));
+            SavePersisted();
+            return mine.Count;
+        }
+    }
+
     /// <summary>How long a timer stays visible after coming due. One minute (David's
     /// call): long enough to see DUE and react, short enough that a camp you walked
     /// away from cleans up after itself instead of nagging.</summary>
