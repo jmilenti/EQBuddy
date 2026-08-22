@@ -109,6 +109,7 @@ public partial class MainWindow : Window
         _watcher = new LogWatcher(_stats)
         {
             Tap = e => { _group.Apply(e); _ledger.Apply(e); _feed.Apply(e); },
+            RawTap = _feed.ApplyRaw,
             Spawns = _spawnTimers,
         };
         FollowCharacter(force: true);
@@ -123,6 +124,7 @@ public partial class MainWindow : Window
         WireSection(SpawnHeader, "spawns", () => _ui.ShowSpawns = !_ui.ShowSpawns);
         WireSection(GroupLabel, "group", () => _ui.ShowGroup = !_ui.ShowGroup);
         WireSection(FeedHeader, "feed", () => _ui.ShowFeed = !_ui.ShowFeed);
+        _feed.SetCapacity(_ui.FeedHistory);
         BuildFeedPills();
         BuildFeedSearch();
         Loaded += (_, _) => SetupSectionWindows();
@@ -672,6 +674,7 @@ public partial class MainWindow : Window
     private static readonly Brush FeedHealBrush = Frozen(0x8B, 0xE2, 0x8B);
     private static readonly Brush FeedDimBrush = Frozen(0x7B, 0x87, 0x94);
     private static readonly Brush FeedKillBrush = Frozen(0xD9, 0xC4, 0x6B);
+    private static readonly Brush FeedRawBrush = Frozen(0xAE, 0xBB, 0xC7);
 
     private static readonly Brush FeedPillOnFg = Frozen(0xD9, 0xC4, 0x6B);
     private static readonly Brush FeedPillOffFg = Frozen(0x55, 0x61, 0x6C);
@@ -691,8 +694,11 @@ public partial class MainWindow : Window
             FeedEmptyText.Visibility = Visibility.Collapsed;
             return;
         }
+        var raw = _ui.FeedFilters.RawMode;
         FeedSearchRow.Visibility = Visibility.Visible;
-        FeedPillRow.Visibility = Visibility.Visible;
+        // The who/kind pills describe parsed combat events; raw mode shows the log
+        // verbatim, so they'd be dead controls there.
+        FeedPillRow.Visibility = raw ? Visibility.Collapsed : Visibility.Visible;
         // The grip's row count is the VIEWPORT, not the data: the list renders the whole
         // filtered scrollback (virtualized) and shows this many rows of it at once.
         FeedList.MaxHeight = FeedRowsClamped() * 14 + 4;
@@ -705,9 +711,22 @@ public partial class MainWindow : Window
             FeedHeader.Text = "\u25be FEED \u00b7 paused \u2014 scroll to top to resume";
             return;
         }
-        var rows = _feed.Snapshot(_ui.FeedFilters, 2000);
-        FeedHeader.Text = "\u25be FEED \u00b7 live";
-        FeedList.ItemsSource = rows.Select(RowOf).ToList();
+        List<FeedRow> rows;
+        if (raw)
+        {
+            rows = _feed.SnapshotRaw(_ui.FeedFilters.SearchTerms, 2000)
+                .Select(l => new FeedRow(
+                    l.Time == DateTime.MinValue ? l.Text : $"{l.Time:HH:mm:ss}  {l.Text}",
+                    FeedRawBrush))
+                .ToList();
+            FeedHeader.Text = "\u25be FEED \u00b7 raw log \u00b7 live";
+        }
+        else
+        {
+            rows = _feed.Snapshot(_ui.FeedFilters, 2000).Select(RowOf).ToList();
+            FeedHeader.Text = "\u25be FEED \u00b7 live";
+        }
+        FeedList.ItemsSource = rows;
         FeedList.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         FeedEmptyText.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -884,19 +903,19 @@ public partial class MainWindow : Window
         var f = _ui.FeedFilters;
         FeedSearchRow.Children.Clear();
 
-        var all = FlatButton("all", FeedPillOnFg,
-            "Show everything — every filter on this panel back to wide open, chips cleared");
+        var all = FlatButton("all", f.RawMode ? FeedPillOnFg : FeedPillOffFg,
+            "Show the raw log — every line the game writes (chat, emotes, system, " +
+            "everything), not just parsed combat. Chips filter by text; click again " +
+            "for the combat view.");
+        if (f.RawMode)
+        {
+            all.Background = FeedPillOnBg;
+            all.BorderBrush = FeedPillOnBorder;
+        }
         all.Click += (_, _) =>
         {
-            f.You = f.Pet = f.Group = f.Incoming = true;
-            f.Melee = f.Spells = f.Dots = f.DamageShields = true;
-            f.Heals = f.Misses = f.Kills = f.ResistsFizzles = true;
-            f.CritsOnly = f.OnlySlays = f.OnlyRipostes = f.OnlyCrippling = false;
-            f.MinDamage = 0;
-            f.MeleeType = "all";
-            f.SearchTerms.Clear();
+            f.RawMode = !f.RawMode;
             _ui.Save();
-            foreach (var refresh in _feedPillRefreshers) refresh();
             RefreshFeedSearchRow();
             RenderFeed();
         };
@@ -1619,11 +1638,13 @@ public partial class MainWindow : Window
     {
         e.Handled = true;
         var dlg = new SettingsDialog(_ui.GroupBoardUseSync, _ui.ShowGroupMotes,
-            SectionKeys, _ui.HiddenSections) { Owner = this };
+            SectionKeys, _ui.HiddenSections, _ui.FeedHistory) { Owner = this };
         if (dlg.ShowDialog() != true) return;
         _ui.GroupBoardUseSync = dlg.GroupBoardUseSync;
         _ui.ShowGroupMotes = dlg.ShowGroupMotes;
         _ui.HiddenSections = dlg.HiddenSections;
+        _ui.FeedHistory = dlg.FeedHistory;
+        _feed.SetCapacity(_ui.FeedHistory);
         _ui.Save();
         ApplySectionVisibility();
         Tick();

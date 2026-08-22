@@ -83,6 +83,27 @@ public class SessionResumeTests : IDisposable
         Assert.Equal(7, Ingest(watcher, stats).DamageDealt);
     }
 
+    /// <summary>RawTap sees every line — parsed into an event or not. The Lite feed's
+    /// raw mode shows the whole log, and most lines (chat, emotes) make no event.</summary>
+    [Fact]
+    public void RawTapSeesEveryLineIncludingUnparsedOnes()
+    {
+        var path = Path.Combine(_root, "eqlog_Aset_qeynos.txt");
+        File.WriteAllText(path,
+            "[Sat Aug 22 10:00:00 2026] You slash a ghoul for 10 points of damage.\n" +
+            "[Sat Aug 22 10:00:01 2026] The Sleeper has awakened.\n" +
+            "[Sat Aug 22 10:00:02 2026] Bob says, 'hello there'\n");
+        var stats = new SessionStats();
+        var raw = new List<string>();
+        var watcher = new LogWatcher(stats) { RawTap = raw.Add };
+        watcher.Select(path);
+        Ingest(watcher, stats);
+
+        Assert.Equal(3, raw.Count);
+        Assert.Contains(raw, l => l.Contains("has awakened"));
+        Assert.Contains(raw, l => l.Contains("hello there"));
+    }
+
     /// <summary>A log emptied by the session janitor (or rotated by the game) leaves the
     /// saved mark pointing past the end. Reading from there must yield nothing rather than
     /// throw — the caller drops the mark and starts over.</summary>

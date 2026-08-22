@@ -19,14 +19,29 @@ internal sealed record FeedEntry(DateTime Time, FeedWho Who, FeedKind Kind, stri
 /// </summary>
 internal sealed class DamageFeed
 {
-    /// <summary>Scrollback depth — hours of the busiest AE fighting (a full day's log
-    /// is ~20-30k combat events); oldest fall off first. Entries are ~300-byte records,
-    /// so this is ~6 MB — memory is not the limit. The limits are the per-tick filter
-    /// pass over the buffer (cheap at this size) and usefulness: past a couple of
-    /// thousand rows the search chips find things scrolling never will.</summary>
-    private const int MaxEntries = 20_000;
+    /// <summary>Scrollback depth, user-set (the ⚙ dialog; 20k default is hours of the
+    /// busiest AE fighting — a full day's log is ~20-30k combat events). Entries are
+    /// ~300-byte records, so even 100k is ~30 MB; the working limit is the per-tick
+    /// filter pass over the buffer, still comfortable at 100k. Oldest fall off first.</summary>
+    private int _capacity = 20_000;
+
+    /// <summary>Change the buffer depth, trimming immediately on a shrink.</summary>
+    public void SetCapacity(int entries)
+    {
+        var cap = Math.Clamp(entries, 500, 200_000);
+        lock (_lock)
+        {
+            _capacity = cap;
+            while (_entries.Count > cap) _entries.Dequeue();
+            while (_raw.Count > cap) _raw.Dequeue();
+        }
+    }
 
     private readonly Queue<FeedEntry> _entries = new();
+
+    /// <summary>Raw-mode buffer: every log line verbatim (message part), timestamped.
+    /// MinValue marks a line whose prefix didn't parse — shown without a clock.</summary>
+    private readonly Queue<(DateTime Time, string Text)> _raw = new();
     private readonly object _lock = new();
 
     /// <summary>Current pet name, written by the UI tick, read on the watcher thread —
@@ -81,7 +96,52 @@ internal sealed class DamageFeed
         lock (_lock)
         {
             _entries.Enqueue(entry);
-            while (_entries.Count > MaxEntries) _entries.Dequeue();
+            while (_entries.Count > _capacity) _entries.Dequeue();
+        }
+    }
+
+    /// <summary>Raw-mode capture, straight off LogWatcher.RawTap. The "[Sat Aug 22
+    /// 17:20:01 2026] " prefix is split off here once rather than at render time.</summary>
+    public void ApplyRaw(string line)
+    {
+        var time = DateTime.MinValue;
+        var text = line;
+        if (line.Length > 27 && line[0] == '[' && line[25] == ']')
+        {
+            if (DateTime.TryParseExact(line.AsSpan(1, 24), "ddd MMM dd HH:mm:ss yyyy",
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out var t))
+                time = t;
+            text = line[27..];
+        }
+        if (text.Length == 0) return;
+        lock (_lock)
+        {
+            _raw.Enqueue((time, text));
+            while (_raw.Count > _capacity) _raw.Dequeue();
+        }
+    }
+
+    /// <summary>Raw mode's view: newest-first lines containing ANY search term (all of
+    /// them when no chips are set), at most <paramref name="max"/>.</summary>
+    public List<(DateTime Time, string Text)> SnapshotRaw(IReadOnlyList<string> terms, int max)
+    {
+        lock (_lock)
+        {
+            var rows = new List<(DateTime, string)>(Math.Min(max, _raw.Count));
+            foreach (var line in _raw.Reverse())
+            {
+                if (rows.Count >= max) break;
+                if (terms.Count > 0)
+                {
+                    var any = false;
+                    foreach (var term in terms)
+                        if (line.Text.Contains(term, StringComparison.OrdinalIgnoreCase)) { any = true; break; }
+                    if (!any) continue;
+                }
+                rows.Add(line);
+            }
+            return rows;
         }
     }
 

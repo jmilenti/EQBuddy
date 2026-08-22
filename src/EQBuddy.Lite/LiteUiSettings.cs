@@ -54,6 +54,10 @@ public sealed class LiteUiSettings
     /// <summary>Rows the FEED shows at once — the vertical half of its resize grip.</summary>
     public int FeedRows { get; set; } = 12;
 
+    /// <summary>How many events/lines the feed's buffers hold (the ⚙ dialog). Applies
+    /// to the combat buffer and the raw-log buffer alike; clamped 500–200,000 on use.</summary>
+    public int FeedHistory { get; set; } = 20_000;
+
     /// <summary>Explicit width per section window, set by its ◢ grip; a missing key
     /// means auto (size to content). Height is deliberately NOT here: these windows
     /// size to their content, so height is content — the feed's grip maps vertical
@@ -154,8 +158,13 @@ public sealed class FeedFilters
 
     /// <summary>Free-text search chips: a row must contain at least one of these (they
     /// OR together) anywhere in its actor, ability, target, note, kind, or crit-ness.
-    /// Empty = no text filtering.</summary>
+    /// Empty = no text filtering. In raw mode chips match the whole log line.</summary>
     public List<string> SearchTerms { get; set; } = [];
+
+    /// <summary>The "all" button: show every raw log line — chat, emotes, system,
+    /// everything — instead of the curated combat view. The who/kind pills don't apply
+    /// there (they describe parsed events); chips still filter by text.</summary>
+    public bool RawMode { get; set; }
     /// <summary>"all", "slash", "pierce", "blunt", or "archery" — melee rows only.</summary>
     public string MeleeType { get; set; } = "all";
 }

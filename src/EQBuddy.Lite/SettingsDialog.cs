@@ -13,6 +13,7 @@ public sealed class SettingsDialog : Window
     private readonly CheckBox _groupSync;
     private readonly CheckBox _groupMotes;
     private readonly Dictionary<string, CheckBox> _sections = new();
+    private readonly ComboBox _history;
 
     public bool GroupBoardUseSync => _groupSync.IsChecked == true;
     public bool ShowGroupMotes => _groupMotes.IsChecked == true;
@@ -21,8 +22,12 @@ public sealed class SettingsDialog : Window
     public List<string> HiddenSections =>
         _sections.Where(kv => kv.Value.IsChecked != true).Select(kv => kv.Key).ToList();
 
+    public int FeedHistory =>
+        _history.SelectedItem is ComboBoxItem { Tag: int n } ? n : 20_000;
+
     public SettingsDialog(bool groupBoardUseSync, bool showGroupMotes,
-        IReadOnlyList<string> sectionKeys, IReadOnlyList<string> hiddenSections)
+        IReadOnlyList<string> sectionKeys, IReadOnlyList<string> hiddenSections,
+        int feedHistory)
     {
         Title = "EQdps settings";
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -67,6 +72,38 @@ public sealed class SettingsDialog : Window
             },
         };
         panel.Children.Add(_groupMotes);
+
+        var historyRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Margin = new Thickness(0, 0, 0, 12),
+        };
+        historyRow.Children.Add(new TextBlock
+        {
+            Text = "Feed history:",
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+        });
+        _history = new ComboBox { MinWidth = 110 };
+        int[] sizes = [2_000, 20_000, 100_000];
+        // A hand-edited value that isn't one of the presets still shows as itself.
+        if (!sizes.Contains(feedHistory)) sizes = [.. sizes, feedHistory];
+        foreach (var n in sizes.OrderBy(n => n))
+            _history.Items.Add(new ComboBoxItem
+            {
+                Tag = n,
+                Content = $"{n:N0} lines",
+                IsSelected = n == feedHistory,
+            });
+        historyRow.Children.Add(_history);
+        historyRow.Children.Add(new TextBlock
+        {
+            Text = "  (scrollback depth — combat and raw log)",
+            FontSize = 11,
+            Foreground = System.Windows.Media.Brushes.Gray,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        panel.Children.Add(historyRow);
 
         panel.Children.Add(new TextBlock
         {

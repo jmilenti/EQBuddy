@@ -58,6 +58,11 @@ public sealed class LogWatcher : IDisposable
     /// board rides here, same pattern as Spawns/Mez.</summary>
     public Action<GameEvent>? Tap { get; set; }
 
+    /// <summary>Every raw line, parsed into an event or not — the Lite feed's raw mode
+    /// shows the whole log, and most lines (chat, emotes, system) make no event. Called
+    /// from the poll thread, one line at a time, timestamp prefix included.</summary>
+    public Action<string>? RawTap { get; set; }
+
     public LogWatcher(SessionStats stats)
     {
         _stats = stats;
@@ -301,6 +306,7 @@ public sealed class LogWatcher : IDisposable
                         // Every line, parsed or not: a Text watch rule matches the line's
                         // words, not whatever event we did or didn't make of it.
                         _stats.ObserveRawLine(line);
+                        RawTap?.Invoke(line);
                     }
                     start = nl + 1;
                 }
