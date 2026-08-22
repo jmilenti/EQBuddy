@@ -1,0 +1,456 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
+
+namespace EQBuddy.Lite;
+
+/// <summary>One row of a FEED list: pre-formatted text and its brush. Bound by the
+/// FeedRowTemplate resource in MainWindow.xaml.</summary>
+public sealed record FeedRow(string Text, Brush Color);
+
+/// <summary>One FEED window: heading (with the + that spawns another, and ✕ to close
+/// extras), the search-chip row, the sixteen filter pills, and the fixed-height list.
+/// The panel can hold any number of these, all filtering the same shared
+/// <see cref="DamageFeed"/> buffers at render time — filtering is a lens, so extra
+/// windows cost only their own render, never a second copy of the scrollback.
+/// Everything the view owns persists in its <see cref="FeedPane"/>.</summary>
+internal sealed class FeedView
+{
+    public FeedPane Pane { get; }
+    public string Key => Pane.Key;
+    public StackPanel Root { get; }
+    public TextBlock Header { get; }
+    public Rectangle TopSep { get; }
+
+    private readonly MainWindow _owner;
+    private readonly LiteUiSettings _ui;
+    private readonly DamageFeed _feed;
+    private readonly WrapPanel _searchRow;
+    private readonly WrapPanel _pillRow;
+    private readonly ListBox _list;
+    private readonly TextBox _searchBox;
+    private readonly List<Action> _pillRefreshers = [];
+
+    private static SolidColorBrush Frozen(byte r, byte g, byte b)
+    {
+        var brush = new SolidColorBrush(Color.FromRgb(r, g, b));
+        brush.Freeze();
+        return brush;
+    }
+
+    private static readonly Brush YouBrush = Frozen(0xCF, 0xE3, 0xF5);
+    private static readonly Brush CritBrush = Frozen(0xE8, 0xCE, 0x9C);
+    private static readonly Brush PetBrush = Frozen(0x8F, 0xD4, 0xC8);
+    private static readonly Brush GroupBrush = Frozen(0xB9, 0xA7, 0xE8);
+    private static readonly Brush TakenBrush = Frozen(0xE8, 0x9C, 0x9C);
+    private static readonly Brush HealBrush = Frozen(0x8B, 0xE2, 0x8B);
+    private static readonly Brush DimBrush = Frozen(0x7B, 0x87, 0x94);
+    private static readonly Brush KillBrush = Frozen(0xD9, 0xC4, 0x6B);
+    private static readonly Brush RawBrush = Frozen(0xAE, 0xBB, 0xC7);
+    private static readonly Brush LinkBrush = Frozen(0x55, 0x61, 0x6C);
+    private static readonly Brush InputBrush = Frozen(0xDD, 0xE5, 0xEC);
+
+    private static readonly Brush PillOnFg = Frozen(0xD9, 0xC4, 0x6B);
+    private static readonly Brush PillOffFg = Frozen(0x55, 0x61, 0x6C);
+    private static readonly Brush PillOnBg = new SolidColorBrush(Color.FromArgb(0x2E, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush PillOffBg = new SolidColorBrush(Color.FromArgb(0x10, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush PillOnBorder = new SolidColorBrush(Color.FromArgb(0x55, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush PillOffBorder = new SolidColorBrush(Color.FromArgb(0x1E, 0xFF, 0xFF, 0xFF));
+
+    private string Title => Key == "feed" ? "FEED" : "FEED " + Key[4..];
+
+    public FeedView(MainWindow owner, LiteUiSettings ui, DamageFeed feed, FeedPane pane)
+    {
+        _owner = owner;
+        _ui = ui;
+        _feed = feed;
+        Pane = pane;
+
+        TopSep = new Rectangle
+        {
+            Height = 1,
+            Fill = new SolidColorBrush(Color.FromArgb(0x2A, 0xFF, 0xFF, 0xFF)),
+            Margin = new Thickness(0, 9, 0, 7),
+        };
+
+        Header = new TextBlock
+        {
+            Text = $"▸ {Title} · live",
+            FontSize = 9.5,
+            Foreground = DimBrush,
+            Cursor = Cursors.Hand,
+            ToolTip = "Click to show/hide · drag to pop out · a live feed of combat "
+                + "from your log, with filters",
+        };
+        // + and ✕ sit beside the heading, outside its drag/toggle surface. The ✕ only
+        // exists on spawned windows — the original FEED can be hidden in ⚙ but never
+        // closed, so there is always a window to press + on.
+        var spawn = new TextBlock
+        {
+            Text = "+",
+            FontSize = 10,
+            Foreground = LinkBrush,
+            Cursor = Cursors.Hand,
+            Margin = new Thickness(8, -1, 0, 0),
+            ToolTip = "Open another FEED window — its own filters, starting as a copy "
+                + "of this one's",
+        };
+        spawn.MouseLeftButtonDown += (_, e) =>
+        {
+            e.Handled = true;
+            _owner.SpawnFeedPane(this);
+        };
+        var headRow = new StackPanel { Orientation = Orientation.Horizontal };
+        headRow.Children.Add(Header);
+        headRow.Children.Add(spawn);
+        if (Key != "feed")
+        {
+            var close = new TextBlock
+            {
+                Text = "✕",
+                FontSize = 9.5,
+                Foreground = LinkBrush,
+                Cursor = Cursors.Hand,
+                Margin = new Thickness(7, 0, 0, 0),
+                ToolTip = "Close this FEED window for good (its filters are forgotten)",
+            };
+            close.MouseLeftButtonDown += (_, e) =>
+            {
+                e.Handled = true;
+                _owner.CloseFeedPane(this);
+            };
+            headRow.Children.Add(close);
+        }
+
+        _searchRow = new WrapPanel { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 4, 0, 0) };
+        _pillRow = new WrapPanel { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 2, 0, 2) };
+
+        _list = new ListBox
+        {
+            Margin = new Thickness(2, 2, 0, 0),
+            Visibility = Visibility.Collapsed,
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            ItemContainerStyle = (Style)_owner.FindResource("FeedItemStyle"),
+            ItemTemplate = (DataTemplate)_owner.FindResource("FeedRowTemplate"),
+        };
+        ScrollViewer.SetHorizontalScrollBarVisibility(_list, ScrollBarVisibility.Disabled);
+        ScrollViewer.SetVerticalScrollBarVisibility(_list, ScrollBarVisibility.Auto);
+
+        _searchBox = new TextBox
+        {
+            MinWidth = 64,
+            FontSize = 10,
+            Padding = new Thickness(3, 0, 3, 1),
+            Margin = new Thickness(0, 1, 2, 1),
+            Background = PillOffBg,
+            Foreground = InputBrush,
+            CaretBrush = InputBrush,
+            BorderBrush = PillOffBorder,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            ToolTip = "Type a word and press Enter — rows must contain one of the chips "
+                + "(actor, ability, target, or annotation; try slay, crit, riposte, a name…)",
+        };
+        _searchBox.KeyDown += (_, e) =>
+        {
+            // Fully qualified: this class's Key property (the section key) shadows
+            // the input enum inside instance members.
+            if (e.Key == System.Windows.Input.Key.Enter) { e.Handled = true; CommitSearch(); }
+            else if (e.Key == System.Windows.Input.Key.Escape) { e.Handled = true; _searchBox.Clear(); }
+        };
+
+        Root = new StackPanel();
+        Root.Children.Add(TopSep);
+        Root.Children.Add(headRow);
+        Root.Children.Add(_searchRow);
+        Root.Children.Add(_pillRow);
+        Root.Children.Add(_list);
+
+        BuildPills();
+        RefreshSearchRow();
+        ApplyInnerWidth(double.NaN);
+    }
+
+    public int RowsClamped() => Math.Clamp(Pane.Rows, 4, 40);
+
+    /// <summary>The section's width, from the ◢ grip (NaN = auto). The list takes the
+    /// cap as a FIXED width, not a max — this window holds the size the user set and
+    /// never breathes with its content.</summary>
+    public void ApplyInnerWidth(double width)
+    {
+        var cap = double.IsNaN(width) ? 340 : Math.Max(150, width);
+        _searchRow.MaxWidth = cap;
+        _pillRow.MaxWidth = cap;
+        _list.Width = cap;
+    }
+
+    public void Render()
+    {
+        if (!Pane.Show)
+        {
+            Header.Text = $"▸ {Title} · live";
+            _searchRow.Visibility = Visibility.Collapsed;
+            _pillRow.Visibility = Visibility.Collapsed;
+            _list.Visibility = Visibility.Collapsed;
+            return;
+        }
+        var f = Pane.Filters;
+        var raw = f.RawMode;
+        _searchRow.Visibility = Visibility.Visible;
+        // The who/kind pills describe parsed combat events; raw mode shows the log
+        // verbatim, so they'd be dead controls there.
+        _pillRow.Visibility = raw ? Visibility.Collapsed : Visibility.Visible;
+        // The grip's row count is the VIEWPORT, and a FIXED one: this many rows tall
+        // whether the filter matches two rows or two thousand, so the window (and the
+        // stack docked under it) never moves as the fight ebbs.
+        _list.Height = RowsClamped() * 14 + 4;
+        _list.Visibility = Visibility.Visible;
+
+        // Newest-first means every refresh shifts rows under a reader who has scrolled
+        // back — so while they're anywhere but the top, the list freezes and the header
+        // says so. Scrolling back up resumes live on the next tick.
+        if (Scroller() is { VerticalOffset: > 0.5 })
+        {
+            Header.Text = $"▾ {Title} · paused — scroll to top to resume";
+            return;
+        }
+        List<FeedRow> rows;
+        if (raw)
+        {
+            rows = _feed.SnapshotRaw(f.SearchTerms, 2000)
+                .Select(l => new FeedRow(
+                    l.Time == DateTime.MinValue ? l.Text : $"{l.Time:HH:mm:ss}  {l.Text}",
+                    RawBrush))
+                .ToList();
+            Header.Text = $"▾ {Title} · raw log · live";
+        }
+        else
+        {
+            rows = _feed.Snapshot(f, 2000).Select(RowOf).ToList();
+            Header.Text = $"▾ {Title} · live";
+        }
+        // An empty match set renders as one dim row INSIDE the fixed-height list —
+        // swapping the list for a message would change the window's height.
+        if (rows.Count == 0) rows.Add(new FeedRow("(nothing matching yet)", DimBrush));
+        _list.ItemsSource = rows;
+    }
+
+    /// <summary>The ListBox's internal ScrollViewer, once templated (null before the
+    /// first layout pass).</summary>
+    private ScrollViewer? Scroller()
+    {
+        if (VisualTreeHelper.GetChildrenCount(_list) == 0) return null;
+        return VisualTreeHelper.GetChild(_list, 0) is Border b ? b.Child as ScrollViewer : null;
+    }
+
+    private static FeedRow RowOf(FeedEntry e)
+    {
+        var t = e.Time.ToString("HH:mm:ss");
+        // The log's own annotation wins (it already says "Riposte Critical" when both
+        // apply); a bare crit flag gets the plain tag.
+        var tag = e.Note is { Length: > 0 } n ? $" ({n})" : e.Crit ? " (Crit)" : "";
+        var actor = e.Who == FeedWho.You ? "" : $"{e.Actor}: ";
+        return e.Kind switch
+        {
+            FeedKind.Melee or FeedKind.Spell or FeedKind.Dot or FeedKind.Aux => new FeedRow(
+                $"{t}  {actor}{e.Ability} → {e.Target}  {e.Amount:N0}{tag}",
+                e.Crit ? CritBrush : e.Who switch
+                {
+                    FeedWho.Pet => PetBrush,
+                    FeedWho.Group => GroupBrush,
+                    _ => YouBrush,
+                }),
+            FeedKind.Taken => new FeedRow(
+                $"{t}  {e.Actor}{(e.Ability.Length > 0 ? $" {e.Ability}" : "")} → you  {e.Amount:N0}",
+                TakenBrush),
+            FeedKind.Heal => new FeedRow(
+                e.Incoming
+                    ? $"{t}  {e.Actor} heals you  +{e.Amount:N0}"
+                    : $"{t}  {e.Ability} → {e.Target}  +{e.Amount:N0}",
+                HealBrush),
+            FeedKind.Miss => new FeedRow(
+                e.Incoming ? $"{t}  missed you" : $"{t}  you miss", DimBrush),
+            FeedKind.Kill => new FeedRow($"{t}  {e.Actor} slew {e.Target}", KillBrush),
+            FeedKind.Resist => new FeedRow(
+                $"{t}  {(e.Ability.Length > 0 ? e.Ability : "spell")} resisted", DimBrush),
+            _ => new FeedRow(
+                $"{t}  {(e.Ability.Length > 0 ? e.Ability : "spell")} fizzled", DimBrush),
+        };
+    }
+
+    /// <summary>The filter pills — sixteen toggles sharing one tiny template. Each pill
+    /// owns its refresh closure; clicking saves and re-renders THIS view only, so two
+    /// feed windows never fight over a filter.</summary>
+    private void BuildPills()
+    {
+        var f = Pane.Filters;
+        void Pill(string label, string tip, Func<bool> isOn, Action click, Func<string>? text = null)
+        {
+            var tb = new TextBlock { FontSize = 10, Text = label };
+            var pill = new Border
+            {
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(5, 1, 5, 1),
+                Margin = new Thickness(0, 1, 4, 1),
+                BorderThickness = new Thickness(1),
+                Cursor = Cursors.Hand,
+                ToolTip = tip,
+                Child = tb,
+            };
+            void Refresh()
+            {
+                var on = isOn();
+                tb.Text = text?.Invoke() ?? label;
+                tb.Foreground = on ? PillOnFg : PillOffFg;
+                pill.Background = on ? PillOnBg : PillOffBg;
+                pill.BorderBrush = on ? PillOnBorder : PillOffBorder;
+            }
+            pill.MouseLeftButtonDown += (_, args) =>
+            {
+                args.Handled = true;
+                click();
+                _ui.Save();
+                Refresh();
+                Render();
+            };
+            Refresh();
+            _pillRefreshers.Add(Refresh);
+            _pillRow.Children.Add(pill);
+        }
+
+        // who
+        Pill("you", "Your own damage", () => f.You, () => f.You = !f.You);
+        Pill("pet", "Your pet's damage", () => f.Pet, () => f.Pet = !f.Pet);
+        Pill("grp", "Other players near you, from your log", () => f.Group, () => f.Group = !f.Group);
+        Pill("in", "Damage you take", () => f.Incoming, () => f.Incoming = !f.Incoming);
+        // kind
+        Pill("melee", "Melee hits", () => f.Melee, () => f.Melee = !f.Melee);
+        Pill("spell", "Direct spell damage", () => f.Spells, () => f.Spells = !f.Spells);
+        Pill("dot", "Damage-over-time ticks", () => f.Dots, () => f.Dots = !f.Dots);
+        Pill("ds", "Damage shields / automatic damage", () => f.DamageShields, () => f.DamageShields = !f.DamageShields);
+        Pill("heal", "Heals, cast and received", () => f.Heals, () => f.Heals = !f.Heals);
+        Pill("miss", "Misses, dodges, parries", () => f.Misses, () => f.Misses = !f.Misses);
+        Pill("kill", "Killing blows", () => f.Kills, () => f.Kills = !f.Kills);
+        Pill("r/f", "Resists and fizzles", () => f.ResistsFizzles, () => f.ResistsFizzles = !f.ResistsFizzles);
+        // narrowing
+        Pill("crit", "Critical hits only", () => f.CritsOnly, () => f.CritsOnly = !f.CritsOnly);
+        Pill("slay", "Slay Undead hits only (combines with rip/crip as either-or)",
+            () => f.OnlySlays, () => f.OnlySlays = !f.OnlySlays);
+        Pill("rip", "Ripostes only (combines with slay/crip as either-or)",
+            () => f.OnlyRipostes, () => f.OnlyRipostes = !f.OnlyRipostes);
+        Pill("crip", "Crippling Blows only (combines with slay/rip as either-or)",
+            () => f.OnlyCrippling, () => f.OnlyCrippling = !f.OnlyCrippling);
+        Pill("dmg", "Minimum damage to show — click to cycle",
+            () => f.MinDamage > 0,
+            () => f.MinDamage = f.MinDamage switch { 0 => 100, 100 => 500, 500 => 1000, 1000 => 5000, _ => 0 },
+            () => f.MinDamage == 0 ? "dmg·any" : $"dmg·{f.MinDamage}+");
+        Pill("type", "Melee damage type — click to cycle",
+            () => f.MeleeType != "all",
+            () => f.MeleeType = f.MeleeType switch
+            {
+                "all" => "slash", "slash" => "pierce", "pierce" => "blunt",
+                "blunt" => "archery", _ => "all",
+            },
+            () => $"type·{f.MeleeType}");
+    }
+
+    // ---- search chips: [all] [term ✕]… [box] [+] ----
+
+    private void CommitSearch()
+    {
+        var term = _searchBox.Text.Trim();
+        _searchBox.Clear();
+        if (term.Length == 0) return;
+        var f = Pane.Filters;
+        if (!f.SearchTerms.Any(t => string.Equals(t, term, StringComparison.OrdinalIgnoreCase)))
+            f.SearchTerms.Add(term);
+        _ui.Save();
+        RefreshSearchRow();
+        Render();
+    }
+
+    /// <summary>Rebuild the whole row — chips are cheap and a full rebuild keeps one
+    /// source of truth (the pane's list). The text box is a persistent instance so
+    /// half-typed input survives a chip add/remove.</summary>
+    private void RefreshSearchRow()
+    {
+        var f = Pane.Filters;
+        _searchRow.Children.Clear();
+
+        var all = FlatButton("all", f.RawMode ? PillOnFg : PillOffFg,
+            "Show the raw log — every line the game writes (chat, emotes, system, " +
+            "everything), not just parsed combat. Chips filter by text; click again " +
+            "for the combat view.");
+        if (f.RawMode)
+        {
+            all.Background = PillOnBg;
+            all.BorderBrush = PillOnBorder;
+        }
+        all.Click += (_, _) =>
+        {
+            f.RawMode = !f.RawMode;
+            _ui.Save();
+            RefreshSearchRow();
+            Render();
+        };
+        _searchRow.Children.Add(all);
+
+        foreach (var term in f.SearchTerms.ToList())
+        {
+            var text = new TextBlock
+            {
+                Text = term,
+                FontSize = 10,
+                Foreground = PillOnFg,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            var remove = FlatButton("✕", Frozen(0x8A, 0x97, 0xA3), $"Stop filtering by {term}");
+            remove.Margin = new Thickness(3, 0, 0, 0);
+            remove.Padding = new Thickness(2, 0, 2, 1);
+            remove.BorderThickness = new Thickness(0);
+            remove.Background = Brushes.Transparent;
+            remove.Click += (_, _) =>
+            {
+                f.SearchTerms.RemoveAll(t => string.Equals(t, term, StringComparison.OrdinalIgnoreCase));
+                _ui.Save();
+                RefreshSearchRow();
+                Render();
+            };
+            var body = new StackPanel { Orientation = Orientation.Horizontal };
+            body.Children.Add(text);
+            body.Children.Add(remove);
+            _searchRow.Children.Add(new Border
+            {
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(5, 1, 3, 1),
+                Margin = new Thickness(0, 1, 4, 1),
+                BorderThickness = new Thickness(1),
+                Background = PillOnBg,
+                BorderBrush = PillOnBorder,
+                Child = body,
+            });
+        }
+
+        _searchRow.Children.Add(_searchBox);
+        var plus = FlatButton("+", PillOnFg, "Add the typed word as a chip (same as Enter)");
+        plus.Click += (_, _) => CommitSearch();
+        _searchRow.Children.Add(plus);
+    }
+
+    private Button FlatButton(string text, Brush fg, string tip) => new()
+    {
+        Content = text,
+        ToolTip = tip,
+        Cursor = Cursors.Hand,
+        Focusable = false,
+        FontSize = 10,
+        Foreground = fg,
+        Background = PillOffBg,
+        BorderBrush = PillOffBorder,
+        Padding = new Thickness(5, 0, 5, 1),
+        Margin = new Thickness(0, 1, 4, 1),
+        Template = (ControlTemplate)_owner.FindResource("FlatButtonTemplate"),
+    };
+}

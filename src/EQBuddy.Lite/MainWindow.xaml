@@ -122,6 +122,28 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- The FEED list pieces, shared by every FeedView: selection chrome templated
+             away (rows are read-only text), and rows bound to FeedRow.Text/Color. A
+             ListBox rather than ItemsControl for its built-in ScrollViewer and
+             virtualization — buffers hold up to 2000 filtered rows and only the
+             viewport should ever pay render cost. -->
+        <Style x:Key="FeedItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <ContentPresenter/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <DataTemplate x:Key="FeedRowTemplate">
+            <TextBlock Text="{Binding Text}" Foreground="{Binding Color}"
+                       FontFamily="Consolas" FontSize="11"
+                       TextTrimming="CharacterEllipsis"/>
+        </DataTemplate>
     </Window.Resources>
     <Border Background="#F0101418" BorderBrush="#3CFFFFFF" BorderThickness="1"
             CornerRadius="10"
@@ -384,51 +406,10 @@
                        FontFamily="Consolas" FontSize="12.5" Foreground="#7B8794"/>
             </StackPanel>
 
-            <StackPanel x:Name="FeedSection">
-                <Rectangle x:Name="FeedTopSep" Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
-                <TextBlock x:Name="FeedHeader" Text="▸ FEED · live" Cursor="Hand"
-                           FontSize="9.5" Foreground="#7B8794"
-                           ToolTip="Click to show/hide · drag to pop out · a live feed of combat from your log, with filters"/>
-                <!-- Search chips row (BuildFeedSearch): [all] [chip ✕]… [box] [+].
-                     Typed words become removable chips, Outlook-recipient style. -->
-                <WrapPanel x:Name="FeedSearchRow" Visibility="Collapsed"
-                           Margin="0,4,0,0" MaxWidth="340"/>
-                <!-- Filter pills are built in code (BuildFeedPills) — ~16 toggles would
-                     drown the XAML, and they all share one tiny template anyway. -->
-                <WrapPanel x:Name="FeedPillRow" Visibility="Collapsed"
-                           Margin="0,2,0,2" MaxWidth="340"/>
-                <!-- A ListBox rather than ItemsControl for its built-in ScrollViewer and
-                     virtualization — the buffer holds 2000 events and only the viewport
-                     should ever pay render cost. Selection chrome is templated away. -->
-                <ListBox x:Name="FeedList" Margin="2,2,0,0" Visibility="Collapsed"
-                         MaxWidth="340" Background="Transparent" BorderThickness="0"
-                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto">
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem">
-                            <Setter Property="Padding" Value="0"/>
-                            <Setter Property="Margin" Value="0"/>
-                            <Setter Property="Focusable" Value="False"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListBoxItem">
-                                        <ContentPresenter/>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListBox.ItemContainerStyle>
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Text}" Foreground="{Binding Color}"
-                                       FontFamily="Consolas" FontSize="11"
-                                       TextTrimming="CharacterEllipsis"/>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-                <TextBlock x:Name="FeedEmptyText" Text="(nothing matching yet)" Visibility="Collapsed"
-                           FontFamily="Consolas" FontSize="11.5" Foreground="#7B8794"/>
-            </StackPanel>
+            <!-- FEED sections are built entirely in code (FeedView) and appended here
+                 at startup — there can be any number of them, each with its own
+                 filters, so a fixed XAML block can't describe them. The two resources
+                 below are what a FeedView pulls from this window. -->
         </StackPanel>
         <TextBlock x:Name="ResizeGrip" Text="◢" FontSize="10" Foreground="#55616C"
                    Cursor="SizeNWSE" HorizontalAlignment="Right" VerticalAlignment="Bottom"

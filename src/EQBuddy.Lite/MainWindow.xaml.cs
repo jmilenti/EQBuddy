@@ -38,19 +38,22 @@ public partial class MainWindow : Window
     //      near another EQdps window's bottom edge, ✕ to rejoin the panel ----
 
     private const double DockGap = 6;
-    private static readonly string[] SectionKeys = ["motes", "loot", "fights", "spawns", "group", "group2", "feed"];
+    // No longer a static truth: FEED windows are spawnable, so their keys ("feed",
+    // "feed2", …) join this list from FeedPanes at startup and as the user adds them.
+    private readonly List<string> SectionKeys = ["motes", "loot", "fights", "spawns", "group", "group2"];
     private readonly Dictionary<string, SectionWindow> _sectionWindows = new();
+    private readonly Dictionary<string, FeedView> _feedViews = new();
 
-    private FrameworkElement SectionElement(string key) => key switch
-    {
-        "motes" => MotesSection,
-        "loot" => LootSection,
-        "fights" => FightsSection,
-        "spawns" => SpawnSection,
-        "feed" => FeedSection,
-        "group2" => Group2Section,
-        _ => GroupSection,
-    };
+    private FrameworkElement SectionElement(string key) =>
+        _feedViews.TryGetValue(key, out var feedView) ? feedView.Root : key switch
+        {
+            "motes" => MotesSection,
+            "loot" => LootSection,
+            "fights" => FightsSection,
+            "spawns" => SpawnSection,
+            "group2" => Group2Section,
+            _ => GroupSection,
+        };
 
     private bool Attached(string key) => !_sectionWindows.ContainsKey(key);
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
@@ -124,10 +127,28 @@ public partial class MainWindow : Window
         WireSection(SpawnHeader, "spawns", () => _ui.ShowSpawns = !_ui.ShowSpawns);
         WireSection(GroupLabel, "group", () => _ui.ShowGroup = !_ui.ShowGroup);
         WireSection(Group2Label, "group2", () => _ui.ShowGroup2 = !_ui.ShowGroup2);
-        WireSection(FeedHeader, "feed", () => _ui.ShowFeed = !_ui.ShowFeed);
         _feed.SetCapacity(_ui.FeedHistory);
-        BuildFeedPills();
-        BuildFeedSearch();
+
+        // FEED windows come from the panes list — a settings file from before panes
+        // existed seeds one from the legacy single-feed keys, so nobody's filters are
+        // lost on the update.
+        if (_ui.FeedPanes.Count == 0)
+            _ui.FeedPanes.Add(new FeedPane
+            {
+                Key = "feed",
+                Filters = _ui.FeedFilters,
+                Rows = _ui.FeedRows,
+                Show = _ui.ShowFeed,
+            });
+        foreach (var pane in _ui.FeedPanes.ToList())
+        {
+            if (string.IsNullOrEmpty(pane.Key) || _feedViews.ContainsKey(pane.Key))
+            {
+                _ui.FeedPanes.Remove(pane);  // a hand-edited duplicate; drop it
+                continue;
+            }
+            AddFeedView(pane);
+        }
         Loaded += (_, _) => SetupSectionWindows();
         LocationChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
         SizeChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
@@ -320,7 +341,6 @@ public partial class MainWindow : Window
         SpawnTopSep.Visibility = Attached("spawns") ? Visibility.Visible : Visibility.Collapsed;
         GroupTopSep.Visibility = Attached("group") ? Visibility.Visible : Visibility.Collapsed;
         Group2TopSep.Visibility = Attached("group2") ? Visibility.Visible : Visibility.Collapsed;
-        FeedTopSep.Visibility = Attached("feed") ? Visibility.Visible : Visibility.Collapsed;
 
         // Session loot (motes excluded — they have their own line above), collapsed to
         // a one-line heading by default.
@@ -437,7 +457,11 @@ public partial class MainWindow : Window
             Group2Label, Group2List, Group2EmptyText, lastFight, s);
 
         _feed.PetName = s.PetName;
-        RenderFeed();
+        foreach (var view in _feedViews.Values)
+        {
+            view.TopSep.Visibility = Attached(view.Key) ? Visibility.Visible : Visibility.Collapsed;
+            view.Render();
+        }
 
         // Everything above may have changed a section's height; re-seat the stack once
         // the layout pass has actually run, so a section that shrank this tick doesn't
@@ -670,9 +694,7 @@ public partial class MainWindow : Window
         popup.Update($"{member.Name} · session · {ScopedDps(member, false):0} dps", rows);
     }
 
-    // ---- FEED: a live, filterable view of combat from your own log ----
-
-    private sealed record FeedRow(string Text, Brush Color);
+    // ---- FEED: lives in FeedView (one instance per spawned feed window) ----
 
     private static SolidColorBrush Frozen(byte r, byte g, byte b)
     {
@@ -680,318 +702,6 @@ public partial class MainWindow : Window
         brush.Freeze();
         return brush;
     }
-
-    private static readonly Brush FeedYouBrush = Frozen(0xCF, 0xE3, 0xF5);
-    private static readonly Brush FeedCritBrush = Frozen(0xE8, 0xCE, 0x9C);
-    private static readonly Brush FeedPetBrush = Frozen(0x8F, 0xD4, 0xC8);
-    private static readonly Brush FeedGroupBrush = Frozen(0xB9, 0xA7, 0xE8);
-    private static readonly Brush FeedTakenBrush = Frozen(0xE8, 0x9C, 0x9C);
-    private static readonly Brush FeedHealBrush = Frozen(0x8B, 0xE2, 0x8B);
-    private static readonly Brush FeedDimBrush = Frozen(0x7B, 0x87, 0x94);
-    private static readonly Brush FeedKillBrush = Frozen(0xD9, 0xC4, 0x6B);
-    private static readonly Brush FeedRawBrush = Frozen(0xAE, 0xBB, 0xC7);
-
-    private static readonly Brush FeedPillOnFg = Frozen(0xD9, 0xC4, 0x6B);
-    private static readonly Brush FeedPillOffFg = Frozen(0x55, 0x61, 0x6C);
-    private static readonly Brush FeedPillOnBg = new SolidColorBrush(Color.FromArgb(0x2E, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush FeedPillOffBg = new SolidColorBrush(Color.FromArgb(0x10, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush FeedPillOnBorder = new SolidColorBrush(Color.FromArgb(0x55, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush FeedPillOffBorder = new SolidColorBrush(Color.FromArgb(0x1E, 0xFF, 0xFF, 0xFF));
-
-    private void RenderFeed()
-    {
-        if (!_ui.ShowFeed)
-        {
-            FeedHeader.Text = "\u25b8 FEED \u00b7 live";
-            FeedSearchRow.Visibility = Visibility.Collapsed;
-            FeedPillRow.Visibility = Visibility.Collapsed;
-            FeedList.Visibility = Visibility.Collapsed;
-            FeedEmptyText.Visibility = Visibility.Collapsed;
-            return;
-        }
-        var raw = _ui.FeedFilters.RawMode;
-        FeedSearchRow.Visibility = Visibility.Visible;
-        // The who/kind pills describe parsed combat events; raw mode shows the log
-        // verbatim, so they'd be dead controls there.
-        FeedPillRow.Visibility = raw ? Visibility.Collapsed : Visibility.Visible;
-        // The grip's row count is the VIEWPORT, not the data: the list renders the whole
-        // filtered scrollback (virtualized) and shows this many rows of it at once.
-        FeedList.MaxHeight = FeedRowsClamped() * 14 + 4;
-
-        // Newest-first means every refresh shifts rows under a reader who has scrolled
-        // back — so while they're anywhere but the top, the list freezes and the header
-        // says so. Scrolling back up resumes live on the next tick.
-        if (FeedScroller() is { VerticalOffset: > 0.5 })
-        {
-            FeedHeader.Text = "\u25be FEED \u00b7 paused \u2014 scroll to top to resume";
-            return;
-        }
-        List<FeedRow> rows;
-        if (raw)
-        {
-            rows = _feed.SnapshotRaw(_ui.FeedFilters.SearchTerms, 2000)
-                .Select(l => new FeedRow(
-                    l.Time == DateTime.MinValue ? l.Text : $"{l.Time:HH:mm:ss}  {l.Text}",
-                    FeedRawBrush))
-                .ToList();
-            FeedHeader.Text = "\u25be FEED \u00b7 raw log \u00b7 live";
-        }
-        else
-        {
-            rows = _feed.Snapshot(_ui.FeedFilters, 2000).Select(RowOf).ToList();
-            FeedHeader.Text = "\u25be FEED \u00b7 live";
-        }
-        FeedList.ItemsSource = rows;
-        FeedList.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        FeedEmptyText.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    /// <summary>The ListBox's internal ScrollViewer, once templated (null before the
-    /// first layout pass).</summary>
-    private ScrollViewer? FeedScroller()
-    {
-        if (VisualTreeHelper.GetChildrenCount(FeedList) == 0) return null;
-        return VisualTreeHelper.GetChild(FeedList, 0) is System.Windows.Controls.Border b
-            ? b.Child as ScrollViewer
-            : null;
-    }
-
-    private FeedRow RowOf(FeedEntry e)
-    {
-        var t = e.Time.ToString("HH:mm:ss");
-        // The log's own annotation wins (it already says "Riposte Critical" when both
-        // apply); a bare crit flag gets the plain tag.
-        var tag = e.Note is { Length: > 0 } n ? $" ({n})" : e.Crit ? " (Crit)" : "";
-        var actor = e.Who == FeedWho.You ? "" : $"{e.Actor}: ";
-        return e.Kind switch
-        {
-            FeedKind.Melee or FeedKind.Spell or FeedKind.Dot or FeedKind.Aux => new FeedRow(
-                $"{t}  {actor}{e.Ability} \u2192 {e.Target}  {e.Amount:N0}{tag}",
-                e.Crit ? FeedCritBrush : e.Who switch
-                {
-                    FeedWho.Pet => FeedPetBrush,
-                    FeedWho.Group => FeedGroupBrush,
-                    _ => FeedYouBrush,
-                }),
-            FeedKind.Taken => new FeedRow(
-                $"{t}  {e.Actor}{(e.Ability.Length > 0 ? $" {e.Ability}" : "")} \u2192 you  {e.Amount:N0}",
-                FeedTakenBrush),
-            FeedKind.Heal => new FeedRow(
-                e.Incoming
-                    ? $"{t}  {e.Actor} heals you  +{e.Amount:N0}"
-                    : $"{t}  {e.Ability} \u2192 {e.Target}  +{e.Amount:N0}",
-                FeedHealBrush),
-            FeedKind.Miss => new FeedRow(
-                e.Incoming ? $"{t}  missed you" : $"{t}  you miss", FeedDimBrush),
-            FeedKind.Kill => new FeedRow($"{t}  {e.Actor} slew {e.Target}", FeedKillBrush),
-            FeedKind.Resist => new FeedRow(
-                $"{t}  {(e.Ability.Length > 0 ? e.Ability : "spell")} resisted", FeedDimBrush),
-            _ => new FeedRow(
-                $"{t}  {(e.Ability.Length > 0 ? e.Ability : "spell")} fizzled", FeedDimBrush),
-        };
-    }
-
-    /// <summary>The FEED filter pills, built in code — sixteen toggles sharing one tiny
-    /// template. Each pill owns its refresh closure; clicking saves and re-renders at
-    /// once, so a filter change reads back through the buffer instead of only changing
-    /// what arrives next.</summary>
-    private void BuildFeedPills()
-    {
-        var f = _ui.FeedFilters;
-        void Pill(string label, string tip, Func<bool> isOn, Action click, Func<string>? text = null)
-        {
-            var tb = new TextBlock { FontSize = 10, Text = label };
-            var pill = new Border
-            {
-                CornerRadius = new CornerRadius(4),
-                Padding = new Thickness(5, 1, 5, 1),
-                Margin = new Thickness(0, 1, 4, 1),
-                BorderThickness = new Thickness(1),
-                Cursor = Cursors.Hand,
-                ToolTip = tip,
-                Child = tb,
-            };
-            void Refresh()
-            {
-                var on = isOn();
-                tb.Text = text?.Invoke() ?? label;
-                tb.Foreground = on ? FeedPillOnFg : FeedPillOffFg;
-                pill.Background = on ? FeedPillOnBg : FeedPillOffBg;
-                pill.BorderBrush = on ? FeedPillOnBorder : FeedPillOffBorder;
-            }
-            pill.MouseLeftButtonDown += (_, args) =>
-            {
-                args.Handled = true;
-                click();
-                _ui.Save();
-                Refresh();
-                RenderFeed();
-            };
-            Refresh();
-            _feedPillRefreshers.Add(Refresh);
-            FeedPillRow.Children.Add(pill);
-        }
-
-        // who
-        Pill("you", "Your own damage", () => f.You, () => f.You = !f.You);
-        Pill("pet", "Your pet's damage", () => f.Pet, () => f.Pet = !f.Pet);
-        Pill("grp", "Other players near you, from your log", () => f.Group, () => f.Group = !f.Group);
-        Pill("in", "Damage you take", () => f.Incoming, () => f.Incoming = !f.Incoming);
-        // kind
-        Pill("melee", "Melee hits", () => f.Melee, () => f.Melee = !f.Melee);
-        Pill("spell", "Direct spell damage", () => f.Spells, () => f.Spells = !f.Spells);
-        Pill("dot", "Damage-over-time ticks", () => f.Dots, () => f.Dots = !f.Dots);
-        Pill("ds", "Damage shields / automatic damage", () => f.DamageShields, () => f.DamageShields = !f.DamageShields);
-        Pill("heal", "Heals, cast and received", () => f.Heals, () => f.Heals = !f.Heals);
-        Pill("miss", "Misses, dodges, parries", () => f.Misses, () => f.Misses = !f.Misses);
-        Pill("kill", "Killing blows", () => f.Kills, () => f.Kills = !f.Kills);
-        Pill("r/f", "Resists and fizzles", () => f.ResistsFizzles, () => f.ResistsFizzles = !f.ResistsFizzles);
-        // narrowing
-        Pill("crit", "Critical hits only", () => f.CritsOnly, () => f.CritsOnly = !f.CritsOnly);
-        Pill("slay", "Slay Undead hits only (combines with rip/crip as either-or)",
-            () => f.OnlySlays, () => f.OnlySlays = !f.OnlySlays);
-        Pill("rip", "Ripostes only (combines with slay/crip as either-or)",
-            () => f.OnlyRipostes, () => f.OnlyRipostes = !f.OnlyRipostes);
-        Pill("crip", "Crippling Blows only (combines with slay/rip as either-or)",
-            () => f.OnlyCrippling, () => f.OnlyCrippling = !f.OnlyCrippling);
-        Pill("dmg", "Minimum damage to show \u2014 click to cycle",
-            () => f.MinDamage > 0,
-            () => f.MinDamage = f.MinDamage switch { 0 => 100, 100 => 500, 500 => 1000, 1000 => 5000, _ => 0 },
-            () => f.MinDamage == 0 ? "dmg\u00b7any" : $"dmg\u00b7{f.MinDamage}+");
-        Pill("type", "Melee damage type \u2014 click to cycle",
-            () => f.MeleeType != "all",
-            () => f.MeleeType = f.MeleeType switch
-            {
-                "all" => "slash", "slash" => "pierce", "pierce" => "blunt",
-                "blunt" => "archery", _ => "all",
-            },
-            () => $"type\u00b7{f.MeleeType}");
-    }
-
-    // ---- FEED search chips: [all] [term ✕]… [box] [+] ----
-
-    private readonly List<Action> _feedPillRefreshers = [];
-    private TextBox _feedSearchBox = null!;
-
-    private void BuildFeedSearch()
-    {
-        _feedSearchBox = new TextBox
-        {
-            MinWidth = 64,
-            FontSize = 10,
-            Padding = new Thickness(3, 0, 3, 1),
-            Margin = new Thickness(0, 1, 2, 1),
-            Background = FeedPillOffBg,
-            Foreground = Frozen(0xDD, 0xE5, 0xEC),
-            CaretBrush = Frozen(0xDD, 0xE5, 0xEC),
-            BorderBrush = FeedPillOffBorder,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            ToolTip = "Type a word and press Enter — rows must contain one of the chips " +
-                      "(actor, ability, target, or annotation; try slay, crit, riposte, a name…)",
-        };
-        _feedSearchBox.KeyDown += (_, e) =>
-        {
-            if (e.Key == Key.Enter) { e.Handled = true; CommitFeedSearch(); }
-            else if (e.Key == Key.Escape) { e.Handled = true; _feedSearchBox.Clear(); }
-        };
-        RefreshFeedSearchRow();
-    }
-
-    private void CommitFeedSearch()
-    {
-        var term = _feedSearchBox.Text.Trim();
-        _feedSearchBox.Clear();
-        if (term.Length == 0) return;
-        var f = _ui.FeedFilters;
-        if (!f.SearchTerms.Any(t => string.Equals(t, term, StringComparison.OrdinalIgnoreCase)))
-            f.SearchTerms.Add(term);
-        _ui.Save();
-        RefreshFeedSearchRow();
-        RenderFeed();
-    }
-
-    /// <summary>Rebuild the whole row — chips are cheap and a full rebuild keeps one
-    /// source of truth (the settings list). The text box is a persistent instance so
-    /// half-typed input survives a chip add/remove.</summary>
-    private void RefreshFeedSearchRow()
-    {
-        var f = _ui.FeedFilters;
-        FeedSearchRow.Children.Clear();
-
-        var all = FlatButton("all", f.RawMode ? FeedPillOnFg : FeedPillOffFg,
-            "Show the raw log — every line the game writes (chat, emotes, system, " +
-            "everything), not just parsed combat. Chips filter by text; click again " +
-            "for the combat view.");
-        if (f.RawMode)
-        {
-            all.Background = FeedPillOnBg;
-            all.BorderBrush = FeedPillOnBorder;
-        }
-        all.Click += (_, _) =>
-        {
-            f.RawMode = !f.RawMode;
-            _ui.Save();
-            RefreshFeedSearchRow();
-            RenderFeed();
-        };
-        FeedSearchRow.Children.Add(all);
-
-        foreach (var term in f.SearchTerms.ToList())
-        {
-            var text = new TextBlock
-            {
-                Text = term,
-                FontSize = 10,
-                Foreground = FeedPillOnFg,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-            var remove = FlatButton("✕", Frozen(0x8A, 0x97, 0xA3), $"Stop filtering by {term}");
-            remove.Margin = new Thickness(3, 0, 0, 0);
-            remove.Padding = new Thickness(2, 0, 2, 1);
-            remove.BorderThickness = new Thickness(0);
-            remove.Background = Brushes.Transparent;
-            remove.Click += (_, _) =>
-            {
-                f.SearchTerms.RemoveAll(t => string.Equals(t, term, StringComparison.OrdinalIgnoreCase));
-                _ui.Save();
-                RefreshFeedSearchRow();
-                RenderFeed();
-            };
-            var body = new StackPanel { Orientation = Orientation.Horizontal };
-            body.Children.Add(text);
-            body.Children.Add(remove);
-            FeedSearchRow.Children.Add(new Border
-            {
-                CornerRadius = new CornerRadius(4),
-                Padding = new Thickness(5, 1, 3, 1),
-                Margin = new Thickness(0, 1, 4, 1),
-                BorderThickness = new Thickness(1),
-                Background = FeedPillOnBg,
-                BorderBrush = FeedPillOnBorder,
-                Child = body,
-            });
-        }
-
-        FeedSearchRow.Children.Add(_feedSearchBox);
-        var plus = FlatButton("+", FeedPillOnFg, "Add the typed word as a chip (same as Enter)");
-        plus.Click += (_, _) => CommitFeedSearch();
-        FeedSearchRow.Children.Add(plus);
-    }
-
-    private Button FlatButton(string text, Brush fg, string tip) => new()
-    {
-        Content = text,
-        ToolTip = tip,
-        Cursor = Cursors.Hand,
-        Focusable = false,
-        FontSize = 10,
-        Foreground = fg,
-        Background = FeedPillOffBg,
-        BorderBrush = FeedPillOffBorder,
-        Padding = new Thickness(5, 0, 5, 1),
-        Margin = new Thickness(0, 1, 4, 1),
-        Template = (ControlTemplate)FindResource("FlatButtonTemplate"),
-    };
 
     private bool IsSelf(string name) =>
         string.Equals(name, _stats.CharacterName, StringComparison.OrdinalIgnoreCase);
@@ -1376,7 +1086,16 @@ public partial class MainWindow : Window
     /// for a clean shutdown loses the layout to crashes and killed processes.</summary>
     internal void SaveLayout()
     {
- 
+        // A hidden (⚙-unticked) window is skipped: its live DockHost is null while
+        // hidden, and banking that would turn "hidden" into "floating" on relaunch.
+        // (This loop went missing in v1.58 — docks silently stopped being re-banked
+        // after startup; restored in 1.68.)
+        foreach (var (key, win) in _sectionWindows)
+        {
+            if (!win.IsVisible) continue;
+            _ui.SectionPositions[key] = [win.Left, win.Top];
+            _ui.SectionDocks[key] = DockKey(win.DockHost);
+        }
         _ui.Save();
         _settings.WindowLeft = Left;
         _settings.WindowTop = Top;
@@ -1507,6 +1226,68 @@ public partial class MainWindow : Window
         SaveLayout();   // the dock graph is remembered now, so every change to it is saved
     }
 
+    /// <summary>Wire a pane into the panel: view, section key, heading toggle.</summary>
+    private void AddFeedView(FeedPane pane)
+    {
+        var view = new FeedView(this, _ui, _feed, pane);
+        _feedViews[pane.Key] = view;
+        SectionKeys.Add(pane.Key);
+        RootStack.Children.Add(view.Root);
+        WireSection(view.Header, pane.Key, () => pane.Show = !pane.Show);
+    }
+
+    /// <summary>The + on a FEED heading: another FEED window, starting as a copy of
+    /// the clicked one's filters (set up a view, clone it, tweak the copy). It hooks
+    /// under the stack's tail like any new section.</summary>
+    internal void SpawnFeedPane(FeedView from)
+    {
+        var n = 2;
+        while (_feedViews.ContainsKey("feed" + n)) n++;
+        var pane = new FeedPane
+        {
+            Key = "feed" + n,
+            Rows = from.Pane.Rows,
+            Show = true,
+            // A JSON round-trip is the cheapest deep copy — FeedFilters is a plain
+            // settings bag, and sharing the instance would tie the two windows together.
+            Filters = System.Text.Json.JsonSerializer.Deserialize<FeedFilters>(
+                System.Text.Json.JsonSerializer.Serialize(from.Pane.Filters)) ?? new FeedFilters(),
+        };
+        _ui.FeedPanes.Add(pane);
+        AddFeedView(pane);
+        Detach(pane.Key, tearOff: false);
+        DockToStack(_sectionWindows[pane.Key]);
+        _ui.Save();
+        Tick();
+    }
+
+    /// <summary>The ✕ on a spawned FEED's heading: the window, its pane, and every
+    /// setting saved under its key go away for good; followers bridge to its host so
+    /// the stack closes over the gap. The original "feed" pane never gets here.</summary>
+    internal void CloseFeedPane(FeedView view)
+    {
+        var key = view.Key;
+        if (key == "feed" || !_feedViews.ContainsKey(key)) return;
+        if (_sectionWindows.TryGetValue(key, out var win))
+        {
+            foreach (var follower in _sectionWindows.Values
+                         .Where(f => ReferenceEquals(f.DockHost, win)))
+                follower.DockHost = win.DockHost ?? this;
+            _sectionWindows.Remove(key);
+            win.Close();
+        }
+        else RootStack.Children.Remove(view.Root);
+        _feedViews.Remove(key);
+        SectionKeys.Remove(key);
+        _ui.FeedPanes.RemoveAll(p => p.Key == key);
+        _ui.SectionWidths.Remove(key);
+        _ui.SectionPositions.Remove(key);
+        _ui.SectionDocks.Remove(key);
+        _ui.HiddenSections.Remove(key);
+        RepinStack();
+        SaveLayout();
+    }
+
     /// <summary>Magnetise: dropped near another EQdps window's bottom edge, a section
     /// window aligns under it and follows it from then on.</summary>
     internal void SnapWindow(SectionWindow w)
@@ -1560,7 +1341,7 @@ public partial class MainWindow : Window
         _sectionResizeStartWidth = _ui.SectionWidths.TryGetValue(w.SectionKey, out var saved)
             ? saved
             : SectionElement(w.SectionKey).ActualWidth;
-        _sectionResizeStartRows = FeedRowsClamped();
+        _sectionResizeStartRows = _feedViews.TryGetValue(w.SectionKey, out var v) ? v.RowsClamped() : 0;
     }
 
     internal void SectionResizeDelta(SectionWindow w, double dx, double dy)
@@ -1568,11 +1349,11 @@ public partial class MainWindow : Window
         var width = Math.Clamp(_sectionResizeStartWidth + dx, 170, 720);
         _ui.SectionWidths[w.SectionKey] = width;
         ApplySectionWidth(w.SectionKey, width);
-        if (w.SectionKey == "feed")
+        if (_feedViews.TryGetValue(w.SectionKey, out var view))
         {
             // ~14 px per Consolas 11 row: dragging down grows the list, up shrinks it.
-            _ui.FeedRows = Math.Clamp(_sectionResizeStartRows + (int)Math.Round(dy / 14), 4, 40);
-            RenderFeed();
+            view.Pane.Rows = Math.Clamp(_sectionResizeStartRows + (int)Math.Round(dy / 14), 4, 40);
+            view.Render();
         }
     }
 
@@ -1586,30 +1367,22 @@ public partial class MainWindow : Window
     {
         _ui.SectionWidths.Remove(w.SectionKey);
         ApplySectionWidth(w.SectionKey, double.NaN);
-        if (w.SectionKey == "feed")
+        if (_feedViews.TryGetValue(w.SectionKey, out var view))
         {
-            _ui.FeedRows = 12;
-            RenderFeed();
+            view.Pane.Rows = 12;
+            view.Render();
         }
         _ui.Save();
     }
 
-    /// <summary>Give a section an explicit width (NaN = back to auto). The feed's inner
-    /// caps must track it — they exist to stop SizeToContent growing without bound, and
-    /// a fixed cap would hold the content at 340 px inside a wider window.</summary>
+    /// <summary>Give a section an explicit width (NaN = back to auto). A feed view's
+    /// inner pieces track it — its list takes the width as fixed, so the window holds
+    /// whatever size the user set.</summary>
     private void ApplySectionWidth(string key, double width)
     {
         SectionElement(key).Width = width;
-        if (key == "feed")
-        {
-            var cap = double.IsNaN(width) ? 340 : Math.Max(150, width);
-            FeedSearchRow.MaxWidth = cap;
-            FeedPillRow.MaxWidth = cap;
-            FeedList.MaxWidth = cap;
-        }
+        if (_feedViews.TryGetValue(key, out var view)) view.ApplyInnerWidth(width);
     }
-
-    private int FeedRowsClamped() => Math.Clamp(_ui.FeedRows, 4, 40);
 
     internal void RepositionFollowers(Window host)
     {

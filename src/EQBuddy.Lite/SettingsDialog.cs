@@ -134,6 +134,9 @@ public sealed class SettingsDialog : Window
                 {
                     "group" => "GROUP · FIGHT",
                     "group2" => "GROUP · SESSION",
+                    "feed" => "FEED",
+                    // Spawned feed windows: "feed2" → "FEED 2", and so on.
+                    _ when key.StartsWith("feed", StringComparison.Ordinal) => "FEED " + key[4..],
                     _ => key.ToUpperInvariant(),
                 },
             };

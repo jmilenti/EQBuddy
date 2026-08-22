@@ -48,12 +48,17 @@ public sealed class LiteUiSettings
     /// GROUP · motes block. The ⚙ dialog.</summary>
     public bool ShowGroupMotes { get; set; } = true;
 
-    /// <summary>The FEED section's filters, persisted so a curated view survives a
-    /// restart.</summary>
+    /// <summary>LEGACY (pre-1.68): the single FEED's filters and rows. Still read once
+    /// to seed <see cref="FeedPanes"/> on first run of a multi-feed build; the panes
+    /// list is the live model after that.</summary>
     public FeedFilters FeedFilters { get; set; } = new();
-
-    /// <summary>Rows the FEED shows at once — the vertical half of its resize grip.</summary>
     public int FeedRows { get; set; } = 12;
+
+    /// <summary>Every FEED window: the original plus any the user spawned with the +
+    /// on a feed heading. One entry per window — filters, viewport rows, collapse
+    /// state — keyed by its section key ("feed", "feed2", …; keys are never renumbered
+    /// so widths/docks saved under them stay attached to the right window).</summary>
+    public List<FeedPane> FeedPanes { get; set; } = [];
 
     /// <summary>How many events/lines the feed's buffers hold (the ⚙ dialog). Applies
     /// to the combat buffer and the raw-log buffer alike; clamped 500–200,000 on use.</summary>
@@ -122,6 +127,16 @@ public sealed class LiteUiSettings
             CoreLog.Error(ex);
         }
     }
+}
+
+/// <summary>One FEED window's persisted state. Rows is the viewport height in text
+/// rows (the vertical half of the ◢ grip); Show is the ▸/▾ collapse toggle.</summary>
+public sealed class FeedPane
+{
+    public string Key { get; set; } = "feed";
+    public FeedFilters Filters { get; set; } = new();
+    public int Rows { get; set; } = 12;
+    public bool Show { get; set; } = true;
 }
 
 /// <summary>What the FEED section shows. Who-toggles and kind-toggles are ANDed: a row
