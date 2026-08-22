@@ -41,13 +41,49 @@ public sealed class BreakdownPopup : Window
             Foreground = new SolidColorBrush(Color.FromRgb(0x8A, 0x97, 0xA3)),
             FontSize = 11,
             Cursor = Cursors.Hand,
-            Margin = new Thickness(12, 1, 0, 0),
+            Margin = new Thickness(8, 1, 0, 0),
         };
         close.MouseLeftButtonDown += (_, e) => { e.Handled = true; Close(); };
 
+        // Copy the whole breakdown as plain text — for pasting to friends who aren't
+        // running the app. The tick is the only feedback a clipboard needs.
+        var copy = new TextBlock
+        {
+            Text = "⧉",
+            Foreground = new SolidColorBrush(Color.FromRgb(0x8A, 0x97, 0xA3)),
+            FontSize = 11,
+            Cursor = Cursors.Hand,
+            Margin = new Thickness(12, 1, 0, 0),
+            ToolTip = "Copy this breakdown to the clipboard",
+        };
+        copy.MouseLeftButtonDown += (_, e) =>
+        {
+            e.Handled = true;
+            try
+            {
+                // _rows is assigned later in this constructor; the handler can only
+                // run once the popup exists, so the suppression is truthful.
+                Clipboard.SetText($"{_header.Text}\n{_rows!.Text}");
+                copy.Text = "✓";
+                var revert = new System.Windows.Threading.DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds(1.2),
+                };
+                revert.Tick += (_, _) => { copy.Text = "⧉"; revert.Stop(); };
+                revert.Start();
+            }
+            catch (Exception ex)
+            {
+                // The clipboard is a shared resource another app can hold open.
+                EQBuddy.Core.CoreLog.Error(ex);
+            }
+        };
+
         var head = new DockPanel();
         DockPanel.SetDock(close, Dock.Right);
+        DockPanel.SetDock(copy, Dock.Right);
         head.Children.Add(close);
+        head.Children.Add(copy);
         head.Children.Add(_header);
 
         _rows = new TextBlock

@@ -247,10 +247,51 @@ public sealed class LogWatcher : IDisposable
         }
         Task.Run(() =>
         {
+            SeedZoneFromSkippedHead();
             Poll(); // full-file ingest
             lock (_lock) InitialIngestDone = true;
             _timer.Start();
         });
+    }
+
+    /// <summary>Resuming mid-log (a session reset's mark) skips everything before the
+    /// offset — including the "You have entered …" line that told the spawn tracker
+    /// what zone the kills after it happen in. Without it every kill is zone-blind and
+    /// no timer ever starts, while a client replaying the whole log tracks fine. So on
+    /// a resume, fish the LAST zone line out of the skipped head and hand it to the
+    /// spawn tracker alone — NOT to SessionStats, whose session clock would read the
+    /// old timestamp as the session start.</summary>
+    private void SeedZoneFromSkippedHead()
+    {
+        string? path;
+        long offset;
+        lock (_lock)
+        {
+            if (_offset <= 0 || Spawns is null || _path is null) return;
+            path = _path;
+            offset = _offset;
+        }
+        try
+        {
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read,
+                FileShare.ReadWrite | FileShare.Delete);
+            // The last zone line is almost always recent; 8 MB of head is hours of log.
+            var len = (int)Math.Min(Math.Min(offset, fs.Length), 8 * 1024 * 1024);
+            fs.Seek(Math.Min(offset, fs.Length) - len, SeekOrigin.Begin);
+            var buf = new byte[len];
+            fs.ReadExactly(buf);
+            var text = Encoding.Latin1.GetString(buf);
+            var idx = text.LastIndexOf("] You have entered ", StringComparison.Ordinal);
+            if (idx < 0) return;
+            var lineStart = text.LastIndexOf('\n', idx) + 1;
+            var lineEnd = text.IndexOf('\n', idx);
+            var line = (lineEnd < 0 ? text[lineStart..] : text[lineStart..lineEnd]).TrimEnd('\r');
+            if (LogParser.Parse(line) is ZoneEvent zone) Spawns?.Apply(zone);
+        }
+        catch (IOException)
+        {
+            // File busy — the next real zone change reseeds naturally.
+        }
     }
 
     private void Poll()

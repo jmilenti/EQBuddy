@@ -83,6 +83,46 @@ public class SessionResumeTests : IDisposable
         Assert.Equal(7, Ingest(watcher, stats).DamageDealt);
     }
 
+    /// <summary>Resuming past the zone line must not leave the spawn tracker
+    /// zone-blind: kills after the mark start no timers when the tracker doesn't know
+    /// the zone, which is exactly what a session reset inside a dungeon produced. The
+    /// resume fishes the LAST zone line out of the skipped head for the tracker alone.</summary>
+    [Fact]
+    public void ResumingAfterTheZoneLineStillStartsSpawnTimers()
+    {
+        var path = Path.Combine(_root, "eqlog_Aset_qeynos.txt");
+        var before =
+            "[Sat Aug 22 10:00:00 2026] You have entered Lower Guk.\n" +
+            "[Sat Aug 22 10:00:01 2026] You slash a froglok ghoul lord for 1000 points of damage.\n";
+        var after =
+            "[Sat Aug 22 11:00:00 2026] You have slain a froglok ghoul lord!\n";
+        File.WriteAllText(path, before + after);
+
+        var catalog = new SpawnCatalog
+        {
+            Zones =
+            [
+                new SpawnZone
+                {
+                    Zone = "Lower Guk",
+                    Named = [new SpawnEntry { Name = "a froglok ghoul lord", RespawnSeconds = 1620 }],
+                },
+            ],
+        };
+        var timers = new SpawnTimers(catalog, new SpawnOverrides());
+        var stats = new SessionStats();
+        var watcher = new LogWatcher(stats) { Spawns = timers };
+        watcher.Select(path, System.Text.Encoding.Latin1.GetByteCount(before), long.MaxValue);
+        Ingest(watcher, stats);
+
+        var timer = Assert.Single(timers.Snapshot(new DateTime(2026, 8, 22, 11, 0, 30)));
+        Assert.Equal("a froglok ghoul lord", timer.Name);
+
+        // And the seeded zone line must NOT have leaked into the session clock: the
+        // session starts at the kill, not an hour earlier at the skipped zone line.
+        Assert.True(stats.Snapshot().Elapsed < TimeSpan.FromMinutes(5));
+    }
+
     /// <summary>RawTap sees every line — parsed into an event or not. The Lite feed's
     /// raw mode shows the whole log, and most lines (chat, emotes) make no event.</summary>
     [Fact]
