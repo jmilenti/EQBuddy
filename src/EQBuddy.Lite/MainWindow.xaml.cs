@@ -264,6 +264,14 @@ public partial class MainWindow : Window
         }
         else SpawnSection.Visibility = Visibility.Collapsed;
 
+        // The motes section's bottom rule: shown when content follows it; otherwise the
+        // group section's own separator is the closing line.
+        MotesBottomSep.Visibility =
+            LootHeader.Visibility == Visibility.Visible
+            || FightsHeader.Visibility == Visibility.Visible
+            || SpawnSection.Visibility == Visibility.Visible
+                ? Visibility.Visible : Visibility.Collapsed;
+
         _sync.Publish(_stats.CharacterName ?? "", s.CurrentDps, s.SessionDps,
             s.DamageBySource.Take(6).Select(d => new BreakdownEntry(d.Name, d.Total)).ToList(),
             motes);
@@ -334,10 +342,24 @@ public partial class MainWindow : Window
             m.Name.StartsWith(popup.MemberName, StringComparison.OrdinalIgnoreCase));
         if (member is null)
         {
+            // Not synced — show what YOUR log knows about them instead (the ~ rows):
+            // real numbers, just incomplete by nature.
+            var logRow = _group.Snapshot(DateTime.Now, _snap?.PetName)
+                .FirstOrDefault(r => r.Name.StartsWith(popup.MemberName, StringComparison.OrdinalIgnoreCase));
+            if (logRow is not null)
+            {
+                var logTotal = logRow.Breakdown.Sum(b => b.Total);
+                var lines = $"from your log · approximate\nsession {FmtDamage(logRow.SessionDamage)} dmg";
+                if (logTotal > 0)
+                    lines += "\n" + string.Join("\n", logRow.Breakdown.Take(8).Select(b =>
+                        $"{Pad(b.Name, 13)} {FmtDamage(b.Total),6} {b.Total * 100 / logTotal,3}%"));
+                popup.Update($"~{logRow.Name} · {logRow.WindowDps:0} dps", lines, "", "");
+                return;
+            }
             popup.Update(popup.MemberName,
                 _sync.Active
-                    ? "(no exact data — they need\n EQdps running to share it)"
-                    : "(breakdowns need group sync —\n right-click → Group sync…)",
+                    ? "(no data — not in your log and\n not sharing via group sync)"
+                    : "(not in your log — exact numbers\n need group sync)",
                 "", "");
             return;
         }

@@ -53,8 +53,9 @@
             </ItemsControl>
             <TextBlock x:Name="PetText" Text="🐾 no pet" FontSize="13"
                        Foreground="#B8C4CE" Margin="0,3,0,0"/>
+            <Rectangle Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
             <TextBlock x:Name="MotesHeader" Text="MOTES · none yet" Cursor="Hand"
-                       FontSize="9.5" Foreground="#A8985A" Margin="0,7,0,0"
+                       FontSize="9.5" Foreground="#A8985A"
                        ToolTip="Click to show/hide mote tiers"
                        MouseLeftButtonDown="OnMotesToggle"/>
             <ItemsControl x:Name="MotesList" Margin="4,2,0,0" Visibility="Collapsed">
@@ -65,6 +66,9 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <Rectangle x:Name="MotesBottomSep" Height="1" Fill="#2AFFFFFF"
+                       Margin="0,9,0,0" Visibility="Collapsed"/>
 
             <TextBlock x:Name="LootHeader" Visibility="Collapsed" Cursor="Hand"
                        FontSize="9.5" Foreground="#7B8794" Margin="0,7,0,0"

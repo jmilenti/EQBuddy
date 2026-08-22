@@ -4,7 +4,12 @@ namespace EQBuddy.Core;
 /// WindowDps is damage over the sliding 60-second window (the number to glance at
 /// mid-fight); SessionDamage is their total this session.</summary>
 public sealed record GroupMemberDps(string Name, double WindowDps, long WindowDamage,
-    long SessionDamage, DateTime LastSeen);
+    long SessionDamage, DateTime LastSeen)
+{
+    /// <summary>Session damage by source (melee skill or spell name), biggest first —
+    /// as complete as YOUR log reports it, i.e. approximate by nature.</summary>
+    public IReadOnlyList<SourceDamage> Breakdown { get; init; } = [];
+}
 
 /// <summary>
 /// Group DPS from your own log, no network: EQ Legends writes nearby players' melee
@@ -31,6 +36,9 @@ public sealed class GroupDpsTracker
         public long Session;
         public DateTime LastSeen;
         public readonly Queue<(DateTime Time, int Damage)> Recent = new();
+        /// <summary>Session damage by melee skill / spell name, as far as the log says.</summary>
+        public readonly Dictionary<string, (int Hits, long Total)> Sources =
+            new(StringComparer.OrdinalIgnoreCase);
     }
 
     private readonly Dictionary<string, Member> _members = new(StringComparer.OrdinalIgnoreCase);
@@ -40,12 +48,13 @@ public sealed class GroupDpsTracker
     /// poll thread — hence the lock).</summary>
     public void Apply(GameEvent e)
     {
-        var (name, dmg, time) = e switch
+        var (name, dmg, time, source) = e switch
         {
-            ThirdMeleeEvent tm => (tm.Attacker, tm.Amount, tm.Time),
-            ThirdDotEvent td => (td.Caster, td.Amount, td.Time),
-            ThirdSchoolEvent ts => (ts.Attacker, ts.Amount, ts.Time),
-            _ => ("", 0, default(DateTime)),
+            ThirdMeleeEvent tm => (tm.Attacker, tm.Amount, tm.Time,
+                tm.Skill.Length > 0 ? tm.Skill : "melee"),
+            ThirdDotEvent td => (td.Caster, td.Amount, td.Time, td.Spell),
+            ThirdSchoolEvent ts => (ts.Attacker, ts.Amount, ts.Time, ts.Spell),
+            _ => ("", 0, default(DateTime), ""),
         };
         if (dmg <= 0 || !LooksLikePlayer(name)) return;
         lock (_lock)
@@ -54,6 +63,9 @@ public sealed class GroupDpsTracker
             m.Session += dmg;
             m.LastSeen = time;
             m.Recent.Enqueue((time, dmg));
+            var key = source.Length > 0 ? source : "melee";
+            var agg = m.Sources.TryGetValue(key, out var cur) ? cur : (0, 0L);
+            m.Sources[key] = (agg.Item1 + 1, agg.Item2 + dmg);
             Prune(m, time);
         }
     }
@@ -100,7 +112,13 @@ public sealed class GroupDpsTracker
                 var span = m.Recent.Count > 0
                     ? Math.Max(6.0, (now - m.Recent.Peek().Time).TotalSeconds)
                     : 6.0;
-                rows.Add(new GroupMemberDps(name, windowDamage / span, windowDamage, m.Session, m.LastSeen));
+                rows.Add(new GroupMemberDps(name, windowDamage / span, windowDamage, m.Session, m.LastSeen)
+                {
+                    Breakdown = m.Sources
+                        .OrderByDescending(kv => kv.Value.Total)
+                        .Select(kv => new SourceDamage(kv.Key, kv.Value.Hits, kv.Value.Total))
+                        .ToList(),
+                });
             }
         }
         rows.Sort((a, b) => b.WindowDps.CompareTo(a.WindowDps));
