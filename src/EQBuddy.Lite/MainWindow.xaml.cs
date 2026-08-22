@@ -60,6 +60,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         VersionItem.Header = $"EQdps v{UpdateChecker.CurrentVersion}";
+        VersionText.Text = $"v{UpdateChecker.CurrentVersion}";
 
         // Same UiScale the full app persists: the corner grip scales the whole panel
         // and SizeToContent re-fits the window around it.

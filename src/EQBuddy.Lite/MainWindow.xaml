@@ -51,6 +51,9 @@
                 <Button DockPanel.Dock="Right" Content="✕" Click="OnClose"
                         Background="Transparent" BorderThickness="0" Foreground="#8A97A3"
                         FontSize="11" Padding="4,0" Cursor="Hand"/>
+                <TextBlock x:Name="VersionText" DockPanel.Dock="Right" FontSize="10"
+                           Foreground="#55616C" VerticalAlignment="Center"
+                           Margin="6,1,4,0"/>
                 <TextBlock x:Name="TitleText" Text="EQdps" FontWeight="SemiBold"
                            Foreground="#DDE5EC" FontSize="13"/>
             </DockPanel>
