@@ -535,6 +535,7 @@ public partial class MainWindow : Window
             var f = _snap?.Encounters.FirstOrDefault(en => en.Start.Ticks == ticks);
             if (f is null)
             {
+                popup.CopyText = null;
                 popup.Update("fight", "(no longer tracked — session\n pruned or reset)");
                 return;
             }
@@ -553,6 +554,18 @@ public partial class MainWindow : Window
                 detail += "\n\ngroup on this fight · from log\n" + string.Join("\n",
                     others.Take(6).Select(g =>
                         $"{Pad(g.Name, 13)} {g.Hits,4}× {FmtDamage(g.Total),6} {g.Total / Math.Max(1, f.DurationSeconds),4:0} dps"));
+            // ⧉ copies only the per-player summary — you plus everyone the ledger saw
+            // on this pull, highest dps first. That's the line worth pasting to the
+            // group; the ability table above is for reading, not sharing.
+            var board = new List<(string Name, double Dps, long Total)>
+            {
+                (_stats.CharacterName is { Length: > 0 } cn ? cn : "you", f.Dps, f.DamageOut),
+            };
+            board.AddRange(others.Select(g =>
+                (g.Name, g.Total / (double)Math.Max(1, f.DurationSeconds), g.Total)));
+            popup.CopyText = $"{f.Name} ({FmtDur(TimeSpan.FromSeconds(f.DurationSeconds))}): "
+                + string.Join(", ", board.OrderByDescending(b => b.Dps)
+                    .Select(b => $"{b.Name} {b.Dps:0} dps ({FmtDamage(b.Total)})"));
             popup.Update($"{f.Name} · {f.Dps:0} dps", detail);
             return;
         }

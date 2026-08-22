@@ -16,6 +16,12 @@ public sealed class BreakdownPopup : Window
     private readonly TextBlock _header;
     private readonly TextBlock _rows;
 
+    /// <summary>When set, ⧉ copies this instead of a flattening of the visible text.
+    /// The fight popup uses it: what's worth pasting to the group is the per-player
+    /// summary, not the whole ability table. Still passed through the chat-safe
+    /// scrub below.</summary>
+    public string? CopyText { get; set; }
+
     public BreakdownPopup(string memberName, Window owner)
     {
         MemberName = memberName;
@@ -67,7 +73,7 @@ public sealed class BreakdownPopup : Window
                 // collapses, and ·×— become plain ASCII.
                 // _rows is assigned later in this constructor; the handler can only
                 // run once the popup exists, so the suppression is truthful.
-                var text = $"{_header.Text}: {_rows!.Text}"
+                var text = (CopyText ?? $"{_header.Text}: {_rows!.Text}")
                     .Replace("\n\n", "\n")   // blank separator lines would read ", ,"
                     .Replace("\n", ", ")
                     .Replace(" · ", " - ").Replace("·", "-")
