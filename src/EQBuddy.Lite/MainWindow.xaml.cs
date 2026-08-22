@@ -102,7 +102,7 @@ public partial class MainWindow : Window
         WireSection(FightsHeader, "fights", () => _ui.ShowFights = !_ui.ShowFights);
         WireSection(SpawnHeader, "spawns", () => _ui.ShowSpawns = !_ui.ShowSpawns);
         WireSection(GroupLabel, "group", () => _ui.ShowGroup = !_ui.ShowGroup);
-        Loaded += (_, _) => RestoreDetachedSections();
+        Loaded += (_, _) => SetupSectionWindows();
         LocationChanged += (_, _) => RepositionFollowers(this);
         SizeChanged += (_, _) => RepositionFollowers(this);
 
@@ -117,7 +117,6 @@ public partial class MainWindow : Window
             _settings.WindowTop = Top;
             _settings.UiScale = RootScale.ScaleX;
             _settings.Save();
-            _ui.DetachedSections = _sectionWindows.Keys.ToList();
             foreach (var (key, win) in _sectionWindows)
                 _ui.SectionPositions[key] = [win.Left, win.Top];
             _ui.Save();
@@ -700,28 +699,28 @@ public partial class MainWindow : Window
         if (tearOff) win.BeginDragDeferred();
     }
 
-    internal void Reattach(string key)
+    /// <summary>The ✕ on a section window: hook it back under the stack that starts at
+    /// the main window (below whatever is already chained there).</summary>
+    internal void DockToStack(SectionWindow w)
     {
-        if (!_sectionWindows.Remove(key, out var win)) return;
-        // Anyone magnetised under this window inherits its host so the chain survives.
-        foreach (var follower in _sectionWindows.Values.Where(f => ReferenceEquals(f.DockHost, win)))
-            follower.DockHost = win.DockHost;
-        var el = win.ReleaseContent();
-        var host = win.DockHost;
-        win.Close();
-
-        // Back into the panel at its canonical spot: before the first later section
-        // still attached, else at the end.
-        var index = RootStack.Children.Count;
-        foreach (var later in SectionKeys.SkipWhile(k => k != key).Skip(1))
+        w.DockHost = null;
+        Window tail = this;
+        var extended = true;
+        while (extended)
         {
-            if (!Attached(later)) continue;
-            var i = RootStack.Children.IndexOf(SectionElement(later));
-            if (i >= 0) { index = i; break; }
+            extended = false;
+            foreach (var f in _sectionWindows.Values)
+            {
+                if (ReferenceEquals(f, w) || !ReferenceEquals(f.DockHost, tail)) continue;
+                tail = f;
+                extended = true;
+                break;
+            }
         }
-        RootStack.Children.Insert(index, el);
-        Tick();
-        if (host is not null) RepositionFollowers(host);
+        w.DockHost = tail;
+        w.Left = tail.Left;
+        w.Top = tail.Top + tail.ActualHeight + DockGap;
+        RepositionFollowers(w);
     }
 
     /// <summary>Magnetise: dropped near another EQdps window's bottom edge, a section
@@ -774,37 +773,92 @@ public partial class MainWindow : Window
         }
     }
 
-    private void RestoreDetachedSections()
+    /// <summary>Every section lives as its own window from the start — the default look
+    /// IS the stack of magnetised windows. Saved positions win; anything without one
+    /// chains under the main window in canonical order.</summary>
+    private void SetupSectionWindows()
     {
-        foreach (var key in _ui.DetachedSections.Where(SectionKeys.Contains).Distinct().ToList())
+        foreach (var key in SectionKeys)
         {
             Detach(key, tearOff: false);
             if (_ui.SectionPositions.TryGetValue(key, out var p) && p is [var x, var y]
                 && !double.IsNaN(x) && !double.IsNaN(y))
             {
-                var win = _sectionWindows[key];
-                win.Left = x;
-                win.Top = y;
+                _sectionWindows[key].Left = x;
+                _sectionWindows[key].Top = y;
             }
         }
-        // Re-magnetise saved adjacencies once everything has a size, top-down so
-        // chains rebuild in order.
         Dispatcher.BeginInvoke(() =>
         {
+            Window previous = this;
+            foreach (var key in SectionKeys)
+            {
+                var win = _sectionWindows[key];
+                if (!_ui.SectionPositions.ContainsKey(key))
+                {
+                    win.DockHost = previous;
+                    win.Left = previous.Left;
+                    win.Top = previous.Top + previous.ActualHeight + DockGap;
+                    previous = win;
+                }
+            }
+            // Saved free positions re-magnetise by adjacency, top-down.
             foreach (var win in _sectionWindows.Values.OrderBy(v => v.Top).ToList())
-                SnapWindow(win);
+                if (win.DockHost is null) SnapWindow(win);
+            RepositionFollowers(this);
         }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private void StackAllSections()
+    {
+        foreach (var win in _sectionWindows.Values) win.DockHost = null;
+        Window previous = this;
+        foreach (var key in SectionKeys)
+        {
+            var win = _sectionWindows[key];
+            win.DockHost = previous;
+            win.Left = previous.Left;
+            win.Top = previous.Top + previous.ActualHeight + DockGap;
+            previous = win;
+        }
+        RepositionFollowers(this);
     }
 
     private void OnResetLayout(object sender, RoutedEventArgs e)
     {
         if (MessageBox.Show(this,
-                "Put all sections back into the main panel in the default layout?",
+                "Stack all sections back under the main window in the default order?",
                 "Reset window layout", MessageBoxButton.YesNo, MessageBoxImage.Question)
             != MessageBoxResult.Yes) return;
-        foreach (var key in _sectionWindows.Keys.ToList()) Reattach(key);
         _ui.SectionPositions.Clear();
         RootScale.ScaleX = RootScale.ScaleY = 1.0;
+        foreach (var win in _sectionWindows.Values) win.SetScale(1.0);
+        // Let the size change from the scale reset settle before measuring the stack.
+        Dispatcher.BeginInvoke(StackAllSections, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private void OnSyncPill(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        OnGroupSyncMenu(sender, e);
+    }
+
+    private void OnResetSessionPill(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        OnResetSession(sender, e);
+    }
+
+    private void OnResetLayoutPill(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        OnResetLayout(sender, e);
+    }
+
+    private void OnUpdatePill(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        CheckUpdates();
     }
 
     private void OnBreakdownToggle(object sender, MouseButtonEventArgs e)

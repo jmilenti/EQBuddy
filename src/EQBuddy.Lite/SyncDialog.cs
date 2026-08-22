@@ -9,6 +9,18 @@ public sealed class SyncDialog : Window
 {
     private readonly TextBox _code;
     private readonly TextBox _relay;
+    private readonly TextBox _viewer;
+
+    /// <summary>The address needed to actually SEE the board in a browser — relay root
+    /// plus /view/CODE — kept current as either field changes, selectable for copying.</summary>
+    private void UpdateViewerUrl()
+    {
+        var relay = _relay.Text.Trim().TrimEnd('/');
+        var code = _code.Text.Trim().ToUpperInvariant();
+        _viewer.Text = relay.Length > 0 && code.Length > 0
+            ? $"{relay}/view/{code}"
+            : "(enter a group code above)";
+    }
 
     public string GroupCode => _code.Text.Trim().ToUpperInvariant();
     public string RelayUrl => _relay.Text.Trim();
@@ -37,8 +49,22 @@ public sealed class SyncDialog : Window
         panel.Children.Add(_code);
 
         panel.Children.Add(new TextBlock { Text = "Relay server:" });
-        _relay = new TextBox { Text = currentRelay, Margin = new Thickness(0, 2, 0, 12) };
+        _relay = new TextBox { Text = currentRelay, Margin = new Thickness(0, 2, 0, 10) };
         panel.Children.Add(_relay);
+
+        panel.Children.Add(new TextBlock { Text = "Watch in any browser (share this link):" });
+        _viewer = new TextBox
+        {
+            IsReadOnly = true,
+            Margin = new Thickness(0, 2, 0, 12),
+            Background = System.Windows.Media.Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            FontStyle = FontStyles.Italic,
+        };
+        panel.Children.Add(_viewer);
+        _code.TextChanged += (_, _) => UpdateViewerUrl();
+        _relay.TextChanged += (_, _) => UpdateViewerUrl();
+        UpdateViewerUrl();
 
         var ok = new Button { Content = "OK", Width = 72, IsDefault = true, Margin = new Thickness(0, 0, 8, 0) };
         ok.Click += (_, _) => { DialogResult = true; };

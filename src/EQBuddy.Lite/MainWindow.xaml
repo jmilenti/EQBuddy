@@ -5,6 +5,27 @@
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         Topmost="True" ResizeMode="NoResize" SizeToContent="WidthAndHeight"
         ShowInTaskbar="True">
+    <Window.Resources>
+        <Style x:Key="ActionPill" TargetType="Border">
+            <Setter Property="Background" Value="#14FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#1EFFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="7,2"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#30FFFFFF"/>
+                    <Setter Property="BorderBrush" Value="#55FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ActionPillText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="Foreground" Value="#AEBBC7"/>
+        </Style>
+    </Window.Resources>
     <Border Background="#F0101418" BorderBrush="#3CFFFFFF" BorderThickness="1"
             CornerRadius="10"
             MouseLeftButtonDown="OnDrag">
@@ -33,6 +54,25 @@
                 <TextBlock x:Name="TitleText" Text="EQdps" FontWeight="SemiBold"
                            Foreground="#DDE5EC" FontSize="13"/>
             </DockPanel>
+
+            <WrapPanel Margin="0,0,0,6">
+                <Border Style="{StaticResource ActionPill}" ToolTip="Group sync settings"
+                        MouseLeftButtonDown="OnSyncPill">
+                    <TextBlock Style="{StaticResource ActionPillText}" Text="⇄ sync"/>
+                </Border>
+                <Border Style="{StaticResource ActionPill}" ToolTip="Reset session stats"
+                        MouseLeftButtonDown="OnResetSessionPill">
+                    <TextBlock Style="{StaticResource ActionPillText}" Text="↺ session"/>
+                </Border>
+                <Border Style="{StaticResource ActionPill}" ToolTip="Reset window layout"
+                        MouseLeftButtonDown="OnResetLayoutPill">
+                    <TextBlock Style="{StaticResource ActionPillText}" Text="▦ layout"/>
+                </Border>
+                <Border Style="{StaticResource ActionPill}" ToolTip="Check for updates"
+                        MouseLeftButtonDown="OnUpdatePill">
+                    <TextBlock Style="{StaticResource ActionPillText}" Text="⟳ update"/>
+                </Border>
+            </WrapPanel>
 
             <TextBlock x:Name="UpdateBanner" Visibility="Collapsed" Cursor="Hand"
                        MouseLeftButtonDown="OnUpdateClick" TextWrapping="Wrap"

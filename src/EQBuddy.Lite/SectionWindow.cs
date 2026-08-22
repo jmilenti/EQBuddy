@@ -48,9 +48,9 @@ public sealed class SectionWindow : Window
             Cursor = Cursors.Hand,
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
-            ToolTip = "Return to the main panel",
+            ToolTip = "Hook back under the main stack",
         };
-        close.MouseLeftButtonDown += (_, e) => { e.Handled = true; _owner.Reattach(SectionKey); };
+        close.MouseLeftButtonDown += (_, e) => { e.Handled = true; _owner.DockToStack(this); };
 
         _grid = new Grid();
         _grid.Children.Add(content);
@@ -92,12 +92,4 @@ public sealed class SectionWindow : Window
         Dispatcher.BeginInvoke(BeginUserDrag, DispatcherPriority.Input);
 
     public void SetScale(double scale) => _scale.ScaleX = _scale.ScaleY = scale;
-
-    /// <summary>Hand the section element back so it can rejoin the main panel.</summary>
-    public FrameworkElement ReleaseContent()
-    {
-        var content = (FrameworkElement)_grid.Children[0];
-        _grid.Children.Clear();
-        return content;
-    }
 }
