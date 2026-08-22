@@ -137,6 +137,19 @@ internal sealed class DamageFeed
         };
         if (!kindOn) return false;
 
+        // Search chips: OR within, AND against everything else. The haystack carries
+        // the words a player would type — "slay" hits the note, "heal" the kind,
+        // "crit" both the flag and a "(Critical)" note.
+        if (f.SearchTerms is { Count: > 0 } terms)
+        {
+            var hay = $"{e.Actor} {e.Ability} {e.Target} {e.Note} {e.Kind}"
+                + (e.Crit ? " critical" : "");
+            var any = false;
+            foreach (var term in terms)
+                if (hay.Contains(term, StringComparison.OrdinalIgnoreCase)) { any = true; break; }
+            if (!any) return false;
+        }
+
         // narrowing — only damage rows are subject to these; a kill or resist row has
         // no amount or crit flag to judge
         var isDamage = e.Kind is FeedKind.Melee or FeedKind.Spell or FeedKind.Dot

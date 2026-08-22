@@ -26,6 +26,17 @@
             <Setter Property="Foreground" Value="#AEBBC7"/>
         </Style>
 
+        <!-- Chrome-less button for the feed's search row (All / + / chip ✕): the stock
+             Button template is system-light and ignores a dark panel's palette. -->
+        <ControlTemplate x:Key="FlatButtonTemplate" TargetType="Button">
+            <Border Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="1" CornerRadius="4"
+                    Padding="{TemplateBinding Padding}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </ControlTemplate>
+
         <!-- A dropdown wearing the action pill's clothes: the stock ComboBox chrome is
              system-light and would shout on this panel, so the whole control is
              re-templated (pill button + chevron, dark glass popup, hover states to
@@ -366,10 +377,14 @@
                 <TextBlock x:Name="FeedHeader" Text="▸ FEED · live" Cursor="Hand"
                            FontSize="9.5" Foreground="#7B8794"
                            ToolTip="Click to show/hide · drag to pop out · a live feed of combat from your log, with filters"/>
+                <!-- Search chips row (BuildFeedSearch): [all] [chip ✕]… [box] [+].
+                     Typed words become removable chips, Outlook-recipient style. -->
+                <WrapPanel x:Name="FeedSearchRow" Visibility="Collapsed"
+                           Margin="0,4,0,0" MaxWidth="340"/>
                 <!-- Filter pills are built in code (BuildFeedPills) — ~16 toggles would
                      drown the XAML, and they all share one tiny template anyway. -->
                 <WrapPanel x:Name="FeedPillRow" Visibility="Collapsed"
-                           Margin="0,4,0,2" MaxWidth="340"/>
+                           Margin="0,2,0,2" MaxWidth="340"/>
                 <ItemsControl x:Name="FeedList" Margin="2,2,0,0" Visibility="Collapsed"
                               MaxWidth="340">
                     <ItemsControl.ItemTemplate>

@@ -124,6 +124,7 @@ public partial class MainWindow : Window
         WireSection(GroupLabel, "group", () => _ui.ShowGroup = !_ui.ShowGroup);
         WireSection(FeedHeader, "feed", () => _ui.ShowFeed = !_ui.ShowFeed);
         BuildFeedPills();
+        BuildFeedSearch();
         Loaded += (_, _) => SetupSectionWindows();
         LocationChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
         SizeChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
@@ -684,6 +685,7 @@ public partial class MainWindow : Window
         if (!_ui.ShowFeed)
         {
             FeedHeader.Text = "\u25b8 FEED \u00b7 live";
+            FeedSearchRow.Visibility = Visibility.Collapsed;
             FeedPillRow.Visibility = Visibility.Collapsed;
             FeedList.Visibility = Visibility.Collapsed;
             FeedEmptyText.Visibility = Visibility.Collapsed;
@@ -691,6 +693,7 @@ public partial class MainWindow : Window
         }
         var rows = _feed.Snapshot(_ui.FeedFilters, FeedRowsClamped());
         FeedHeader.Text = "\u25be FEED \u00b7 live";
+        FeedSearchRow.Visibility = Visibility.Visible;
         FeedPillRow.Visibility = Visibility.Visible;
         FeedList.ItemsSource = rows.Select(RowOf).ToList();
         FeedList.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -769,6 +772,7 @@ public partial class MainWindow : Window
                 RenderFeed();
             };
             Refresh();
+            _feedPillRefreshers.Add(Refresh);
             FeedPillRow.Children.Add(pill);
         }
 
@@ -807,6 +811,131 @@ public partial class MainWindow : Window
             },
             () => $"type\u00b7{f.MeleeType}");
     }
+
+    // ---- FEED search chips: [all] [term ✕]… [box] [+] ----
+
+    private readonly List<Action> _feedPillRefreshers = [];
+    private TextBox _feedSearchBox = null!;
+
+    private void BuildFeedSearch()
+    {
+        _feedSearchBox = new TextBox
+        {
+            MinWidth = 64,
+            FontSize = 10,
+            Padding = new Thickness(3, 0, 3, 1),
+            Margin = new Thickness(0, 1, 2, 1),
+            Background = FeedPillOffBg,
+            Foreground = Frozen(0xDD, 0xE5, 0xEC),
+            CaretBrush = Frozen(0xDD, 0xE5, 0xEC),
+            BorderBrush = FeedPillOffBorder,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            ToolTip = "Type a word and press Enter — rows must contain one of the chips " +
+                      "(actor, ability, target, or annotation; try slay, crit, riposte, a name…)",
+        };
+        _feedSearchBox.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Enter) { e.Handled = true; CommitFeedSearch(); }
+            else if (e.Key == Key.Escape) { e.Handled = true; _feedSearchBox.Clear(); }
+        };
+        RefreshFeedSearchRow();
+    }
+
+    private void CommitFeedSearch()
+    {
+        var term = _feedSearchBox.Text.Trim();
+        _feedSearchBox.Clear();
+        if (term.Length == 0) return;
+        var f = _ui.FeedFilters;
+        if (!f.SearchTerms.Any(t => string.Equals(t, term, StringComparison.OrdinalIgnoreCase)))
+            f.SearchTerms.Add(term);
+        _ui.Save();
+        RefreshFeedSearchRow();
+        RenderFeed();
+    }
+
+    /// <summary>Rebuild the whole row — chips are cheap and a full rebuild keeps one
+    /// source of truth (the settings list). The text box is a persistent instance so
+    /// half-typed input survives a chip add/remove.</summary>
+    private void RefreshFeedSearchRow()
+    {
+        var f = _ui.FeedFilters;
+        FeedSearchRow.Children.Clear();
+
+        var all = FlatButton("all", FeedPillOnFg,
+            "Show everything — every filter on this panel back to wide open, chips cleared");
+        all.Click += (_, _) =>
+        {
+            f.You = f.Pet = f.Group = f.Incoming = true;
+            f.Melee = f.Spells = f.Dots = f.DamageShields = true;
+            f.Heals = f.Misses = f.Kills = f.ResistsFizzles = true;
+            f.CritsOnly = f.OnlySlays = f.OnlyRipostes = f.OnlyCrippling = false;
+            f.MinDamage = 0;
+            f.MeleeType = "all";
+            f.SearchTerms.Clear();
+            _ui.Save();
+            foreach (var refresh in _feedPillRefreshers) refresh();
+            RefreshFeedSearchRow();
+            RenderFeed();
+        };
+        FeedSearchRow.Children.Add(all);
+
+        foreach (var term in f.SearchTerms.ToList())
+        {
+            var text = new TextBlock
+            {
+                Text = term,
+                FontSize = 10,
+                Foreground = FeedPillOnFg,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            var remove = FlatButton("✕", Frozen(0x8A, 0x97, 0xA3), $"Stop filtering by {term}");
+            remove.Margin = new Thickness(3, 0, 0, 0);
+            remove.Padding = new Thickness(2, 0, 2, 1);
+            remove.BorderThickness = new Thickness(0);
+            remove.Background = Brushes.Transparent;
+            remove.Click += (_, _) =>
+            {
+                f.SearchTerms.RemoveAll(t => string.Equals(t, term, StringComparison.OrdinalIgnoreCase));
+                _ui.Save();
+                RefreshFeedSearchRow();
+                RenderFeed();
+            };
+            var body = new StackPanel { Orientation = Orientation.Horizontal };
+            body.Children.Add(text);
+            body.Children.Add(remove);
+            FeedSearchRow.Children.Add(new Border
+            {
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(5, 1, 3, 1),
+                Margin = new Thickness(0, 1, 4, 1),
+                BorderThickness = new Thickness(1),
+                Background = FeedPillOnBg,
+                BorderBrush = FeedPillOnBorder,
+                Child = body,
+            });
+        }
+
+        FeedSearchRow.Children.Add(_feedSearchBox);
+        var plus = FlatButton("+", FeedPillOnFg, "Add the typed word as a chip (same as Enter)");
+        plus.Click += (_, _) => CommitFeedSearch();
+        FeedSearchRow.Children.Add(plus);
+    }
+
+    private Button FlatButton(string text, Brush fg, string tip) => new()
+    {
+        Content = text,
+        ToolTip = tip,
+        Cursor = Cursors.Hand,
+        Focusable = false,
+        FontSize = 10,
+        Foreground = fg,
+        Background = FeedPillOffBg,
+        BorderBrush = FeedPillOffBorder,
+        Padding = new Thickness(5, 0, 5, 1),
+        Margin = new Thickness(0, 1, 4, 1),
+        Template = (ControlTemplate)FindResource("FlatButtonTemplate"),
+    };
 
     private bool IsSelf(string name) =>
         string.Equals(name, _stats.CharacterName, StringComparison.OrdinalIgnoreCase);
@@ -1243,6 +1372,7 @@ public partial class MainWindow : Window
         if (key == "feed")
         {
             var cap = double.IsNaN(width) ? 340 : Math.Max(150, width);
+            FeedSearchRow.MaxWidth = cap;
             FeedPillRow.MaxWidth = cap;
             FeedList.MaxWidth = cap;
         }

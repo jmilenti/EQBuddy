@@ -151,6 +151,11 @@ public sealed class FeedFilters
     public bool OnlyCrippling { get; set; }
     /// <summary>0 = everything; otherwise hide rows below this amount.</summary>
     public int MinDamage { get; set; }
+
+    /// <summary>Free-text search chips: a row must contain at least one of these (they
+    /// OR together) anywhere in its actor, ability, target, note, kind, or crit-ness.
+    /// Empty = no text filtering.</summary>
+    public List<string> SearchTerms { get; set; } = [];
     /// <summary>"all", "slash", "pierce", "blunt", or "archery" — melee rows only.</summary>
     public string MeleeType { get; set; } = "all";
 }
