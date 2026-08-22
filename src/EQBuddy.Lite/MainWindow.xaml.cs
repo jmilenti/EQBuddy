@@ -38,7 +38,7 @@ public partial class MainWindow : Window
     //      near another EQdps window's bottom edge, ✕ to rejoin the panel ----
 
     private const double DockGap = 6;
-    private static readonly string[] SectionKeys = ["motes", "loot", "fights", "spawns", "group", "group2", "feed"];
+    private static readonly string[] SectionKeys = ["motes", "loot", "fights", "spawns", "group", "feed"];
     private readonly Dictionary<string, SectionWindow> _sectionWindows = new();
 
     private FrameworkElement SectionElement(string key) => key switch
@@ -48,7 +48,6 @@ public partial class MainWindow : Window
         "fights" => FightsSection,
         "spawns" => SpawnSection,
         "feed" => FeedSection,
-        "group2" => Group2Section,
         _ => GroupSection,
     };
 
@@ -123,7 +122,6 @@ public partial class MainWindow : Window
         WireSection(FightsHeader, "fights", () => _ui.ShowFights = !_ui.ShowFights);
         WireSection(SpawnHeader, "spawns", () => _ui.ShowSpawns = !_ui.ShowSpawns);
         WireSection(GroupLabel, "group", () => _ui.ShowGroup = !_ui.ShowGroup);
-        WireSection(Group2Label, "group2", () => _ui.ShowGroup2 = !_ui.ShowGroup2);
         WireSection(FeedHeader, "feed", () => _ui.ShowFeed = !_ui.ShowFeed);
         _feed.SetCapacity(_ui.FeedHistory);
         BuildFeedPills();
@@ -319,7 +317,6 @@ public partial class MainWindow : Window
         MotesTopSep.Visibility = Attached("motes") ? Visibility.Visible : Visibility.Collapsed;
         SpawnTopSep.Visibility = Attached("spawns") ? Visibility.Visible : Visibility.Collapsed;
         GroupTopSep.Visibility = Attached("group") ? Visibility.Visible : Visibility.Collapsed;
-        Group2TopSep.Visibility = Attached("group2") ? Visibility.Visible : Visibility.Collapsed;
         FeedTopSep.Visibility = Attached("feed") ? Visibility.Visible : Visibility.Collapsed;
 
         // Session loot (motes excluded — they have their own line above), collapsed to
@@ -428,14 +425,12 @@ public partial class MainWindow : Window
             s.DamageBySource.Take(6).Select(d => new BreakdownEntry(d.Name, d.Total, d.Hits)).ToList(),
             motes));
 
-        // Two GROUP boards, always both live: the same roster under two clocks. Each
-        // is its own window with its own ⚙ tick box — the old scope dropdown flipped
-        // one board between the clocks, so burst and totals could never be watched
-        // together.
-        RenderGroupBoard(fightMode: true, _ui.ShowGroup,
+        // ONE session-scoped GROUP board. Fight-scope detail lives in the popups
+        // instead (a row's popup header carries both rates; your own row opens the
+        // full two-scope breakdown) — a second fight-scoped board was tried and
+        // retired within a day: the popups already said everything it did.
+        RenderGroupBoard(fightMode: false, _ui.ShowGroup,
             GroupLabel, GroupList, GroupEmptyText, lastFight, s);
-        RenderGroupBoard(fightMode: false, _ui.ShowGroup2,
-            Group2Label, Group2List, Group2EmptyText, lastFight, s);
 
         _feed.PetName = s.PetName;
         RenderFeed();
@@ -451,18 +446,20 @@ public partial class MainWindow : Window
     /// <summary>The window a popup belongs beside: fight popups ride the FIGHTS window,
     /// spawn popups the SPAWNS window, member popups the GROUP window — wherever those
     /// have been dragged.</summary>
+    /// <summary>Which window the open popup was launched from: "main" or "group".
+    /// Member and own-breakdown popups park beside the window that was actually
+    /// clicked — your own row sits on the GROUP board, and anchoring its popup to a
+    /// fixed window put it at the top of the stack while the click happened at the
+    /// bottom.</summary>
+    private string _popupSource = "main";
+
     private Window PopupAnchor(string key)
     {
-        if (key == "own:") return this;
-        // Member popups try the fight board first, then the session board — either
-        // GROUP window can have opened them, and one of the two may be hidden in ⚙.
-        string[] sections = key.StartsWith("fight:", StringComparison.Ordinal) ? ["fights"]
-            : key.StartsWith("spawn:", StringComparison.Ordinal) ? ["spawns"]
-            : ["group", "group2"];
-        foreach (var section in sections)
-            if (_sectionWindows.TryGetValue(section, out var win) && win.IsVisible)
-                return win;
-        return this;
+        var section = key.StartsWith("fight:", StringComparison.Ordinal) ? "fights"
+            : key.StartsWith("spawn:", StringComparison.Ordinal) ? "spawns"
+            : _popupSource;
+        if (section == "main") return this;
+        return _sectionWindows.TryGetValue(section, out var win) && win.IsVisible ? win : this;
     }
 
     /// <summary>Park the open popup at the right edge of the window it belongs to.
@@ -1009,10 +1006,11 @@ public partial class MainWindow : Window
         return b;
     }
 
-    /// <summary>One GROUP board — the panel has two, "this fight" and "session",
-    /// rendered every tick from the same roster. With sync off (or the ⚙ toggle
-    /// pinning the board to your log) your own row leads: nothing else on a local
-    /// board carries your number, and a comparison starts with yourself.</summary>
+    /// <summary>The GROUP board, session-scoped in practice (fightMode stays for the
+    /// fight-scope math the popups reuse via ScopedDps/InferredRows). With sync off
+    /// (or the ⚙ toggle pinning the board to your log) your own row leads: nothing
+    /// else on a local board carries your number, and a comparison starts with
+    /// yourself.</summary>
     private void RenderGroupBoard(bool fightMode, bool expanded, TextBlock label,
         ItemsControl list, TextBlock empty, LastFightInfo? lastFight, StatsSnapshot s)
     {
@@ -1623,6 +1621,11 @@ public partial class MainWindow : Window
                     "main" => this,
                     _ => _sectionWindows.GetValueOrDefault(hostKey),
                 };
+                // A remembered host that no longer ships (a section key retired in an
+                // update — "group2" lived for one release) would orphan this window
+                // exactly the way lost geometry used to; the tail is the safe spot.
+                if (win.DockHost is null && hostKey.Length > 0)
+                    DockToStack(win);
             }
             BreakDockCycles();
             // A saved position with no remembered host — a settings file from before
@@ -1817,6 +1820,7 @@ public partial class MainWindow : Window
     private void OnBreakdownToggle(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
+        _popupSource = "main";
         TogglePopup("own:");
         Tick(); // instant feedback rather than waiting up to a second
     }
@@ -1885,7 +1889,8 @@ public partial class MainWindow : Window
         if (sender is not FrameworkElement { DataContext: string row }) return;
         var name = row.TrimStart('~').Split(' ')[0].Trim();
         if (name.Length == 0) return;
-        // Your own row (the local boards lead with it) opens your full breakdown —
+        _popupSource = "group";
+        // Your own row (the local board leads with it) opens your full breakdown —
         // the member popup only ever has the top sources that cross the wire.
         TogglePopup(IsSelf(name) ? "own:" : name);
     }

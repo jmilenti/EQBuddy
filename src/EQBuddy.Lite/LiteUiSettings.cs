@@ -25,13 +25,11 @@ public sealed class LiteUiSettings
     /// countdown you camp past.</summary>
     public bool ShowSpawns { get; set; } = true;
 
-    /// <summary>The fight-scope GROUP board expanded. Default ON — it's the panel's
-    /// second headline. (There is no scope dropdown any more: the two boards below are
-    /// each permanently one scope. "DpsScope" in old files is ignored.)</summary>
+    /// <summary>The (session-scoped) GROUP board expanded. Default ON — it's the
+    /// panel's second headline. (There is no scope dropdown any more: the headline is
+    /// always the current fight, the board is always the session, and the popups
+    /// carry both. "DpsScope" and "ShowGroup2" in old files are ignored.)</summary>
     public bool ShowGroup { get; set; } = true;
-
-    /// <summary>The session-scope GROUP board expanded.</summary>
-    public bool ShowGroup2 { get; set; } = true;
 
     /// <summary>Live damage feed expanded. Off by default — it's a firehose by design,
     /// and the header is always there to opt in.</summary>
