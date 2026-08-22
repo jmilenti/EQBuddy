@@ -30,6 +30,24 @@ public partial class MainWindow : Window
 
     /// <summary>One row of the SPAWNS list; Zone+Name identify the timer.</summary>
     private sealed record SpawnRow(string Name, string Due, string Zone);
+
+    // ---- detachable sections: tear off by dragging a heading, magnetise by dropping
+    //      near another EQdps window's bottom edge, ✕ to rejoin the panel ----
+
+    private const double DockGap = 6;
+    private static readonly string[] SectionKeys = ["motes", "loot", "fights", "spawns", "group"];
+    private readonly Dictionary<string, SectionWindow> _sectionWindows = new();
+
+    private FrameworkElement SectionElement(string key) => key switch
+    {
+        "motes" => MotesSection,
+        "loot" => LootSection,
+        "fights" => FightsSection,
+        "spawns" => SpawnSection,
+        _ => GroupSection,
+    };
+
+    private bool Attached(string key) => !_sectionWindows.ContainsKey(key);
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     private DateTime _lastCharScan = DateTime.MinValue;
@@ -79,6 +97,15 @@ public partial class MainWindow : Window
         // finished-session logs — both stand down while the game (or GINA/GamParse) runs.
         RunJanitor();
 
+        WireSection(MotesHeader, "motes", () => _ui.ShowMotes = !_ui.ShowMotes);
+        WireSection(LootHeader, "loot", () => _ui.ShowLoot = !_ui.ShowLoot);
+        WireSection(FightsHeader, "fights", () => _ui.ShowFights = !_ui.ShowFights);
+        WireSection(SpawnHeader, "spawns", () => _ui.ShowSpawns = !_ui.ShowSpawns);
+        WireSection(GroupLabel, "group", () => _ui.ShowGroup = !_ui.ShowGroup);
+        Loaded += (_, _) => RestoreDetachedSections();
+        LocationChanged += (_, _) => RepositionFollowers(this);
+        SizeChanged += (_, _) => RepositionFollowers(this);
+
         _timer.Tick += (_, _) => Tick();
         _timer.Start();
         _sync.Start();
@@ -90,8 +117,12 @@ public partial class MainWindow : Window
             _settings.WindowTop = Top;
             _settings.UiScale = RootScale.ScaleX;
             _settings.Save();
+            _ui.DetachedSections = _sectionWindows.Keys.ToList();
+            foreach (var (key, win) in _sectionWindows)
+                _ui.SectionPositions[key] = [win.Left, win.Top];
             _ui.Save();
             _popup?.Close();
+            foreach (var win in _sectionWindows.Values.ToList()) win.Close();
             _watcher.Dispose();
             _sync.Dispose();
         };
@@ -208,10 +239,23 @@ public partial class MainWindow : Window
             else MotesList.Visibility = Visibility.Collapsed;
         }
 
+        // Section separators only make sense inside the main panel — a torn-off
+        // window has its own chrome.
+        MotesTopSep.Visibility = Attached("motes") ? Visibility.Visible : Visibility.Collapsed;
+        SpawnTopSep.Visibility = Attached("spawns") ? Visibility.Visible : Visibility.Collapsed;
+        GroupTopSep.Visibility = Attached("group") ? Visibility.Visible : Visibility.Collapsed;
+
         // Session loot (motes excluded — they have their own line above), collapsed to
         // a one-line heading by default.
         var loot = s.Loot.Where(l => !Motes.IsMote(l.Item)).ToList();
-        if (loot.Count > 0)
+        if (loot.Count == 0 && !Attached("loot"))
+        {
+            // A torn-off window with nothing in it still needs to say what it is.
+            LootHeader.Text = "LOOT · none yet";
+            LootHeader.Visibility = Visibility.Visible;
+            LootList.Visibility = Visibility.Collapsed;
+        }
+        else if (loot.Count > 0)
         {
             var pieces = loot.Sum(l => l.Count);
             LootHeader.Text = $"{(_ui.ShowLoot ? "▾" : "▸")} LOOT · {pieces} item{(pieces == 1 ? "" : "s")}";
@@ -233,9 +277,17 @@ public partial class MainWindow : Window
             LootHeader.Visibility = Visibility.Collapsed;
             LootList.Visibility = Visibility.Collapsed;
         }
+        LootTopSep.Visibility = Attached("loot") && LootHeader.Visibility == Visibility.Visible
+            ? Visibility.Visible : Visibility.Collapsed;
 
         // Past fights of this session, newest first; click a row for that fight's popup.
-        if (s.RecentEncounters.Count > 0)
+        if (s.RecentEncounters.Count == 0 && !Attached("fights"))
+        {
+            FightsHeader.Text = "FIGHTS · none yet";
+            FightsHeader.Visibility = Visibility.Visible;
+            FightsList.Visibility = Visibility.Collapsed;
+        }
+        else if (s.RecentEncounters.Count > 0)
         {
             FightsHeader.Text = $"{(_ui.ShowFights ? "▾" : "▸")} FIGHTS · {s.EncounterCount} this session";
             FightsHeader.Visibility = Visibility.Visible;
@@ -253,6 +305,8 @@ public partial class MainWindow : Window
             FightsHeader.Visibility = Visibility.Collapsed;
             FightsList.Visibility = Visibility.Collapsed;
         }
+        FightsTopSep.Visibility = Attached("fights") && FightsHeader.Visibility == Visibility.Visible
+            ? Visibility.Visible : Visibility.Collapsed;
 
         // Spawn timers: soonest first (Core's Snapshot order), section hidden entirely
         // when no camp is running — an empty list isn't worth panel height.
@@ -271,15 +325,13 @@ public partial class MainWindow : Window
             }
             else SpawnList.Visibility = Visibility.Collapsed;
         }
+        else if (!Attached("spawns"))
+        {
+            SpawnHeader.Text = "SPAWNS · none running";
+            SpawnList.Visibility = Visibility.Collapsed;
+            SpawnSection.Visibility = Visibility.Visible;
+        }
         else SpawnSection.Visibility = Visibility.Collapsed;
-
-        // The motes section's bottom rule: shown when content follows it; otherwise the
-        // group section's own separator is the closing line.
-        MotesBottomSep.Visibility =
-            LootHeader.Visibility == Visibility.Visible
-            || FightsHeader.Visibility == Visibility.Visible
-            || SpawnSection.Visibility == Visibility.Visible
-                ? Visibility.Visible : Visibility.Collapsed;
 
         _sync.Publish(_stats.CharacterName ?? "", s.CurrentDps, s.SessionDps,
             s.DamageBySource.Take(6).Select(d => new BreakdownEntry(d.Name, d.Total)).ToList(),
@@ -565,6 +617,7 @@ public partial class MainWindow : Window
         if (e.ClickCount == 2)
         {
             RootScale.ScaleX = RootScale.ScaleY = 1.0;
+            foreach (var win in _sectionWindows.Values) win.SetScale(1.0);
             return;
         }
         _gripOrigin = PointToScreen(e.GetPosition(this));
@@ -582,6 +635,7 @@ public partial class MainWindow : Window
         var drag = ((p.X - _gripOrigin.X) + (p.Y - _gripOrigin.Y)) / 2;
         RootScale.ScaleX = RootScale.ScaleY =
             Math.Clamp(_gripScale * (_gripWidth + drag) / _gripWidth, MinScale, MaxScale);
+        foreach (var win in _sectionWindows.Values) win.SetScale(RootScale.ScaleX);
     }
 
     private void OnGripUp(object sender, MouseButtonEventArgs e)
@@ -595,6 +649,164 @@ public partial class MainWindow : Window
 
     private void OnCheckUpdatesMenu(object sender, RoutedEventArgs e) => CheckUpdates();
 
+    /// <summary>Heading gesture: a plain click toggles the section open/closed; a drag
+    /// past the threshold tears the section off into its own window (or, if already
+    /// torn off, drags that window).</summary>
+    private void WireSection(FrameworkElement heading, string key, Action toggle)
+    {
+        var pressed = false;
+        var start = default(Point);
+        heading.MouseLeftButtonDown += (_, e) =>
+        {
+            e.Handled = true;
+            pressed = true;
+            start = e.GetPosition(heading);
+            heading.CaptureMouse();
+        };
+        heading.MouseMove += (_, e) =>
+        {
+            if (!pressed || !heading.IsMouseCaptured) return;
+            var p = e.GetPosition(heading);
+            if (Math.Abs(p.X - start.X) + Math.Abs(p.Y - start.Y) < 9) return;
+            pressed = false;
+            heading.ReleaseMouseCapture();
+            if (_sectionWindows.TryGetValue(key, out var win)) win.BeginUserDrag();
+            else Detach(key, tearOff: true);
+        };
+        heading.MouseLeftButtonUp += (_, e) =>
+        {
+            if (!pressed) return;
+            e.Handled = true;
+            pressed = false;
+            heading.ReleaseMouseCapture();
+            toggle();
+            Tick();
+        };
+    }
+
+    private void Detach(string key, bool tearOff)
+    {
+        if (!Attached(key)) return;
+        var el = SectionElement(key);
+        RootStack.Children.Remove(el);
+        var win = new SectionWindow(key, el, this);
+        win.SetScale(RootScale.ScaleX);
+        var at = Mouse.GetPosition(this);
+        win.Left = Left + at.X - 24;
+        win.Top = Top + at.Y - 10;
+        _sectionWindows[key] = win;
+        win.Show();
+        Tick();
+        if (tearOff) win.BeginDragDeferred();
+    }
+
+    internal void Reattach(string key)
+    {
+        if (!_sectionWindows.Remove(key, out var win)) return;
+        // Anyone magnetised under this window inherits its host so the chain survives.
+        foreach (var follower in _sectionWindows.Values.Where(f => ReferenceEquals(f.DockHost, win)))
+            follower.DockHost = win.DockHost;
+        var el = win.ReleaseContent();
+        var host = win.DockHost;
+        win.Close();
+
+        // Back into the panel at its canonical spot: before the first later section
+        // still attached, else at the end.
+        var index = RootStack.Children.Count;
+        foreach (var later in SectionKeys.SkipWhile(k => k != key).Skip(1))
+        {
+            if (!Attached(later)) continue;
+            var i = RootStack.Children.IndexOf(SectionElement(later));
+            if (i >= 0) { index = i; break; }
+        }
+        RootStack.Children.Insert(index, el);
+        Tick();
+        if (host is not null) RepositionFollowers(host);
+    }
+
+    /// <summary>Magnetise: dropped near another EQdps window's bottom edge, a section
+    /// window aligns under it and follows it from then on.</summary>
+    internal void SnapWindow(SectionWindow w)
+    {
+        const double snapX = 48, snapY = 28;
+        w.DockHost = null;
+        Window? best = null;
+        var bestDist = double.MaxValue;
+        foreach (var host in SnapHosts(w))
+        {
+            var dx = Math.Abs(w.Left - host.Left);
+            var dy = Math.Abs(w.Top - (host.Top + host.ActualHeight + DockGap));
+            if (dx > snapX || dy > snapY) continue;
+            if (dx + dy < bestDist) { bestDist = dx + dy; best = host; }
+        }
+        if (best is null) return;
+        w.DockHost = best;
+        w.Left = best.Left;
+        w.Top = best.Top + best.ActualHeight + DockGap;
+        RepositionFollowers(w);
+    }
+
+    private IEnumerable<Window> SnapHosts(SectionWindow w)
+    {
+        yield return this;
+        foreach (var other in _sectionWindows.Values)
+        {
+            if (ReferenceEquals(other, w)) continue;
+            // No cycles: a window whose host chain leads back to w can't host w.
+            var chain = other.DockHost;
+            var cyclic = false;
+            while (chain is SectionWindow link)
+            {
+                if (ReferenceEquals(link, w)) { cyclic = true; break; }
+                chain = link.DockHost;
+            }
+            if (!cyclic) yield return other;
+        }
+    }
+
+    internal void RepositionFollowers(Window host)
+    {
+        foreach (var follower in _sectionWindows.Values.Where(f => ReferenceEquals(f.DockHost, host)))
+        {
+            follower.Left = host.Left;
+            follower.Top = host.Top + host.ActualHeight + DockGap;
+            RepositionFollowers(follower);
+        }
+    }
+
+    private void RestoreDetachedSections()
+    {
+        foreach (var key in _ui.DetachedSections.Where(SectionKeys.Contains).Distinct().ToList())
+        {
+            Detach(key, tearOff: false);
+            if (_ui.SectionPositions.TryGetValue(key, out var p) && p is [var x, var y]
+                && !double.IsNaN(x) && !double.IsNaN(y))
+            {
+                var win = _sectionWindows[key];
+                win.Left = x;
+                win.Top = y;
+            }
+        }
+        // Re-magnetise saved adjacencies once everything has a size, top-down so
+        // chains rebuild in order.
+        Dispatcher.BeginInvoke(() =>
+        {
+            foreach (var win in _sectionWindows.Values.OrderBy(v => v.Top).ToList())
+                SnapWindow(win);
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private void OnResetLayout(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show(this,
+                "Put all sections back into the main panel in the default layout?",
+                "Reset window layout", MessageBoxButton.YesNo, MessageBoxImage.Question)
+            != MessageBoxResult.Yes) return;
+        foreach (var key in _sectionWindows.Keys.ToList()) Reattach(key);
+        _ui.SectionPositions.Clear();
+        RootScale.ScaleX = RootScale.ScaleY = 1.0;
+    }
+
     private void OnBreakdownToggle(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
@@ -602,46 +814,12 @@ public partial class MainWindow : Window
         Tick(); // instant feedback rather than waiting up to a second
     }
 
-    private void OnLootToggle(object sender, MouseButtonEventArgs e)
-    {
-        e.Handled = true;
-        _ui.ShowLoot = !_ui.ShowLoot;
-        Tick();
-    }
-
-    private void OnMotesToggle(object sender, MouseButtonEventArgs e)
-    {
-        e.Handled = true;
-        _ui.ShowMotes = !_ui.ShowMotes;
-        Tick();
-    }
-
-    private void OnFightsToggle(object sender, MouseButtonEventArgs e)
-    {
-        e.Handled = true;
-        _ui.ShowFights = !_ui.ShowFights;
-        Tick();
-    }
 
     private void OnFightRowClick(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
         if (sender is not FrameworkElement { DataContext: FightRow row }) return;
         TogglePopup($"fight:{row.Key}");
-    }
-
-    private void OnSpawnsToggle(object sender, MouseButtonEventArgs e)
-    {
-        e.Handled = true;
-        _ui.ShowSpawns = !_ui.ShowSpawns;
-        Tick();
-    }
-
-    private void OnGroupToggle(object sender, MouseButtonEventArgs e)
-    {
-        e.Handled = true;
-        _ui.ShowGroup = !_ui.ShowGroup;
-        Tick();
     }
 
     private void OnSpawnRowClick(object sender, MouseButtonEventArgs e)

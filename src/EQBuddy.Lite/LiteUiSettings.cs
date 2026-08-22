@@ -28,6 +28,13 @@ public sealed class LiteUiSettings
     /// <summary>Group board expanded. Default ON — it's the panel's second headline.</summary>
     public bool ShowGroup { get; set; } = true;
 
+    /// <summary>Sections torn off into their own floating windows ("motes", "loot",
+    /// "fights", "spawns", "group"), restored detached at the next launch.</summary>
+    public List<string> DetachedSections { get; set; } = [];
+
+    /// <summary>Last position of each detached section window, keyed by section, [x, y].</summary>
+    public Dictionary<string, double[]> SectionPositions { get; set; } = new();
+
     private static readonly string SettingsPath = AppPaths.File("lite-ui.json");
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
 

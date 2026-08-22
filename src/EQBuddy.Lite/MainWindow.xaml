@@ -17,12 +17,13 @@
                 <MenuItem Header="Check for updates" Click="OnCheckUpdatesMenu"/>
                 <MenuItem Header="Group sync…" Click="OnGroupSyncMenu"/>
                 <MenuItem Header="Reset session" Click="OnResetSession"/>
+                <MenuItem Header="Reset window layout" Click="OnResetLayout"/>
                 <Separator/>
                 <MenuItem Header="Exit" Click="OnClose"/>
             </ContextMenu>
         </Border.ContextMenu>
         <Grid>
-        <StackPanel MinWidth="235" Margin="14,10,14,12">
+        <StackPanel x:Name="RootStack" MinWidth="235" Margin="14,10,14,12">
             <DockPanel Margin="0,0,0,6">
                 <Ellipse x:Name="StatusDot" DockPanel.Dock="Left" Width="8" Height="8"
                          Fill="#666" VerticalAlignment="Center" Margin="0,1,7,0"/>
@@ -53,40 +54,43 @@
             </ItemsControl>
             <TextBlock x:Name="PetText" Text="🐾 no pet" FontSize="13"
                        Foreground="#B8C4CE" Margin="0,3,0,0"/>
-            <Rectangle Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
-            <TextBlock x:Name="MotesHeader" Text="MOTES · none yet" Cursor="Hand"
-                       FontSize="9.5" Foreground="#A8985A"
-                       ToolTip="Click to show/hide mote tiers"
-                       MouseLeftButtonDown="OnMotesToggle"/>
-            <ItemsControl x:Name="MotesList" Margin="4,2,0,0" Visibility="Collapsed">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5"
-                                   Foreground="#D9C46B"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <StackPanel x:Name="MotesSection">
+                <Rectangle x:Name="MotesTopSep" Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
+                <TextBlock x:Name="MotesHeader" Text="MOTES · none yet" Cursor="Hand"
+                           FontSize="9.5" Foreground="#A8985A"
+                           ToolTip="Click to show/hide · drag to pop out"/>
+                <ItemsControl x:Name="MotesList" Margin="4,2,0,0" Visibility="Collapsed">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5"
+                                       Foreground="#D9C46B"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
 
-            <Rectangle x:Name="MotesBottomSep" Height="1" Fill="#2AFFFFFF"
+            <StackPanel x:Name="LootSection">
+                <Rectangle x:Name="LootTopSep" Height="1" Fill="#2AFFFFFF"
+                           Margin="0,9,0,0" Visibility="Collapsed"/>
+                <TextBlock x:Name="LootHeader" Visibility="Collapsed" Cursor="Hand"
+                           FontSize="9.5" Foreground="#7B8794" Margin="0,7,0,0"
+                           ToolTip="Click to show/hide · drag to pop out"/>
+                <ItemsControl x:Name="LootList" Margin="4,2,0,0" Visibility="Collapsed">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5"
+                                       Foreground="#9FB0BE"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel x:Name="FightsSection">
+            <Rectangle x:Name="FightsTopSep" Height="1" Fill="#2AFFFFFF"
                        Margin="0,9,0,0" Visibility="Collapsed"/>
-
-            <TextBlock x:Name="LootHeader" Visibility="Collapsed" Cursor="Hand"
-                       FontSize="9.5" Foreground="#7B8794" Margin="0,7,0,0"
-                       ToolTip="Show/hide session loot"
-                       MouseLeftButtonDown="OnLootToggle"/>
-            <ItemsControl x:Name="LootList" Margin="4,2,0,0" Visibility="Collapsed">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5"
-                                   Foreground="#9FB0BE"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
             <TextBlock x:Name="FightsHeader" Visibility="Collapsed" Cursor="Hand"
                        FontSize="9.5" Foreground="#7B8794" Margin="0,7,0,0"
-                       ToolTip="Click to show/hide past fights; click a fight for its breakdown"
-                       MouseLeftButtonDown="OnFightsToggle"/>
+                       ToolTip="Click to show/hide · drag to pop out · click a fight for its breakdown"/>
             <ItemsControl x:Name="FightsList" Margin="4,2,0,0" Visibility="Collapsed">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -112,13 +116,13 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+            </StackPanel>
 
             <StackPanel x:Name="SpawnSection" Visibility="Collapsed">
-                <Rectangle Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
+                <Rectangle x:Name="SpawnTopSep" Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
                 <TextBlock x:Name="SpawnHeader" Cursor="Hand" FontSize="9.5"
                            Foreground="#7B8794" Margin="0,0,0,3"
-                           ToolTip="Click to show/hide respawn timers; click a timer for details"
-                           MouseLeftButtonDown="OnSpawnsToggle"/>
+                           ToolTip="Click to show/hide · drag to pop out · click a timer for details"/>
                 <ItemsControl x:Name="SpawnList">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -151,12 +155,12 @@
                 </ItemsControl>
             </StackPanel>
 
-            <Rectangle Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
+            <StackPanel x:Name="GroupSection">
+            <Rectangle x:Name="GroupTopSep" Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
 
             <TextBlock x:Name="GroupLabel" Text="GROUP · from your log, near you" FontSize="9.5"
                        Foreground="#7B8794" Margin="0,0,0,3" Cursor="Hand"
-                       ToolTip="Click to show/hide the group board"
-                       MouseLeftButtonDown="OnGroupToggle"/>
+                       ToolTip="Click to show/hide · drag to pop out"/>
             <ItemsControl x:Name="GroupList">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -184,6 +188,7 @@
             </ItemsControl>
             <TextBlock x:Name="GroupEmptyText" Text="(no group activity nearby)"
                        FontFamily="Consolas" FontSize="12.5" Foreground="#7B8794"/>
+            </StackPanel>
         </StackPanel>
         <TextBlock x:Name="ResizeGrip" Text="◢" FontSize="10" Foreground="#55616C"
                    Cursor="SizeNWSE" HorizontalAlignment="Right" VerticalAlignment="Bottom"
