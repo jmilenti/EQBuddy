@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     private readonly LogWatcher _watcher;
     private readonly GroupDpsTracker _group = new();
     private readonly ThirdPartyLedger _ledger = new();
+    private readonly DamageFeed _feed = new();
     private readonly GroupSync _sync = new();
     private readonly SpawnTimers _spawnTimers;
     private readonly LiteUiSettings _ui = LiteUiSettings.Load();
@@ -37,7 +38,7 @@ public partial class MainWindow : Window
     //      near another EQdps window's bottom edge, ✕ to rejoin the panel ----
 
     private const double DockGap = 6;
-    private static readonly string[] SectionKeys = ["motes", "loot", "fights", "spawns", "group"];
+    private static readonly string[] SectionKeys = ["motes", "loot", "fights", "spawns", "group", "feed"];
     private readonly Dictionary<string, SectionWindow> _sectionWindows = new();
 
     private FrameworkElement SectionElement(string key) => key switch
@@ -46,6 +47,7 @@ public partial class MainWindow : Window
         "loot" => LootSection,
         "fights" => FightsSection,
         "spawns" => SpawnSection,
+        "feed" => FeedSection,
         _ => GroupSection,
     };
 
@@ -64,7 +66,8 @@ public partial class MainWindow : Window
     /// — so counting "from now on" like the rest of the panel does is a subtraction we
     /// do here, in memory. Null <see cref="_resetAt"/> means no reset this run, and the
     /// board shows their totals untouched.</summary>
-    private readonly record struct MemberBaseline(long Damage, double CombatSeconds, int Motes, bool Exact);
+    private readonly record struct MemberBaseline(long Damage, double CombatSeconds, int Motes, bool Exact,
+        IReadOnlyDictionary<string, int> TierBase);
     private readonly Dictionary<string, MemberBaseline> _groupBaseline = new(StringComparer.OrdinalIgnoreCase);
     private DateTime? _resetAt;
 
@@ -105,7 +108,7 @@ public partial class MainWindow : Window
 
         _watcher = new LogWatcher(_stats)
         {
-            Tap = e => { _group.Apply(e); _ledger.Apply(e); },
+            Tap = e => { _group.Apply(e); _ledger.Apply(e); _feed.Apply(e); },
             Spawns = _spawnTimers,
         };
         FollowCharacter(force: true);
@@ -119,6 +122,8 @@ public partial class MainWindow : Window
         WireSection(FightsHeader, "fights", () => _ui.ShowFights = !_ui.ShowFights);
         WireSection(SpawnHeader, "spawns", () => _ui.ShowSpawns = !_ui.ShowSpawns);
         WireSection(GroupLabel, "group", () => _ui.ShowGroup = !_ui.ShowGroup);
+        WireSection(FeedHeader, "feed", () => _ui.ShowFeed = !_ui.ShowFeed);
+        BuildFeedPills();
         Loaded += (_, _) => SetupSectionWindows();
         LocationChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
         SizeChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
@@ -294,9 +299,9 @@ public partial class MainWindow : Window
         // one member-popup at a time made that impossible to see. Sync is the only
         // source for other players: your log records nobody else's loot lines.
         var motes = Motes.Summarize(s.Loot, s.Elapsed);
-        var groupMotes = _sync.Members
+        var groupMotes = (_ui.ShowGroupMotes ? _sync.Members : [])
             .Where(m => !IsSelf(m.Name))
-            .Select(m => (m.Name, Total: ScopedMotes(m), m.Motes.PerHour))
+            .Select(m => (m.Name, Total: ScopedMotes(m), m.Motes.PerHour, Tiers: ScopedTiers(m)))
             .Where(m => m.Total > 0)
             .OrderByDescending(m => m.Total)
             .Take(8)
@@ -325,10 +330,16 @@ public partial class MainWindow : Window
             var moteHours = _resetAt is { } from
                 ? Math.Max((now - from).TotalHours, 1.0 / 60)
                 : 0;
-            GroupMotesList.ItemsSource = groupMotes
-                .Select(m => $"{Pad(m.Name, 12)} ×{m.Total,-4} " +
-                             $"{(moteHours > 0 ? m.Total / moteHours : m.PerHour):0.#}/h")
-                .ToList();
+            // Member line, then their tiers indented under it — same shape as your own
+            // list above, so the two halves of the section read as one board.
+            var moteRows = new List<string>();
+            foreach (var m in groupMotes)
+            {
+                moteRows.Add($"{Pad(m.Name, 12)} ×{m.Total,-4} " +
+                             $"{(moteHours > 0 ? m.Total / moteHours : m.PerHour):0.#}/h");
+                moteRows.AddRange(m.Tiers.Select(t => $"  {Pad(TierShort(t.Name), 12)} ×{t.Count}"));
+            }
+            GroupMotesList.ItemsSource = moteRows;
             GroupMotesHeader.Visibility = Visibility.Visible;
             GroupMotesList.Visibility = Visibility.Visible;
         }
@@ -343,6 +354,7 @@ public partial class MainWindow : Window
         MotesTopSep.Visibility = Attached("motes") ? Visibility.Visible : Visibility.Collapsed;
         SpawnTopSep.Visibility = Attached("spawns") ? Visibility.Visible : Visibility.Collapsed;
         GroupTopSep.Visibility = Attached("group") ? Visibility.Visible : Visibility.Collapsed;
+        FeedTopSep.Visibility = Attached("feed") ? Visibility.Visible : Visibility.Collapsed;
 
         // Session loot (motes excluded — they have their own line above), collapsed to
         // a one-line heading by default.
@@ -452,7 +464,9 @@ public partial class MainWindow : Window
         var scopeTag = fightMode ? "each fight"
             : _resetAt is null ? "session" : "session since reset";
         List<string> rows;
-        if (_sync.Active)
+        // The ⚙ toggle can pin the board to your own log even while sync runs — sync
+        // still publishes your numbers; this is only which side you look at.
+        if (_sync.Active && _ui.GroupBoardUseSync)
         {
             GroupLabel.Text = (_ui.ShowGroup ? "▾ " : "▸ ") + (_sync.LastError is { } err
                 ? $"GROUP · sync {_sync.GroupCode} · {err}"
@@ -482,6 +496,9 @@ public partial class MainWindow : Window
         GroupList.Visibility = _ui.ShowGroup ? Visibility.Visible : Visibility.Collapsed;
         GroupEmptyText.Visibility = _ui.ShowGroup && rows.Count == 0
             ? Visibility.Visible : Visibility.Collapsed;
+
+        _feed.PetName = s.PetName;
+        RenderFeed();
 
         // Everything above may have changed a section's height; re-seat the stack once
         // the layout pass has actually run, so a section that shrank this tick doesn't
@@ -574,8 +591,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        var member = _sync.Members.FirstOrDefault(m =>
-            m.Name.StartsWith(popup.MemberName, StringComparison.OrdinalIgnoreCase));
+        var member = _ui.GroupBoardUseSync
+            ? _sync.Members.FirstOrDefault(m =>
+                m.Name.StartsWith(popup.MemberName, StringComparison.OrdinalIgnoreCase))
+            : null;
         if (member is null)
         {
             // Not synced — show what YOUR log knows about them instead (the ~ rows):
@@ -633,6 +652,158 @@ public partial class MainWindow : Window
         popup.Update($"{member.Name} · {ScopedDps(member, fightScope):0} dps", rows);
     }
 
+    // ---- FEED: a live, filterable view of combat from your own log ----
+
+    private sealed record FeedRow(string Text, Brush Color);
+
+    private static SolidColorBrush Frozen(byte r, byte g, byte b)
+    {
+        var brush = new SolidColorBrush(Color.FromRgb(r, g, b));
+        brush.Freeze();
+        return brush;
+    }
+
+    private static readonly Brush FeedYouBrush = Frozen(0xCF, 0xE3, 0xF5);
+    private static readonly Brush FeedCritBrush = Frozen(0xE8, 0xCE, 0x9C);
+    private static readonly Brush FeedPetBrush = Frozen(0x8F, 0xD4, 0xC8);
+    private static readonly Brush FeedGroupBrush = Frozen(0xB9, 0xA7, 0xE8);
+    private static readonly Brush FeedTakenBrush = Frozen(0xE8, 0x9C, 0x9C);
+    private static readonly Brush FeedHealBrush = Frozen(0x8B, 0xE2, 0x8B);
+    private static readonly Brush FeedDimBrush = Frozen(0x7B, 0x87, 0x94);
+    private static readonly Brush FeedKillBrush = Frozen(0xD9, 0xC4, 0x6B);
+
+    private static readonly Brush FeedPillOnFg = Frozen(0xD9, 0xC4, 0x6B);
+    private static readonly Brush FeedPillOffFg = Frozen(0x55, 0x61, 0x6C);
+    private static readonly Brush FeedPillOnBg = new SolidColorBrush(Color.FromArgb(0x2E, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush FeedPillOffBg = new SolidColorBrush(Color.FromArgb(0x10, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush FeedPillOnBorder = new SolidColorBrush(Color.FromArgb(0x55, 0xFF, 0xFF, 0xFF));
+    private static readonly Brush FeedPillOffBorder = new SolidColorBrush(Color.FromArgb(0x1E, 0xFF, 0xFF, 0xFF));
+
+    private void RenderFeed()
+    {
+        if (!_ui.ShowFeed)
+        {
+            FeedHeader.Text = "\u25b8 FEED \u00b7 live";
+            FeedPillRow.Visibility = Visibility.Collapsed;
+            FeedList.Visibility = Visibility.Collapsed;
+            FeedEmptyText.Visibility = Visibility.Collapsed;
+            return;
+        }
+        var rows = _feed.Snapshot(_ui.FeedFilters, 12);
+        FeedHeader.Text = "\u25be FEED \u00b7 live";
+        FeedPillRow.Visibility = Visibility.Visible;
+        FeedList.ItemsSource = rows.Select(RowOf).ToList();
+        FeedList.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        FeedEmptyText.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private FeedRow RowOf(FeedEntry e)
+    {
+        var t = e.Time.ToString("HH:mm:ss");
+        // The log's own annotation wins (it already says "Riposte Critical" when both
+        // apply); a bare crit flag gets the plain tag.
+        var tag = e.Note is { Length: > 0 } n ? $" ({n})" : e.Crit ? " (Crit)" : "";
+        var actor = e.Who == FeedWho.You ? "" : $"{e.Actor}: ";
+        return e.Kind switch
+        {
+            FeedKind.Melee or FeedKind.Spell or FeedKind.Dot or FeedKind.Aux => new FeedRow(
+                $"{t}  {actor}{e.Ability} \u2192 {e.Target}  {e.Amount:N0}{tag}",
+                e.Crit ? FeedCritBrush : e.Who switch
+                {
+                    FeedWho.Pet => FeedPetBrush,
+                    FeedWho.Group => FeedGroupBrush,
+                    _ => FeedYouBrush,
+                }),
+            FeedKind.Taken => new FeedRow(
+                $"{t}  {e.Actor}{(e.Ability.Length > 0 ? $" {e.Ability}" : "")} \u2192 you  {e.Amount:N0}",
+                FeedTakenBrush),
+            FeedKind.Heal => new FeedRow(
+                e.Incoming
+                    ? $"{t}  {e.Actor} heals you  +{e.Amount:N0}"
+                    : $"{t}  {e.Ability} \u2192 {e.Target}  +{e.Amount:N0}",
+                FeedHealBrush),
+            FeedKind.Miss => new FeedRow(
+                e.Incoming ? $"{t}  missed you" : $"{t}  you miss", FeedDimBrush),
+            FeedKind.Kill => new FeedRow($"{t}  {e.Actor} slew {e.Target}", FeedKillBrush),
+            FeedKind.Resist => new FeedRow(
+                $"{t}  {(e.Ability.Length > 0 ? e.Ability : "spell")} resisted", FeedDimBrush),
+            _ => new FeedRow(
+                $"{t}  {(e.Ability.Length > 0 ? e.Ability : "spell")} fizzled", FeedDimBrush),
+        };
+    }
+
+    /// <summary>The FEED filter pills, built in code — sixteen toggles sharing one tiny
+    /// template. Each pill owns its refresh closure; clicking saves and re-renders at
+    /// once, so a filter change reads back through the buffer instead of only changing
+    /// what arrives next.</summary>
+    private void BuildFeedPills()
+    {
+        var f = _ui.FeedFilters;
+        void Pill(string label, string tip, Func<bool> isOn, Action click, Func<string>? text = null)
+        {
+            var tb = new TextBlock { FontSize = 10, Text = label };
+            var pill = new Border
+            {
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(5, 1, 5, 1),
+                Margin = new Thickness(0, 1, 4, 1),
+                BorderThickness = new Thickness(1),
+                Cursor = Cursors.Hand,
+                ToolTip = tip,
+                Child = tb,
+            };
+            void Refresh()
+            {
+                var on = isOn();
+                tb.Text = text?.Invoke() ?? label;
+                tb.Foreground = on ? FeedPillOnFg : FeedPillOffFg;
+                pill.Background = on ? FeedPillOnBg : FeedPillOffBg;
+                pill.BorderBrush = on ? FeedPillOnBorder : FeedPillOffBorder;
+            }
+            pill.MouseLeftButtonDown += (_, args) =>
+            {
+                args.Handled = true;
+                click();
+                _ui.Save();
+                Refresh();
+                RenderFeed();
+            };
+            Refresh();
+            FeedPillRow.Children.Add(pill);
+        }
+
+        // who
+        Pill("you", "Your own damage", () => f.You, () => f.You = !f.You);
+        Pill("pet", "Your pet's damage", () => f.Pet, () => f.Pet = !f.Pet);
+        Pill("grp", "Other players near you, from your log", () => f.Group, () => f.Group = !f.Group);
+        Pill("in", "Damage you take", () => f.Incoming, () => f.Incoming = !f.Incoming);
+        // kind
+        Pill("melee", "Melee hits", () => f.Melee, () => f.Melee = !f.Melee);
+        Pill("spell", "Direct spell damage", () => f.Spells, () => f.Spells = !f.Spells);
+        Pill("dot", "Damage-over-time ticks", () => f.Dots, () => f.Dots = !f.Dots);
+        Pill("ds", "Damage shields / automatic damage", () => f.DamageShields, () => f.DamageShields = !f.DamageShields);
+        Pill("heal", "Heals, cast and received", () => f.Heals, () => f.Heals = !f.Heals);
+        Pill("miss", "Misses, dodges, parries", () => f.Misses, () => f.Misses = !f.Misses);
+        Pill("kill", "Killing blows", () => f.Kills, () => f.Kills = !f.Kills);
+        Pill("r/f", "Resists and fizzles", () => f.ResistsFizzles, () => f.ResistsFizzles = !f.ResistsFizzles);
+        // narrowing
+        Pill("crit", "Critical hits only", () => f.CritsOnly, () => f.CritsOnly = !f.CritsOnly);
+        Pill("spec", "Annotated hits only \u2014 Riposte, Crippling Blow, Slay Undead\u2026",
+            () => f.SpecialsOnly, () => f.SpecialsOnly = !f.SpecialsOnly);
+        Pill("dmg", "Minimum damage to show \u2014 click to cycle",
+            () => f.MinDamage > 0,
+            () => f.MinDamage = f.MinDamage switch { 0 => 100, 100 => 500, 500 => 1000, 1000 => 5000, _ => 0 },
+            () => f.MinDamage == 0 ? "dmg\u00b7any" : $"dmg\u00b7{f.MinDamage}+");
+        Pill("type", "Melee damage type \u2014 click to cycle",
+            () => f.MeleeType != "all",
+            () => f.MeleeType = f.MeleeType switch
+            {
+                "all" => "slash", "slash" => "pierce", "pierce" => "blunt",
+                "blunt" => "archery", _ => "all",
+            },
+            () => $"type\u00b7{f.MeleeType}");
+    }
+
     private bool IsSelf(string name) =>
         string.Equals(name, _stats.CharacterName, StringComparison.OrdinalIgnoreCase);
 
@@ -663,6 +834,19 @@ public partial class MainWindow : Window
     private int ScopedMotes(SyncedMember m) =>
         _resetAt is null ? m.Motes.Total : Math.Max(0, m.Motes.Total - BaselineFor(m).Motes);
 
+    /// <summary>Their per-tier counts, rebased against the same baseline as the total —
+    /// mismatched halves (a rebased headline over whole-session tiers) would contradict
+    /// each other on the board. Tiers at or below their mark drop out entirely.</summary>
+    private IReadOnlyList<MoteEntry> ScopedTiers(SyncedMember m)
+    {
+        if (_resetAt is null) return m.Motes.Tiers;
+        var baseTiers = BaselineFor(m).TierBase;
+        return m.Motes.Tiers
+            .Select(t => new MoteEntry(t.Name, t.Count - baseTiers.GetValueOrDefault(t.Name)))
+            .Where(t => t.Count > 0)
+            .ToList();
+    }
+
     /// <summary>Cumulative damage a member has shared. 1.56+ sends the real total; before
     /// that the best available is the sum of their top sources, which undercounts the
     /// long tail — flagged so a baseline never mixes the two.</summary>
@@ -677,7 +861,8 @@ public partial class MainWindow : Window
         var (damage, exact) = DamageOf(m);
         if (!_groupBaseline.TryGetValue(m.Name, out var b) || b.Exact != exact
             || damage < b.Damage || m.CombatSeconds < b.CombatSeconds || m.Motes.Total < b.Motes)
-            _groupBaseline[m.Name] = b = new MemberBaseline(damage, m.CombatSeconds, m.Motes.Total, exact);
+            _groupBaseline[m.Name] = b = new MemberBaseline(damage, m.CombatSeconds, m.Motes.Total, exact,
+                m.Motes.Tiers.ToDictionary(t => t.Name, t => t.Count, StringComparer.OrdinalIgnoreCase));
         return b;
     }
 
@@ -1032,12 +1217,16 @@ public partial class MainWindow : Window
         }
         Dispatcher.BeginInvoke(() =>
         {
-            Window previous = this;
-            foreach (var key in SectionKeys)
+            // A fresh install chains everything under the main window in order. On an
+            // existing install this must NOT catch a section this BUILD introduced —
+            // hosting it on the main window would collide with whatever the saved graph
+            // already puts there. Brand-new sections hook under the stack's tail below.
+            if (_ui.SectionPositions.Count == 0 && _ui.SectionDocks.Count == 0)
             {
-                var win = _sectionWindows[key];
-                if (!_ui.SectionPositions.ContainsKey(key))
+                Window previous = this;
+                foreach (var key in SectionKeys)
                 {
+                    var win = _sectionWindows[key];
                     win.DockHost = previous;
                     win.Left = previous.Left;
                     win.Top = previous.Top + previous.ActualHeight + DockGap;
@@ -1060,11 +1249,20 @@ public partial class MainWindow : Window
                 };
             }
             BreakDockCycles();
-            // Anything with no remembered host — a settings file from before docks were
-            // saved — re-magnetises by adjacency.
+            // A saved position with no remembered host — a settings file from before
+            // docks were saved — re-magnetises by adjacency.
             foreach (var win in _sectionWindows.Values.OrderBy(v => v.Top).ToList())
-                if (win.DockHost is null && !_ui.SectionDocks.ContainsKey(win.SectionKey))
+                if (win.DockHost is null && !_ui.SectionDocks.ContainsKey(win.SectionKey)
+                    && _ui.SectionPositions.ContainsKey(win.SectionKey))
                     Remagnetise(win);
+            // A section with NOTHING saved is new in this build — hook it under the tail.
+            foreach (var key in SectionKeys)
+            {
+                var win = _sectionWindows[key];
+                if (win.DockHost is null && !_ui.SectionDocks.ContainsKey(key)
+                    && !_ui.SectionPositions.ContainsKey(key))
+                    DockToStack(win);
+            }
             RepinStack();
             SaveLayout();     // bank the graph so the guessing never has to happen again
         }, System.Windows.Threading.DispatcherPriority.Loaded);
@@ -1200,6 +1398,17 @@ public partial class MainWindow : Window
     {
         e.Handled = true;
         CheckUpdates();
+    }
+
+    private void OnSettingsPill(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        var dlg = new SettingsDialog(_ui.GroupBoardUseSync, _ui.ShowGroupMotes) { Owner = this };
+        if (dlg.ShowDialog() != true) return;
+        _ui.GroupBoardUseSync = dlg.GroupBoardUseSync;
+        _ui.ShowGroupMotes = dlg.ShowGroupMotes;
+        _ui.Save();
+        Tick();
     }
 
     private void OnBreakdownToggle(object sender, MouseButtonEventArgs e)

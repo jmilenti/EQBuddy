@@ -33,6 +33,24 @@ public sealed class LiteUiSettings
     /// <summary>Group board expanded. Default ON — it's the panel's second headline.</summary>
     public bool ShowGroup { get; set; } = true;
 
+    /// <summary>Live damage feed expanded. Off by default — it's a firehose by design,
+    /// and the header is always there to opt in.</summary>
+    public bool ShowFeed { get; set; }
+
+    /// <summary>GROUP board reads group sync when available (exact numbers). Off = the
+    /// board always shows your own log's ~ rows, even while sync is running — sync still
+    /// publishes YOUR numbers either way, this is only what you look at. The ⚙ dialog.</summary>
+    public bool GroupBoardUseSync { get; set; } = true;
+
+    /// <summary>Group members' mote hauls shown in the MOTES section. Sync is the only
+    /// possible source (your log never sees anyone else's loot), so off simply hides the
+    /// GROUP · motes block. The ⚙ dialog.</summary>
+    public bool ShowGroupMotes { get; set; } = true;
+
+    /// <summary>The FEED section's filters, persisted so a curated view survives a
+    /// restart.</summary>
+    public FeedFilters FeedFilters { get; set; } = new();
+
     /// <summary>Where in the log your last session reset happened — the log file and the
     /// byte offset reached at that moment. Replayed at the next launch so a restart
     /// resumes the session you started instead of re-reading everything you cleared.
@@ -85,4 +103,37 @@ public sealed class LiteUiSettings
             CoreLog.Error(ex);
         }
     }
+}
+
+/// <summary>What the FEED section shows. Who-toggles and kind-toggles are ANDed: a row
+/// must pass one of each. CritsOnly/SpecialsOnly then narrow further, MinDamage floors
+/// the amount, and MeleeType restricts melee rows to one physical damage type.</summary>
+public sealed class FeedFilters
+{
+    // -- who --
+    public bool You { get; set; } = true;
+    public bool Pet { get; set; } = true;
+    public bool Group { get; set; }
+    public bool Incoming { get; set; }
+
+    // -- kind --
+    public bool Melee { get; set; } = true;
+    public bool Spells { get; set; } = true;
+    public bool Dots { get; set; } = true;
+    /// <summary>Damage-shield / automatic damage (the parser's IsAux).</summary>
+    public bool DamageShields { get; set; }
+    public bool Heals { get; set; }
+    public bool Misses { get; set; }
+    public bool Kills { get; set; } = true;
+    public bool ResistsFizzles { get; set; }
+
+    // -- narrowing --
+    public bool CritsOnly { get; set; }
+    /// <summary>Only hits carrying a trailing annotation — Riposte, Crippling Blow,
+    /// Slay Undead, Double Bow Shot, whatever the log appends.</summary>
+    public bool SpecialsOnly { get; set; }
+    /// <summary>0 = everything; otherwise hide rows below this amount.</summary>
+    public int MinDamage { get; set; }
+    /// <summary>"all", "slash", "pierce", "blunt", or "archery" — melee rows only.</summary>
+    public string MeleeType { get; set; } = "all";
 }

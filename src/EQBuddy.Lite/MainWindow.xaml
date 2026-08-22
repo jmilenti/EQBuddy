@@ -168,6 +168,11 @@
                         MouseLeftButtonDown="OnUpdatePill">
                     <TextBlock Style="{StaticResource ActionPillText}" Text="⟳ update"/>
                 </Border>
+                <Border Style="{StaticResource ActionPill}"
+                        ToolTip="Settings — which features read group sync vs your own log"
+                        MouseLeftButtonDown="OnSettingsPill">
+                    <TextBlock Style="{StaticResource ActionPillText}" Text="⚙"/>
+                </Border>
             </WrapPanel>
 
             <TextBlock x:Name="UpdateBanner" Visibility="Collapsed" Cursor="Hand"
@@ -354,6 +359,29 @@
             </ItemsControl>
             <TextBlock x:Name="GroupEmptyText" Text="(no group activity nearby)"
                        FontFamily="Consolas" FontSize="12.5" Foreground="#7B8794"/>
+            </StackPanel>
+
+            <StackPanel x:Name="FeedSection">
+                <Rectangle x:Name="FeedTopSep" Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
+                <TextBlock x:Name="FeedHeader" Text="▸ FEED · live" Cursor="Hand"
+                           FontSize="9.5" Foreground="#7B8794"
+                           ToolTip="Click to show/hide · drag to pop out · a live feed of combat from your log, with filters"/>
+                <!-- Filter pills are built in code (BuildFeedPills) — ~16 toggles would
+                     drown the XAML, and they all share one tiny template anyway. -->
+                <WrapPanel x:Name="FeedPillRow" Visibility="Collapsed"
+                           Margin="0,4,0,2" MaxWidth="340"/>
+                <ItemsControl x:Name="FeedList" Margin="2,2,0,0" Visibility="Collapsed"
+                              MaxWidth="340">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Text}" Foreground="{Binding Color}"
+                                       FontFamily="Consolas" FontSize="11"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock x:Name="FeedEmptyText" Text="(nothing matching yet)" Visibility="Collapsed"
+                           FontFamily="Consolas" FontSize="11.5" Foreground="#7B8794"/>
             </StackPanel>
         </StackPanel>
         <TextBlock x:Name="ResizeGrip" Text="◢" FontSize="10" Foreground="#55616C"
