@@ -6,8 +6,9 @@ using EQBuddy.Core;
 
 namespace EQBuddy.Lite;
 
-/// <summary>One damage source in a member's breakdown ("Ignite", "melee", …).</summary>
-public sealed record BreakdownEntry(string Name, long Total);
+/// <summary>One damage source in a member's breakdown ("Ignite", "melee", …).
+/// Hits is swings/casts/procs landed; 0 from clients too old to send it.</summary>
+public sealed record BreakdownEntry(string Name, long Total, int Hits = 0);
 
 /// <summary>One mote tier a member has looted ("Mote of Greater Potential" ×3).</summary>
 public sealed record MoteEntry(string Name, int Count);
@@ -107,7 +108,7 @@ public sealed class GroupSync : IDisposable
                             name = own.Name,
                             dps = own.Dps,
                             sdps = own.SessionDps,
-                            top = own.Top.Select(t => new { n = t.Name, t = t.Total }),
+                            top = own.Top.Select(t => new { n = t.Name, t = t.Total, h = t.Hits }),
                             motes = new
                             {
                                 tot = own.Motes.Total,
@@ -121,7 +122,7 @@ public sealed class GroupSync : IDisposable
                         Members = roster?.Members?
                             .Select(m => new SyncedMember(m.Name ?? "?", m.Dps, m.Sdps,
                                 m.Top?.Where(t => t.N is { Length: > 0 })
-                                    .Select(t => new BreakdownEntry(t.N!, t.T))
+                                    .Select(t => new BreakdownEntry(t.N!, t.T, t.H))
                                     .ToList() ?? [],
                                 m.Motes is { } mm
                                     ? new SyncedMotes(mm.Tot, mm.Ph,
@@ -171,6 +172,7 @@ public sealed class GroupSync : IDisposable
     {
         public string? N { get; set; }
         public long T { get; set; }
+        public int H { get; set; }
     }
 
     private sealed class RosterMotes

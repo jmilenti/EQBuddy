@@ -62,7 +62,9 @@ export class GroupRoom {
       for (const e of body.top.slice(0, 8)) {
         const n = typeof e?.n === "string" ? e.n.trim().slice(0, 24) : "";
         const t = Number(e?.t);
-        if (n && Number.isFinite(t) && t >= 0) top.push({ n, t: Math.round(t) });
+        const h = Number(e?.h);
+        if (n && Number.isFinite(t) && t >= 0)
+          top.push({ n, t: Math.round(t), h: Number.isFinite(h) && h > 0 ? Math.round(h) : 0 });
       }
     }
 
@@ -194,7 +196,8 @@ function render(members) {
     const top = m.top || [];
     const total = top.reduce((a, e) => a + e.t, 0);
     let text = total > 0
-      ? top.map(e => pad(e.n, 14) + fmt(e.t).padStart(7)
+      ? top.map(e => pad(e.n, 14) + (e.h > 0 ? String(e.h) + '\\u00d7' : '').padStart(6)
+          + fmt(e.t).padStart(7)
           + String(Math.round(e.t * 100 / total)).padStart(4) + '%').join('\\n')
       : '(no breakdown shared)';
     det.textContent = text;

@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private readonly SessionStats _stats = new();
     private readonly LogWatcher _watcher;
     private readonly GroupDpsTracker _group = new();
+    private readonly ThirdPartyLedger _ledger = new();
     private readonly GroupSync _sync = new();
     private readonly SpawnTimers _spawnTimers;
     private readonly LiteUiSettings _ui = LiteUiSettings.Load();
@@ -91,7 +92,11 @@ public partial class MainWindow : Window
             SpawnOverrides.Load(AppPaths.File("spawn-overrides.json")),
             AppPaths.File("spawn-timers.json"));
 
-        _watcher = new LogWatcher(_stats) { Tap = _group.Apply, Spawns = _spawnTimers };
+        _watcher = new LogWatcher(_stats)
+        {
+            Tap = e => { _group.Apply(e); _ledger.Apply(e); },
+            Spawns = _spawnTimers,
+        };
         FollowCharacter(force: true);
 
         // Log hygiene at startup, same promises as the full app: force Log=1 and wipe
@@ -189,7 +194,7 @@ public partial class MainWindow : Window
             {
                 BreakdownList.ItemsSource = s.DamageBySource
                     .Take(5)
-                    .Select(d => $"{Pad(d.Name, 13)} {FmtDamage(d.Total),6} {d.Total * 100 / totalDamage,3}%")
+                    .Select(d => $"{Pad(d.Name, 13)} {d.Hits,4}× {FmtDamage(d.Total),6} {d.Total * 100 / totalDamage,3}%")
                     .ToList();
                 BreakdownList.Visibility = Visibility.Visible;
             }
@@ -281,19 +286,24 @@ public partial class MainWindow : Window
             ? Visibility.Visible : Visibility.Collapsed;
 
         // Past fights of this session, newest first; click a row for that fight's popup.
-        if (s.RecentEncounters.Count == 0 && !Attached("fights"))
+        // Only fights where you actually dealt damage count — getting pierced by a
+        // passing ghoul opens an encounter in Core, but it isn't a fight to review.
+        var realFights = s.Encounters.Where(f => f.DamageOut > 0).ToList();
+        if (realFights.Count == 0 && !Attached("fights"))
         {
             FightsHeader.Text = "FIGHTS · none yet";
             FightsHeader.Visibility = Visibility.Visible;
             FightsList.Visibility = Visibility.Collapsed;
         }
-        else if (s.RecentEncounters.Count > 0)
+        else if (realFights.Count > 0)
         {
-            FightsHeader.Text = $"{(_ui.ShowFights ? "▾" : "▸")} FIGHTS · {s.EncounterCount} this session";
+            FightsHeader.Text = $"{(_ui.ShowFights ? "▾" : "▸")} FIGHTS · {realFights.Count} this session";
             FightsHeader.Visibility = Visibility.Visible;
             if (_ui.ShowFights)
             {
-                FightsList.ItemsSource = s.RecentEncounters
+                FightsList.ItemsSource = realFights
+                    .TakeLast(8)
+                    .Reverse()
                     .Select(f => new FightRow($"{Pad(f.Name, 14)} {f.Dps,5:0} dps", f.Start.Ticks))
                     .ToList();
                 FightsList.Visibility = Visibility.Visible;
@@ -334,7 +344,7 @@ public partial class MainWindow : Window
         else SpawnSection.Visibility = Visibility.Collapsed;
 
         _sync.Publish(_stats.CharacterName ?? "", s.CurrentDps, s.SessionDps,
-            s.DamageBySource.Take(6).Select(d => new BreakdownEntry(d.Name, d.Total)).ToList(),
+            s.DamageBySource.Take(6).Select(d => new BreakdownEntry(d.Name, d.Total, d.Hits)).ToList(),
             motes);
 
         List<string> rows;
@@ -439,8 +449,15 @@ public partial class MainWindow : Window
                 + (f.DamageIn > 0 ? $" · took {FmtDamage(f.DamageIn)}" : "")
                 + (abilityTotal > 0
                     ? "\n" + string.Join("\n", f.ByAbility.Take(8).Select(b =>
-                        $"{Pad(b.Name, 13)} {FmtDamage(b.Total),6} {b.Total * 100 / abilityTotal,3}%"))
+                        $"{Pad(b.Name, 13)} {b.Hits,4}× {FmtDamage(b.Total),6} {b.Total * 100 / abilityTotal,3}%"))
                     : "");
+            // What the group did on this same mob in this window, from your log.
+            var others = _ledger.DamageOn(f.Name, f.Start,
+                TimeSpan.FromSeconds(f.DurationSeconds), _snap?.PetName);
+            if (others.Count > 0)
+                detail += "\n\ngroup on this fight · from log\n" + string.Join("\n",
+                    others.Take(6).Select(g =>
+                        $"{Pad(g.Name, 13)} {g.Hits,4}× {FmtDamage(g.Total),6} {g.Total / Math.Max(1, f.DurationSeconds),4:0} dps"));
             popup.Update($"{f.Name} · {f.Dps:0} dps", detail, "", "");
             return;
         }
@@ -459,7 +476,7 @@ public partial class MainWindow : Window
                 var lines = $"from your log · approximate\nsession {FmtDamage(logRow.SessionDamage)} dmg";
                 if (logTotal > 0)
                     lines += "\n" + string.Join("\n", logRow.Breakdown.Take(8).Select(b =>
-                        $"{Pad(b.Name, 13)} {FmtDamage(b.Total),6} {b.Total * 100 / logTotal,3}%"));
+                        $"{Pad(b.Name, 13)} {b.Hits,4}× {FmtDamage(b.Total),6} {b.Total * 100 / logTotal,3}%"));
                 popup.Update($"~{logRow.Name} · {logRow.WindowDps:0} dps", lines, "", "");
                 return;
             }
@@ -476,7 +493,7 @@ public partial class MainWindow : Window
         if (total > 0)
         {
             rows = string.Join("\n", member.Breakdown.Select(b =>
-                $"{Pad(b.Name, 13)} {FmtDamage(b.Total),6} {b.Total * 100 / total,3}%"));
+                $"{Pad(b.Name, 13)} {b.Hits,4}× {FmtDamage(b.Total),6} {b.Total * 100 / total,3}%"));
         }
         else
         {
@@ -488,7 +505,7 @@ public partial class MainWindow : Window
             if (seen is not null && seenTotal > 0)
                 rows = "from your log · approximate\n" + string.Join("\n",
                     seen.Breakdown.Take(8).Select(b =>
-                        $"{Pad(b.Name, 13)} {FmtDamage(b.Total),6} {b.Total * 100 / seenTotal,3}%"));
+                        $"{Pad(b.Name, 13)} {b.Hits,4}× {FmtDamage(b.Total),6} {b.Total * 100 / seenTotal,3}%"));
             else if (member.Dps > 0 || member.SessionDps > 0)
                 rows = "(no breakdown shared — their\n app may be an older version)";
             else
@@ -636,7 +653,22 @@ public partial class MainWindow : Window
 
     private void OnDrag(object sender, MouseButtonEventArgs e)
     {
-        if (e.ChangedButton == MouseButton.Left) DragMove();
+        if (e.ChangedButton != MouseButton.Left) return;
+        DragMove();
+        SaveLayout();
+    }
+
+    /// <summary>Persist window positions the moment a drag or resize ends — waiting
+    /// for a clean shutdown loses the layout to crashes and killed processes.</summary>
+    internal void SaveLayout()
+    {
+        foreach (var (key, win) in _sectionWindows)
+            _ui.SectionPositions[key] = [win.Left, win.Top];
+        _ui.Save();
+        _settings.WindowLeft = Left;
+        _settings.WindowTop = Top;
+        _settings.UiScale = RootScale.ScaleX;
+        _settings.Save();
     }
 
     // ---- corner resize: the grip drags a scale factor, not a window edge ----
@@ -679,6 +711,7 @@ public partial class MainWindow : Window
         if (!ResizeGrip.IsMouseCaptured) return;
         ResizeGrip.ReleaseMouseCapture();
         e.Handled = true;
+        SaveLayout();
     }
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
@@ -775,11 +808,14 @@ public partial class MainWindow : Window
             if (dx > snapX || dy > snapY) continue;
             if (dx + dy < bestDist) { bestDist = dx + dy; best = host; }
         }
-        if (best is null) return;
-        w.DockHost = best;
-        w.Left = best.Left;
-        w.Top = best.Top + best.ActualHeight + DockGap;
-        RepositionFollowers(w);
+        if (best is not null)
+        {
+            w.DockHost = best;
+            w.Left = best.Left;
+            w.Top = best.Top + best.ActualHeight + DockGap;
+            RepositionFollowers(w);
+        }
+        SaveLayout();
     }
 
     private IEnumerable<Window> SnapHosts(SectionWindow w)
@@ -859,6 +895,7 @@ public partial class MainWindow : Window
             previous = win;
         }
         RepositionFollowers(this);
+        SaveLayout();
     }
 
     private void OnResetLayout(object sender, RoutedEventArgs e)
@@ -947,6 +984,7 @@ public partial class MainWindow : Window
             != MessageBoxResult.Yes) return;
         _stats.Reset();
         _group.Reset();
+        _ledger.Reset();
         _popup?.Close();
         Tick();
     }
