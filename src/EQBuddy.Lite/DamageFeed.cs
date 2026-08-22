@@ -144,7 +144,17 @@ internal sealed class DamageFeed
         if (isDamage)
         {
             if (f.CritsOnly && !e.Crit) return false;
-            if (f.SpecialsOnly && string.IsNullOrEmpty(e.Note)) return false;
+            // The special-annotation toggles OR together: any on = only rows whose
+            // note matches one of the enabled kinds.
+            if (f.OnlySlays || f.OnlyRipostes || f.OnlyCrippling)
+            {
+                var note = e.Note ?? "";
+                var matched =
+                    (f.OnlySlays && note.Contains("Slay", StringComparison.OrdinalIgnoreCase)) ||
+                    (f.OnlyRipostes && note.Contains("Riposte", StringComparison.OrdinalIgnoreCase)) ||
+                    (f.OnlyCrippling && note.Contains("Crippling", StringComparison.OrdinalIgnoreCase));
+                if (!matched) return false;
+            }
             if (f.MinDamage > 0 && e.Amount < f.MinDamage) return false;
         }
         if (e.Kind == FeedKind.Melee && f.MeleeType != "all"

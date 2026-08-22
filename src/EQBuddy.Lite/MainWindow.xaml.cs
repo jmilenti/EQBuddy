@@ -516,7 +516,7 @@ public partial class MainWindow : Window
         var section = key.StartsWith("fight:", StringComparison.Ordinal) ? "fights"
             : key.StartsWith("spawn:", StringComparison.Ordinal) ? "spawns"
             : "group";
-        return _sectionWindows.TryGetValue(section, out var win) ? win : this;
+        return _sectionWindows.TryGetValue(section, out var win) && win.IsVisible ? win : this;
     }
 
     /// <summary>Park the open popup at the right edge of the window it belongs to.
@@ -788,8 +788,12 @@ public partial class MainWindow : Window
         Pill("r/f", "Resists and fizzles", () => f.ResistsFizzles, () => f.ResistsFizzles = !f.ResistsFizzles);
         // narrowing
         Pill("crit", "Critical hits only", () => f.CritsOnly, () => f.CritsOnly = !f.CritsOnly);
-        Pill("spec", "Annotated hits only \u2014 Riposte, Crippling Blow, Slay Undead\u2026",
-            () => f.SpecialsOnly, () => f.SpecialsOnly = !f.SpecialsOnly);
+        Pill("slay", "Slay Undead hits only (combines with rip/crip as either-or)",
+            () => f.OnlySlays, () => f.OnlySlays = !f.OnlySlays);
+        Pill("rip", "Ripostes only (combines with slay/crip as either-or)",
+            () => f.OnlyRipostes, () => f.OnlyRipostes = !f.OnlyRipostes);
+        Pill("crip", "Crippling Blows only (combines with slay/rip as either-or)",
+            () => f.OnlyCrippling, () => f.OnlyCrippling = !f.OnlyCrippling);
         Pill("dmg", "Minimum damage to show \u2014 click to cycle",
             () => f.MinDamage > 0,
             () => f.MinDamage = f.MinDamage switch { 0 => 100, 100 => 500, 500 => 1000, 1000 => 5000, _ => 0 },
@@ -1012,11 +1016,7 @@ public partial class MainWindow : Window
     /// for a clean shutdown loses the layout to crashes and killed processes.</summary>
     internal void SaveLayout()
     {
-        foreach (var (key, win) in _sectionWindows)
-        {
-            _ui.SectionPositions[key] = [win.Left, win.Top];
-            _ui.SectionDocks[key] = DockKey(win.DockHost);
-        }
+ 
         _ui.Save();
         _settings.WindowLeft = Left;
         _settings.WindowTop = Top;
@@ -1177,7 +1177,7 @@ public partial class MainWindow : Window
         yield return this;
         foreach (var other in _sectionWindows.Values)
         {
-            if (ReferenceEquals(other, w)) continue;
+            if (ReferenceEquals(other, w) || !other.IsVisible) continue;
             // No cycles: a window whose host chain leads back to w can't host w.
             var chain = other.DockHost;
             var cyclic = false;
@@ -1325,6 +1325,7 @@ public partial class MainWindow : Window
                     && !_ui.SectionPositions.ContainsKey(key))
                     DockToStack(win);
             }
+            ApplySectionVisibility();
             RepinStack();
             SaveLayout();     // bank the graph so the guessing never has to happen again
         }, System.Windows.Threading.DispatcherPriority.Loaded);
@@ -1465,12 +1466,44 @@ public partial class MainWindow : Window
     private void OnSettingsPill(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        var dlg = new SettingsDialog(_ui.GroupBoardUseSync, _ui.ShowGroupMotes) { Owner = this };
+        var dlg = new SettingsDialog(_ui.GroupBoardUseSync, _ui.ShowGroupMotes,
+            SectionKeys, _ui.HiddenSections) { Owner = this };
         if (dlg.ShowDialog() != true) return;
         _ui.GroupBoardUseSync = dlg.GroupBoardUseSync;
         _ui.ShowGroupMotes = dlg.ShowGroupMotes;
+        _ui.HiddenSections = dlg.HiddenSections;
         _ui.Save();
+        ApplySectionVisibility();
         Tick();
+    }
+
+    /// <summary>Hide/show whole sections per the ⚙ tick boxes. Hiding a window
+    /// mid-stack bridges its followers up to its own host first, so the chain closes
+    /// over the gap; re-showing hooks the window back under the stack's tail — its old
+    /// spot has long since closed up, and the tail is the one place that is always
+    /// right. Collapse (the ▸ headings) is separate: that keeps the header visible.</summary>
+    private void ApplySectionVisibility()
+    {
+        foreach (var key in SectionKeys)
+        {
+            var win = _sectionWindows[key];
+            var hide = _ui.HiddenSections.Contains(key);
+            if (hide && win.IsVisible)
+            {
+                foreach (var follower in _sectionWindows.Values
+                             .Where(f => ReferenceEquals(f.DockHost, win)))
+                    follower.DockHost = win.DockHost ?? this;
+                win.DockHost = null;
+                win.Hide();
+            }
+            else if (!hide && !win.IsVisible)
+            {
+                win.Show();
+                DockToStack(win);
+            }
+        }
+        RepinStack();
+        SaveLayout();
     }
 
     private void OnBreakdownToggle(object sender, MouseButtonEventArgs e)

@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
 namespace EQBuddy.Lite;
 
@@ -11,11 +12,17 @@ public sealed class SettingsDialog : Window
 {
     private readonly CheckBox _groupSync;
     private readonly CheckBox _groupMotes;
+    private readonly Dictionary<string, CheckBox> _sections = new();
 
     public bool GroupBoardUseSync => _groupSync.IsChecked == true;
     public bool ShowGroupMotes => _groupMotes.IsChecked == true;
 
-    public SettingsDialog(bool groupBoardUseSync, bool showGroupMotes)
+    /// <summary>Sections the user UNticked — i.e. wants gone from the UI.</summary>
+    public List<string> HiddenSections =>
+        _sections.Where(kv => kv.Value.IsChecked != true).Select(kv => kv.Key).ToList();
+
+    public SettingsDialog(bool groupBoardUseSync, bool showGroupMotes,
+        IReadOnlyList<string> sectionKeys, IReadOnlyList<string> hiddenSections)
     {
         Title = "EQdps settings";
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -60,6 +67,36 @@ public sealed class SettingsDialog : Window
             },
         };
         panel.Children.Add(_groupMotes);
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Show sections:",
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 2, 0, 4),
+        });
+        panel.Children.Add(new TextBlock
+        {
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 0, 0, 6),
+            FontSize = 11,
+            Foreground = System.Windows.Media.Brushes.Gray,
+            Text = "Unticked sections disappear from the stack entirely (the windows " +
+                   "above and below close up). Tick again to bring one back — it " +
+                   "re-hooks under the bottom of the stack.",
+        });
+        var grid = new UniformGrid { Columns = 2, Margin = new Thickness(0, 0, 0, 12) };
+        foreach (var key in sectionKeys)
+        {
+            var box = new CheckBox
+            {
+                IsChecked = !hiddenSections.Contains(key),
+                Margin = new Thickness(0, 0, 8, 4),
+                Content = key.ToUpperInvariant(),
+            };
+            _sections[key] = box;
+            grid.Children.Add(box);
+        }
+        panel.Children.Add(grid);
 
         var ok = new Button { Content = "OK", Width = 72, IsDefault = true, Margin = new Thickness(0, 0, 8, 0) };
         ok.Click += (_, _) => { DialogResult = true; };

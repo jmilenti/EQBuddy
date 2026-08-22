@@ -60,6 +60,11 @@ public sealed class LiteUiSettings
     /// drag to FeedRows instead.</summary>
     public Dictionary<string, double> SectionWidths { get; set; } = new();
 
+    /// <summary>Sections removed from the UI entirely (the ⚙ dialog's tick boxes) —
+    /// window hidden, dock chain bridged over it. Different from the collapse toggles
+    /// above, which keep the one-line heading visible.</summary>
+    public List<string> HiddenSections { get; set; } = [];
+
     /// <summary>Where in the log your last session reset happened — the log file and the
     /// byte offset reached at that moment. Replayed at the next launch so a restart
     /// resumes the session you started instead of re-reading everything you cleared.
@@ -115,7 +120,7 @@ public sealed class LiteUiSettings
 }
 
 /// <summary>What the FEED section shows. Who-toggles and kind-toggles are ANDed: a row
-/// must pass one of each. CritsOnly/SpecialsOnly then narrow further, MinDamage floors
+/// must pass one of each. CritsOnly and the Only* annotation toggles narrow further, MinDamage floors
 /// the amount, and MeleeType restricts melee rows to one physical damage type.</summary>
 public sealed class FeedFilters
 {
@@ -138,9 +143,12 @@ public sealed class FeedFilters
 
     // -- narrowing --
     public bool CritsOnly { get; set; }
-    /// <summary>Only hits carrying a trailing annotation — Riposte, Crippling Blow,
-    /// Slay Undead, Double Bow Shot, whatever the log appends.</summary>
-    public bool SpecialsOnly { get; set; }
+    /// <summary>The special-hit annotations, one toggle each. Turning any on narrows the
+    /// feed to rows whose note matches one of the ENABLED kinds (they OR together) —
+    /// all off means no annotation filtering at all.</summary>
+    public bool OnlySlays { get; set; }
+    public bool OnlyRipostes { get; set; }
+    public bool OnlyCrippling { get; set; }
     /// <summary>0 = everything; otherwise hide rows below this amount.</summary>
     public int MinDamage { get; set; }
     /// <summary>"all", "slash", "pierce", "blunt", or "archery" — melee rows only.</summary>
