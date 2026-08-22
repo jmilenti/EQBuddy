@@ -691,13 +691,35 @@ public partial class MainWindow : Window
             FeedEmptyText.Visibility = Visibility.Collapsed;
             return;
         }
-        var rows = _feed.Snapshot(_ui.FeedFilters, FeedRowsClamped());
-        FeedHeader.Text = "\u25be FEED \u00b7 live";
         FeedSearchRow.Visibility = Visibility.Visible;
         FeedPillRow.Visibility = Visibility.Visible;
+        // The grip's row count is the VIEWPORT, not the data: the list renders the whole
+        // filtered scrollback (virtualized) and shows this many rows of it at once.
+        FeedList.MaxHeight = FeedRowsClamped() * 14 + 4;
+
+        // Newest-first means every refresh shifts rows under a reader who has scrolled
+        // back — so while they're anywhere but the top, the list freezes and the header
+        // says so. Scrolling back up resumes live on the next tick.
+        if (FeedScroller() is { VerticalOffset: > 0.5 })
+        {
+            FeedHeader.Text = "\u25be FEED \u00b7 paused \u2014 scroll to top to resume";
+            return;
+        }
+        var rows = _feed.Snapshot(_ui.FeedFilters, 2000);
+        FeedHeader.Text = "\u25be FEED \u00b7 live";
         FeedList.ItemsSource = rows.Select(RowOf).ToList();
         FeedList.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         FeedEmptyText.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>The ListBox's internal ScrollViewer, once templated (null before the
+    /// first layout pass).</summary>
+    private ScrollViewer? FeedScroller()
+    {
+        if (VisualTreeHelper.GetChildrenCount(FeedList) == 0) return null;
+        return VisualTreeHelper.GetChild(FeedList, 0) is System.Windows.Controls.Border b
+            ? b.Child as ScrollViewer
+            : null;
     }
 
     private FeedRow RowOf(FeedEntry e)

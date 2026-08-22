@@ -19,8 +19,12 @@ internal sealed record FeedEntry(DateTime Time, FeedWho Who, FeedKind Kind, stri
 /// </summary>
 internal sealed class DamageFeed
 {
-    /// <summary>A couple of minutes of the busiest fight; oldest fall off first.</summary>
-    private const int MaxEntries = 600;
+    /// <summary>Scrollback depth — hours of the busiest AE fighting (a full day's log
+    /// is ~20-30k combat events); oldest fall off first. Entries are ~300-byte records,
+    /// so this is ~6 MB — memory is not the limit. The limits are the per-tick filter
+    /// pass over the buffer (cheap at this size) and usefulness: past a couple of
+    /// thousand rows the search chips find things scrolling never will.</summary>
+    private const int MaxEntries = 20_000;
 
     private readonly Queue<FeedEntry> _entries = new();
     private readonly object _lock = new();
