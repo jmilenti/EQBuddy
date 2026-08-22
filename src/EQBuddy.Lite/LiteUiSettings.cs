@@ -8,11 +8,6 @@ namespace EQBuddy.Lite;
 /// settings.json is shared with the full app, whose loader drops unknown keys.</summary>
 public sealed class LiteUiSettings
 {
-    /// <summary>DPS scope for every rate the panel shows — headline, breakdown, pet
-    /// line, and the group board (synced and log-inferred rows alike): "fight" (current
-    /// fight, or the last one when idle) or "session" (accumulating totals).</summary>
-    public string DpsScope { get; set; } = "fight";
-
     /// <summary>Own damage breakdown expanded under the DPS line. Off by default —
     /// the summary is always there; detail is opt-in.</summary>
     public bool ShowBreakdown { get; set; }
@@ -30,8 +25,13 @@ public sealed class LiteUiSettings
     /// countdown you camp past.</summary>
     public bool ShowSpawns { get; set; } = true;
 
-    /// <summary>Group board expanded. Default ON — it's the panel's second headline.</summary>
+    /// <summary>The fight-scope GROUP board expanded. Default ON — it's the panel's
+    /// second headline. (There is no scope dropdown any more: the two boards below are
+    /// each permanently one scope. "DpsScope" in old files is ignored.)</summary>
     public bool ShowGroup { get; set; } = true;
+
+    /// <summary>The session-scope GROUP board expanded.</summary>
+    public bool ShowGroup2 { get; set; } = true;
 
     /// <summary>Live damage feed expanded. Off by default — it's a firehose by design,
     /// and the header is always there to opt in.</summary>

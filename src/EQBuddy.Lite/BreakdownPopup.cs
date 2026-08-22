@@ -54,16 +54,25 @@ public sealed class BreakdownPopup : Window
             FontSize = 11,
             Cursor = Cursors.Hand,
             Margin = new Thickness(12, 1, 0, 0),
-            ToolTip = "Copy this breakdown to the clipboard",
+            ToolTip = "Copy as one line, ready to paste into game chat",
         };
         copy.MouseLeftButtonDown += (_, e) =>
         {
             e.Handled = true;
             try
             {
+                // One flat line, because the destination is EverQuest's chat box: its
+                // input is single-line (a newline ends the paste) and its font mangles
+                // typographic glyphs — so rows join with commas, the alignment padding
+                // collapses, and ·×— become plain ASCII.
                 // _rows is assigned later in this constructor; the handler can only
                 // run once the popup exists, so the suppression is truthful.
-                Clipboard.SetText($"{_header.Text}\n{_rows!.Text}");
+                var text = $"{_header.Text}: {_rows!.Text}"
+                    .Replace("\n\n", "\n")   // blank separator lines would read ", ,"
+                    .Replace("\n", ", ")
+                    .Replace(" · ", " - ").Replace("·", "-")
+                    .Replace("×", "x").Replace("—", "-");
+                Clipboard.SetText(System.Text.RegularExpressions.Regex.Replace(text, " {2,}", " "));
                 copy.Text = "✓";
                 var revert = new System.Windows.Threading.DispatcherTimer
                 {
