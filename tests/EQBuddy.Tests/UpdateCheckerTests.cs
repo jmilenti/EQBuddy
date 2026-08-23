@@ -45,9 +45,13 @@ public class UpdateCheckerTests : IDisposable
     [Fact]
     public void AMachineWideInstallUpdatesMachineWideAndEverythingElseIsPerUser()
     {
-        var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        Assert.Equal("/SILENT /ALLUSERS",
-            UpdateChecker.SilentInstallArgs(Path.Combine(pf, "EQdps", "EQdps.exe")));
+        // Program Files is a Windows notion; GetFolderPath returns "" everywhere else,
+        // which makes "installed under it" unrepresentable rather than false. The CI's
+        // Linux leg ran these two asserts against an empty root and failed on every
+        // commit — the machine-wide half only means anything where the folder exists.
+        if (ProgramFiles() is { } pf)
+            Assert.Equal("/SILENT /ALLUSERS",
+                UpdateChecker.SilentInstallArgs(Path.Combine(pf, "EQdps", "EQdps.exe")));
 
         var perUser = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -61,10 +65,15 @@ public class UpdateCheckerTests : IDisposable
     [Fact]
     public void ALookalikeFolderNextToProgramFilesIsNotAMachineWideInstall()
     {
-        var pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        if (ProgramFiles() is not { } pf) return;   // see the note above
         Assert.False(UpdateChecker.IsMachineWideInstall(pf + @"Portable\EQdps.exe"));
         Assert.True(UpdateChecker.IsMachineWideInstall(Path.Combine(pf, "EQdps.exe")));
     }
+
+    /// <summary>The Program Files path, or null on a platform that has no such thing.</summary>
+    private static string? ProgramFiles() =>
+        Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles) is { Length: > 0 } pf
+            ? pf : null;
 
     // ---- choosing between the shared folder and the GitHub feed ----
 
