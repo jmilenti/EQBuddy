@@ -2155,7 +2155,8 @@ public partial class MainWindow : Window
     private void OnShareLayout(object sender, RoutedEventArgs e)
     {
         SaveLayout();   // export what is on screen, not what was last banked
-        var dlg = new LayoutShareDialog(LayoutShare.Export(_ui, Left, Top)) { Owner = this };
+        var dlg = new LayoutShareDialog(LayoutShare.Export(_ui, Left, Top),
+            _ui.LayoutPresets, () => _ui.Save()) { Owner = this };
         if (dlg.ShowDialog() != true || dlg.Applied is not { } payload) return;
 
         if (MessageBox.Show(this,
@@ -2183,6 +2184,9 @@ public partial class MainWindow : Window
         {
             ApplySectionWidth(key,
                 _ui.SectionWidths.TryGetValue(key, out var w) ? w : double.NaN);
+            // The payload carries SectionFonts since 1.77 but nothing re-applied them
+            // to the elements — an imported font only showed after a restart.
+            ApplySectionFont(key);
             if (!_sectionWindows.TryGetValue(key, out var win)) continue;
             if (_ui.SectionPositions.TryGetValue(key, out var p) && p is [var x, var y])
             {

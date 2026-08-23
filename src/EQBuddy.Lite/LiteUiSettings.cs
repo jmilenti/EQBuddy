@@ -76,6 +76,12 @@ public sealed class LiteUiSettings
     /// on the pane (<see cref="FeedPane.FontFamily"/>).</summary>
     public Dictionary<string, string> SectionFonts { get; set; } = new();
 
+    /// <summary>Named layout presets ("raid", "solo") from the Layout functions dialog:
+    /// each value is a full EQDPS1 layout string — the same thing Export copies — saved
+    /// under a name instead of pasted to a friend. Downgrade caveat as ever: an older
+    /// build drops keys it does not know when it saves.</summary>
+    public Dictionary<string, string> LayoutPresets { get; set; } = new();
+
     /// <summary>Sections removed from the UI entirely (the ⚙ dialog's tick boxes) —
     /// window hidden, dock chain bridged over it. Different from the collapse toggles
     /// above, which keep the one-line heading visible.</summary>
