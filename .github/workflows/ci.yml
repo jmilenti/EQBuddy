@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]   # dev is where changes land and get tested; main is what shipped
   pull_request:
 
 jobs:
