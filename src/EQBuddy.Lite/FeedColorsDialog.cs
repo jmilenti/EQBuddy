@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace EQBuddy.Lite;
@@ -33,8 +34,8 @@ public sealed class FeedColorsDialog : Window
             Margin = new Thickness(0, 0, 0, 10),
             Text = "Row colours for this feed window. \"Spell / DoT / proc\" is the base "
                  + "colour of a casting line and \"Ability name\" is the spell or skill "
-                 + "picked out inside it. Hex like #E8B24A; a bad value falls back to the "
-                 + "default.",
+                 + "picked out inside it. Hex like #E8B24A (a bad value falls back to the "
+                 + "default) — or click a swatch for a picker.",
         });
 
         var grid = new Grid();
@@ -76,6 +77,20 @@ public sealed class FeedColorsDialog : Window
                 BorderBrush = Brushes.Gray,
                 Margin = new Thickness(0, 2, 0, 2),
                 VerticalAlignment = VerticalAlignment.Center,
+                Cursor = Cursors.Hand,
+                ToolTip = "Click to pick a colour",
+            };
+            // The WinForms picker, because WPF ships none of its own. It writes the
+            // pick back through the text box, so the swatch repaint and the OK-time
+            // parse both run the one existing path.
+            swatch.MouseLeftButtonDown += (_, args) =>
+            {
+                args.Handled = true;
+                using var picker = new System.Windows.Forms.ColorDialog { FullOpen = true };
+                if (FeedPalette.Parse(box.Text) is { } c0)
+                    picker.Color = System.Drawing.Color.FromArgb(c0.R, c0.G, c0.B);
+                if (picker.ShowDialog(new WinFormsOwner(this)) == System.Windows.Forms.DialogResult.OK)
+                    box.Text = $"#{picker.Color.R:X2}{picker.Color.G:X2}{picker.Color.B:X2}";
             };
             Grid.SetRow(swatch, r);
             Grid.SetColumn(swatch, 2);
@@ -103,6 +118,7 @@ public sealed class FeedColorsDialog : Window
         Row("Money", nameof(FeedColors.Money), current.Money, c => c.Money);
         Row("Attack / stance", nameof(FeedColors.Attack), current.Attack, c => c.Attack);
         Row("Faction name", nameof(FeedColors.Faction), current.Faction, c => c.Faction);
+        Row("Alert tag frame", nameof(FeedColors.Alert), current.Alert, c => c.Alert);
         Row("Timestamps / misses", nameof(FeedColors.Dim), current.Dim, c => c.Dim);
         panel.Children.Add(grid);
 
@@ -149,4 +165,12 @@ public sealed class FeedColorsDialog : Window
 
     private static void Paint(TextBox box, Border swatch) =>
         swatch.Background = FeedPalette.Frozen(box.Text, Brushes.Transparent);
+}
+
+/// <summary>A WPF window as a WinForms dialog owner, so the picker lands ON this
+/// always-on-top dialog instead of behind it.</summary>
+file sealed class WinFormsOwner(Window window) : System.Windows.Forms.IWin32Window
+{
+    public IntPtr Handle { get; } =
+        new System.Windows.Interop.WindowInteropHelper(window).Handle;
 }

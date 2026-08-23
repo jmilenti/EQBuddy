@@ -18,7 +18,7 @@ internal sealed class FeedPalette
     public Brush Summary = Frozen("#7FD9E8"), Dim = Frozen("#7B8794");
     public Brush Xp = Frozen("#F2E33D"), Loot = Frozen("#4A8CFF");
     public Brush Money = Frozen("#33CC33"), Attack = Frozen("#4A8CFF");
-    public Brush Faction = Frozen("#E04040");
+    public Brush Faction = Frozen("#E04040"), Alert = Frozen("#F2E33D");
 
     public FeedPalette(FeedColors c)
     {
@@ -30,6 +30,7 @@ internal sealed class FeedPalette
         Dim = Frozen(c.Dim, Dim); Xp = Frozen(c.Xp, Xp);
         Loot = Frozen(c.Loot, Loot); Money = Frozen(c.Money, Money);
         Attack = Frozen(c.Attack, Attack); Faction = Frozen(c.Faction, Faction);
+        Alert = Frozen(c.Alert, Alert);
     }
 
     /// <summary>A hex colour as a frozen brush, or <paramref name="fallback"/> when the
@@ -319,7 +320,11 @@ internal sealed class FeedView
                 _feed.Snapshot(Pane.Filters, 0, 0, out _backgroundCursor);
                 return;
             }
-            Unseen += _feed.Snapshot(Pane.Filters, 200, _backgroundCursor, out _backgroundCursor).Count;
+            var missed = _feed.Snapshot(Pane.Filters, 200, _backgroundCursor, out _backgroundCursor);
+            Unseen += missed.Count;
+            // A background tab still rings the window's bell — the tags belong to the
+            // WINDOW, and a match behind another tab is still a match.
+            MaybeAlert(missed);
             return;
         }
         _backgroundCursor = long.MaxValue;   // re-primed when this tab goes back to sleep
@@ -348,9 +353,11 @@ internal sealed class FeedView
         // RowOf runs in order and remembers the side as it goes, so a rebuild has to
         // forget the old tail first or the first fresh row inherits a stale neighbour.
         if (rebuild) _lastRight = null;
-        var fresh = _feed.Snapshot(f, MaxRows, rebuild ? 0 : _cursor, out var cursor)
-            .Select(RowOf)
-            .ToList();
+        var arrivals = _feed.Snapshot(f, MaxRows, rebuild ? 0 : _cursor, out var cursor);
+        // Fresh arrivals only: a rebuild replays what is already history, and history
+        // must not ring the bell (the startup replay is one giant rebuild).
+        if (!rebuild) MaybeAlert(arrivals);
+        var fresh = arrivals.Select(RowOf).ToList();
         _cursor = cursor;
         if (!rebuild && fresh.Count == 0)
         {
@@ -449,14 +456,42 @@ internal sealed class FeedView
         AddAccented(spans, body, e.Ability, BrushFor(e), bold: e.Kind == FeedKind.Xp,
             accent: e.Kind == FeedKind.Faction ? _palette.Faction : null);
         if (right) spans.Add(new FeedSpan($"  {e.Time:HH:mm:ss}", _palette.Dim));
+        var summary = e.Kind == FeedKind.Summary;
+        var alerted = !summary && AlertHit(body);
         return new FeedRow(spans)
         {
             Right = right,
             Gap = gap,
-            // The frame that sets the kill summaries apart from the stream they sum up.
-            Frame = e.Kind == FeedKind.Summary ? _palette.Summary : null,
-            Copy = e.Kind == FeedKind.Summary ? ChatSafe(body) : null,
+            // Frames: the kill summaries' own colour, or the Alert colour when one of
+            // the window's watch-tags matched. Framed rows are click-to-copy — the
+            // summary as a chat-safe flat line, an alerted line verbatim.
+            Frame = summary ? _palette.Summary : alerted ? _palette.Alert : null,
+            Copy = summary ? ChatSafe(body) : alerted ? body : null,
         };
+    }
+
+    /// <summary>Does a line contain one of this WINDOW's watch words? Single-char tags
+    /// are ignored — "a" would frame the entire feed.</summary>
+    private bool AlertHit(string body)
+    {
+        if (HostPane.AlertTags is not { Count: > 0 } tags) return false;
+        foreach (var tag in tags)
+            if (tag.Length > 1 && body.Contains(tag, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
+
+    /// <summary>Ring the window's alert for fresh arrivals that match a watch-tag.
+    /// The cooldown lives in AudioCues, keyed per window, so a burst is one sound.</summary>
+    private void MaybeAlert(List<FeedEntry> entries)
+    {
+        if (HostPane.AlertTags is not { Count: > 0 }) return;
+        foreach (var e in entries)
+            if (e.Kind != FeedKind.Summary && e.Raw is { Length: > 0 } raw && AlertHit(raw))
+            {
+                _owner.FeedAlert(HostPane);
+                return;
+            }
     }
 
     /// <summary>A summary row as one flat line for EQ's chat box — the same rules as

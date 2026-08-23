@@ -1732,6 +1732,28 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Right-click ▸ Colours…: per-window row colours.</summary>
+    /// <summary>A feed window's watch-tag matched a fresh line. Replay is silent: the
+    /// startup ingest re-reads the whole log, and history must not ring the bell.</summary>
+    internal void FeedAlert(FeedPane pane)
+    {
+        if (!_watcher.InitialIngestDone) return;
+        _cues.FeedAlert(pane.Key, pane.AlertSound);
+    }
+
+    /// <summary>Right-click ▸ Alert tags…: per-window watch words and their sound.</summary>
+    internal void EditFeedAlerts(FeedHost host)
+    {
+        var dlg = new FeedAlertsDialog(FeedHost.FeedTitle(host.Pane),
+            host.Pane.AlertTags, host.Pane.AlertSound) { Owner = this };
+        if (dlg.ShowDialog() != true) return;
+        host.Pane.AlertTags = dlg.Tags;
+        host.Pane.AlertSound = dlg.Sound;
+        _ui.Save();
+        // Frames are judged at row-build time, so what is drawn must be re-judged.
+        foreach (var view in host.Views) view.Invalidate();
+        host.Render();
+    }
+
     internal void EditFeedColors(FeedView view)
     {
         var dlg = new FeedColorsDialog(view.Title, view.Pane.Colors) { Owner = this };

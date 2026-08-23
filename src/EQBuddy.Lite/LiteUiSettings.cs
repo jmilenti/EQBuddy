@@ -209,6 +209,14 @@ public sealed class FeedPane
     /// the "Classic EQ" choice). Any installed family name works if hand-edited.</summary>
     public string FontFamily { get; set; } = "Consolas";
 
+    /// <summary>Watch words for the WINDOW this pane names (window-level, like Rows):
+    /// a fresh line containing one plays <see cref="AlertSound"/> and wears the Alert
+    /// frame, click-to-copy. Matching is case-insensitive Contains.</summary>
+    public List<string> AlertTags { get; set; } = [];
+
+    /// <summary>The <c>AlertSoundCatalog</c> name the alert tags play.</summary>
+    public string AlertSound { get; set; } = "Exclamation";
+
     /// <summary>Everything a brand-new pane starts with — one place, so the + button and
     /// "reset filters" cannot drift apart.</summary>
     public static FeedFilters DefaultFilters() => new();
@@ -260,6 +268,8 @@ public sealed class FeedColors
     /// <summary>The faction NAME inside a faction line — the game draws it red. The
     /// line body stays in the Everything-else colour; only the name lights up.</summary>
     public string Faction { get; set; } = "#E04040";
+    /// <summary>The frame around a line that matched one of the window's alert tags.</summary>
+    public string Alert { get; set; } = "#F2E33D";
     /// <summary>Misses, resists, fizzles — and every row's timestamp.</summary>
     public string Dim { get; set; } = "#7B8794";
 }

@@ -53,6 +53,11 @@ internal sealed class AudioCues
     public void PetLost() =>
         Fire("pet", _ui.CuePetBreak, _ui.CuePetSound, _ui.CuePetPhrase);
 
+    /// <summary>A feed window's alert-tag hit. Always sound-mode; the shared cooldown
+    /// is keyed per window, so six mobs quoting the tag in one breath ring once.</summary>
+    public void FeedAlert(string paneKey, string sound) =>
+        Fire("feed:" + paneKey, "sound", sound, "");
+
     /// <summary>Preview from the settings dialog: play a cue exactly as it would fire.</summary>
     public static void Preview(string mode, string sound, string phrase) =>
         Play(mode, sound, phrase);
