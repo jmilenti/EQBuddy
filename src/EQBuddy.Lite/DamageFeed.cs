@@ -12,9 +12,21 @@ internal enum FeedKind
     /// <summary>Casting lifecycle: begin casting, interrupted, "You regain your
     /// concentration", a buff wearing off, someone else's cast landing.</summary>
     Cast,
-    /// <summary>Everything else the log wrote — chat, emotes, loot, xp, zone lines,
-    /// system messages. Off by default, but reachable: the point is that a line the feed
-    /// has no better bucket for is FILTERED, never silently missing.</summary>
+    /// <summary>Combat state you declared: "Auto attack is on/off.", stance and
+    /// invocation changes, "You will now use X while auto attacking."</summary>
+    Attack,
+    /// <summary>Loot, corpse coin, vendor sales, crafting results.</summary>
+    Loot,
+    /// <summary>Progress: experience, AA gains and purchases, levels, skill-ups,
+    /// faction hits.</summary>
+    Xp,
+    /// <summary>Zone changes and /loc lines.</summary>
+    Zone,
+    /// <summary>Player talk: tells, says, shouts, group/guild/channel chat, auctions.</summary>
+    Chat,
+    /// <summary>Everything still left — emotes, mob flavor ("X staggers."), system
+    /// messages. Off by default, but reachable: the point is that a line the feed has no
+    /// better bucket for is FILTERED, never silently missing.</summary>
     Other,
     /// <summary>A line the feed composed itself: the damage summary printed under a
     /// mob's death.</summary>
@@ -111,10 +123,16 @@ internal sealed class DamageFeed
     /// how a third-party attacker is told apart from your own pet.</summary>
     public volatile string PetName = "";
 
-    /// <summary>When the last damage — dealt, taken, or by anyone nearby — was logged.
-    /// The feed windows' combat glow reads this: a fight is "on" while blows are still
-    /// landing, and the log's own clock is the only honest source for that.</summary>
+    /// <summary>When the last damage — dealt, taken, or by anyone nearby — was logged.</summary>
     public DateTime LastCombat { get; private set; } = DateTime.MinValue;
+
+    /// <summary>Whether YOUR auto attack is on, straight from the log's own "Auto attack
+    /// is on/off." lines — the game states it every time it flips. This is what the feed
+    /// windows' combat outline follows: not "blows landed recently" (which lingers after
+    /// a kill and misses the wind-up before the first swing) but the switch you actually
+    /// threw. Replayed with the rest of the log at startup, so it comes up in the state
+    /// the character was left in.</summary>
+    public volatile bool AttackOn;
 
     public void Apply(GameEvent e)
     {
@@ -196,6 +214,11 @@ internal sealed class DamageFeed
                 time = t;
             text = line[27..];
         }
+        // Exact-prefix, not Contains: chat quoting the words ("my pet does not auto
+        // attack") must not flip the state.
+        if (text.StartsWith("Auto attack is on", StringComparison.Ordinal)) AttackOn = true;
+        else if (text.StartsWith("Auto attack is off", StringComparison.Ordinal)) AttackOn = false;
+
         lock (_lock)
         {
             // Hand this line's text to the entries parsed from it (see _awaitingRaw), and
@@ -221,8 +244,8 @@ internal sealed class DamageFeed
     }
 
     /// <summary>Which bucket a line with no combat row belongs in. The parsed event
-    /// decides when there is one; otherwise the handful of casting messages the parser
-    /// has no event for are recognised by text, and everything else is Other.</summary>
+    /// decides when there is one; otherwise a few text shapes the parser has no event
+    /// for are recognised directly, and everything else is Other.</summary>
     private static FeedKind KindOf(GameEvent? evt, string text) => evt switch
     {
         SpellCastEvent or SpellInterruptedEvent or SpellWornOffEvent or BuffFadeEvent
@@ -230,9 +253,34 @@ internal sealed class DamageFeed
         DeathEvent => FeedKind.Kill,
         RegenTickEvent => FeedKind.Heal,
         RuneBlockEvent or ThirdMissEvent => FeedKind.Miss,
+        StanceEvent or InvocationEvent or SkillSubstitutionEvent => FeedKind.Attack,
+        LootEvent or MoneyEvent or AutoSellEvent or ItemDestroyedEvent
+            or CraftEvent => FeedKind.Loot,
+        XpEvent or AaEvent or AaPurchaseEvent or LevelEvent or SkillUpEvent
+            or FactionEvent => FeedKind.Xp,
+        ZoneEvent or LocationEvent => FeedKind.Zone,
         null when LooksLikeCasting(text) => FeedKind.Cast,
+        null when text.StartsWith("Auto attack is ", StringComparison.Ordinal) => FeedKind.Attack,
+        null when LooksLikeChat(text) => FeedKind.Chat,
         _ => FeedKind.Other,
     };
+
+    /// <summary>Player talk, by the shapes the log actually uses (verified against a real
+    /// 80k-line log: channel tells dominate — "X tells General:2, '…'"). Ordinal, not
+    /// word-boundary clever: every one of these carries the quoting comma-apostrophe or a
+    /// fixed verb the flavor lines don't.</summary>
+    private static bool LooksLikeChat(string text) =>
+        text.Contains(" tells ", StringComparison.Ordinal) ||
+        text.Contains(" told you,", StringComparison.Ordinal) ||
+        text.Contains(" says, ", StringComparison.Ordinal) ||
+        text.Contains(" says '", StringComparison.Ordinal) ||
+        text.Contains(" shouts,", StringComparison.Ordinal) ||
+        text.Contains(" auctions,", StringComparison.Ordinal) ||
+        text.StartsWith("You told ", StringComparison.Ordinal) ||
+        text.StartsWith("You say", StringComparison.Ordinal) ||
+        text.StartsWith("You tell ", StringComparison.Ordinal) ||
+        text.StartsWith("You shout", StringComparison.Ordinal) ||
+        text.StartsWith("You auction", StringComparison.Ordinal);
 
     /// <summary>Casting messages the parser makes no event of — the interruption and
     /// recovery chatter that belongs beside "You begin casting" rather than in with the
@@ -432,6 +480,11 @@ internal sealed class DamageFeed
         switch (e.Kind)
         {
             case FeedKind.Cast: return f.Casts;
+            case FeedKind.Attack: return f.Attack;
+            case FeedKind.Loot: return f.Loot;
+            case FeedKind.Xp: return f.Xp;
+            case FeedKind.Zone: return f.Zone;
+            case FeedKind.Chat: return f.Chat;
             case FeedKind.Other: return f.Other;
         }
 
