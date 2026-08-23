@@ -204,6 +204,39 @@ public class EncounterTests
     }
 
     [Fact]
+    public void ATwinHittingYouDoesNotDropABusyPet()
+    {
+        // Charm camps are full of same-named creatures. The pet claim used to be
+        // dropped by ANY hit from a pet-named attacker — so charming "a will sapper"
+        // with a second will sapper in camp lost the pet on the twin's first swing
+        // (the "pet tracking keeps dropping" report). A pet that dealt damage within
+        // the grace window is visibly still ours; the hit is the twin.
+        var s = Replay(
+            At(0, 0, "A will sapper told you, 'Attacking orc pawn Master.'"),
+            At(0, 10, "A will sapper slashes orc pawn for 20 points of damage."),
+            At(0, 12, "A will sapper hits YOU for 15 points of damage."),
+            At(0, 13, "A will sapper slashes orc pawn for 18 points of damage.")).Snapshot();
+
+        Assert.Equal("Will sapper", s.PetName);
+        // Both outgoing swings stayed credited to the pet.
+        Assert.Equal(38, s.DamageBySource.Single(x => x.Name == "Pet (Will sapper)").Total);
+    }
+
+    [Fact]
+    public void APetNamedHitAfterThePetGoesQuietDropsTheClaim()
+    {
+        // The real break: charm snaps, the pet stops helping and starts hitting you.
+        // Its outgoing stream ends at the same moment, so a pet-named hit with the pet
+        // idle past the grace window is the pet itself, hostile again.
+        var s = Replay(
+            At(0, 0, "A will sapper told you, 'Attacking orc pawn Master.'"),
+            At(0, 10, "A will sapper slashes orc pawn for 20 points of damage."),
+            At(0, 20, "A will sapper hits YOU for 15 points of damage.")).Snapshot();
+
+        Assert.Equal("", s.PetName);
+    }
+
+    [Fact]
     public void FightCarriesThePetsOwnAbilitySplit()
     {
         // The pet stays ONE row in ByAbility; the per-fight split by the pet's own ability

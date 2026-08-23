@@ -399,17 +399,25 @@ internal sealed class FeedView
         var gap = Pane.SplitSides && _lastRight is { } previous && previous != right;
         _lastRight = right;
 
-        var spans = new List<FeedSpan>(4)
-        {
-            new($"{e.Time:HH:mm:ss}  ", _palette.Dim),
-        };
+        // Right-aligned rows carry the clock as a SUFFIX: their ends sit flush against
+        // the right edge, so trailing timestamps line up in a column the way leading
+        // ones do on the left side.
+        var spans = new List<FeedSpan>(4);
+        if (!right) spans.Add(new FeedSpan($"{e.Time:HH:mm:ss}  ", _palette.Dim));
         // The line as the game wrote it, colour-coded by what the parser made of it. The
         // reformatted version is only a fallback for entries with no raw text (captured
         // before 1.68.1): a filtered feed is easier to read when its rows say exactly
         // what the log says.
         var body = e.Raw is { Length: > 0 } raw ? raw : Fallback(e);
         AddAccented(spans, body, e.Ability, BrushFor(e));
-        return new FeedRow(spans) { Right = right, Gap = gap };
+        if (right) spans.Add(new FeedSpan($"  {e.Time:HH:mm:ss}", _palette.Dim));
+        return new FeedRow(spans)
+        {
+            Right = right,
+            Gap = gap,
+            // The frame that sets the kill summaries apart from the stream they sum up.
+            Frame = e.Kind == FeedKind.Summary ? _palette.Summary : null,
+        };
     }
 
     /// <summary>Add the line, with the ability/spell/item it names picked out in the

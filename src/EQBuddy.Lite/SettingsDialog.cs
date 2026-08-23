@@ -14,6 +14,7 @@ public sealed class SettingsDialog : Window
     private readonly CheckBox _groupMotes;
     private readonly Dictionary<string, CheckBox> _sections = new();
     private readonly ComboBox _history;
+    private readonly Dictionary<string, ComboBox> _cues = new();
 
     public bool GroupBoardUseSync => _groupSync.IsChecked == true;
     public bool ShowGroupMotes => _groupMotes.IsChecked == true;
@@ -25,9 +26,13 @@ public sealed class SettingsDialog : Window
     public int FeedHistory =>
         _history.SelectedItem is ComboBoxItem { Tag: int n } ? n : 20_000;
 
+    /// <summary>The chosen mode for one audio cue: "off", "sound", or "voice".</summary>
+    public string Cue(string key) =>
+        _cues[key].SelectedItem is ComboBoxItem { Tag: string mode } ? mode : "off";
+
     public SettingsDialog(bool groupBoardUseSync, bool showGroupMotes,
         IReadOnlyList<string> sectionKeys, IReadOnlyList<string> hiddenSections,
-        int feedHistory)
+        int feedHistory, string cuePetBreak, string cueMezBreak, string cueInvisBreak)
     {
         Title = "EQdps settings";
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -104,6 +109,69 @@ public sealed class SettingsDialog : Window
             VerticalAlignment = VerticalAlignment.Center,
         });
         panel.Children.Add(historyRow);
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Audio cues:",
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 2, 0, 4),
+        });
+        panel.Children.Add(new TextBlock
+        {
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 0, 0, 6),
+            FontSize = 11,
+            Foreground = System.Windows.Media.Brushes.Gray,
+            Text = "A sound or the Windows voice for the moments that cost a fight if " +
+                   "missed. ▶ previews the choice.",
+        });
+        var cueGrid = new Grid { Margin = new Thickness(0, 0, 0, 12) };
+        cueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        cueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        cueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        void CueRow(string key, string label, string phrase, string current)
+        {
+            var r = cueGrid.RowDefinitions.Count;
+            cueGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            var name = new TextBlock
+            {
+                Text = label,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 2, 10, 2),
+            };
+            Grid.SetRow(name, r);
+            cueGrid.Children.Add(name);
+
+            var combo = new ComboBox { MinWidth = 90, Margin = new Thickness(0, 2, 6, 2) };
+            foreach (var (tag, text) in new[] { ("off", "Off"), ("sound", "Sound"), ("voice", "Voice") })
+                combo.Items.Add(new ComboBoxItem
+                {
+                    Tag = tag,
+                    Content = text,
+                    IsSelected = tag == current,
+                });
+            if (combo.SelectedItem is null) combo.SelectedIndex = 0;
+            Grid.SetRow(combo, r);
+            Grid.SetColumn(combo, 1);
+            cueGrid.Children.Add(combo);
+            _cues[key] = combo;
+
+            var play = new Button
+            {
+                Content = "▶",
+                Width = 26,
+                Margin = new Thickness(0, 2, 0, 2),
+                ToolTip = "Preview this cue as it would fire",
+            };
+            play.Click += (_, _) => AudioCues.Preview(Cue(key), phrase);
+            Grid.SetRow(play, r);
+            Grid.SetColumn(play, 2);
+            cueGrid.Children.Add(play);
+        }
+        CueRow("pet", "Pet break", "pet break", cuePetBreak);
+        CueRow("mez", "Mez break", "mez break", cueMezBreak);
+        CueRow("invis", "Invis break", "invis break", cueInvisBreak);
+        panel.Children.Add(cueGrid);
 
         panel.Children.Add(new TextBlock
         {

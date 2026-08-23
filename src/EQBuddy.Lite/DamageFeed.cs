@@ -178,6 +178,14 @@ internal sealed class DamageFeed
 
             _ => null,
         };
+        // The attack-order tell is addressed to US — no bystander's pet ever sends it —
+        // so the feed can claim the pet the instant it appears instead of waiting for
+        // the next 1 s snapshot tick to copy Core's claim over. Without this, a pet's
+        // first swing after the claim landed in Other (PetName still empty here). The
+        // tick keeps overwriting with Core's authoritative name, so the two can never
+        // drift for more than a second.
+        if (e is PetClaimEvent { Leader: null } claim)
+            PetName = LogParser.Normalize(claim.PetName);
         lock (_lock)
         {
             _lastEvent = e;
@@ -403,8 +411,19 @@ internal sealed class DamageFeed
     private bool Interesting(string attacker) =>
         IsPet(attacker) || GroupDpsTracker.LooksLikePlayer(attacker);
 
-    private bool IsPet(string name) =>
-        PetName.Length > 0 && string.Equals(name, PetName, StringComparison.OrdinalIgnoreCase);
+    /// <summary>Same normalization Core applies: the snapshot's PetName is normalized
+    /// ("Imp protector") while the log's events carry the article ("An imp protector"),
+    /// so a plain compare NEVER matched a charmed pet — its damage failed the
+    /// Interesting() gate and fell all the way to Other, which is why "pet" showed
+    /// nothing and "other" showed the pet.</summary>
+    private bool IsPet(string name)
+    {
+        var normalized = LogParser.Normalize(name);
+        if (string.Equals(normalized, "Your pet", StringComparison.OrdinalIgnoreCase))
+            return true;
+        return PetName.Length > 0 &&
+            string.Equals(normalized, PetName, StringComparison.OrdinalIgnoreCase);
+    }
 
     private FeedWho WhoIs(string actor) =>
         string.Equals(actor, "you", StringComparison.OrdinalIgnoreCase) ? FeedWho.You

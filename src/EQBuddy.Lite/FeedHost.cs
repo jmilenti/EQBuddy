@@ -252,15 +252,13 @@ internal sealed class FeedHost
                 BorderThickness = new Thickness(1),
                 Cursor = Cursors.Hand,
                 Child = row,
-                ToolTip = "Click to bring this tab forward · double-click to rename",
+                ToolTip = "Click to bring this tab forward · right-click to rename",
             };
             var captured = view;
-            chrome.MouseLeftButtonDown += (_, e) =>
-            {
-                e.Handled = true;
-                if (e.ClickCount == 2) _owner.RenameFeedPane(captured);
-                else Select(captured);
-            };
+            // Select only — rename lives in the right-click menu. Double-click used to
+            // rename, but a fast tab-switcher double-clicks by accident and got a
+            // dialog instead of their tab.
+            chrome.MouseLeftButtonDown += (_, e) => { e.Handled = true; Select(captured); };
             _tabStrip.Children.Add(chrome);
             _tabs.Add((view, label, chrome));
         }

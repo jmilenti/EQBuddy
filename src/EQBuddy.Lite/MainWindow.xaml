@@ -146,12 +146,17 @@
         <!-- Spans, not Text: a row carries a dim clock, a body colour, and the ability
              picked out inside the line, so it is built from Runs. -->
         <!-- No FontSize here: the row inherits the ListBox's, which is the feed
-             window's per-window text-size setting. -->
+             window's per-window text-size setting. The Border is the row's block:
+             it aligns left/right for the chat layout and wears the kill-summary
+             frame; for ordinary rows it is zero-thickness and adds nothing. -->
         <DataTemplate x:Key="FeedRowTemplate">
-            <TextBlock local:FeedText.Spans="{Binding Spans}"
-                       FontFamily="Consolas"
-                       TextAlignment="{Binding Align}" Margin="{Binding Pad}"
-                       TextTrimming="CharacterEllipsis"/>
+            <Border HorizontalAlignment="{Binding HAlign}" Margin="{Binding Pad}"
+                    BorderBrush="{Binding Frame}" BorderThickness="{Binding FrameThickness}"
+                    Padding="{Binding FramePad}" CornerRadius="4">
+                <TextBlock local:FeedText.Spans="{Binding Spans}"
+                           FontFamily="Consolas"
+                           TextTrimming="CharacterEllipsis"/>
+            </Border>
         </DataTemplate>
     </Window.Resources>
     <Border Background="#F0101418" BorderBrush="#3CFFFFFF" BorderThickness="1"

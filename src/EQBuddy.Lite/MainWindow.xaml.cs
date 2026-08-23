@@ -21,6 +21,10 @@ public partial class MainWindow : Window
     private readonly GroupDpsTracker _group = new();
     private readonly ThirdPartyLedger _ledger = new();
     private readonly DamageFeed _feed = new();
+    private readonly AudioCues _cues;
+    /// <summary>Last tick's pet name — the pet-break cue fires on the claim VANISHING,
+    /// which is Core's single point of truth for every way a pet is lost.</summary>
+    private string _lastPetName = "";
     private readonly GroupSync _sync = new();
     private readonly SpawnTimers _spawnTimers;
     private readonly LiteUiSettings _ui = LiteUiSettings.Load();
@@ -129,10 +133,11 @@ public partial class MainWindow : Window
             SpawnOverrides.Load(AppPaths.File("spawn-overrides.json")),
             AppPaths.File("spawn-timers.json"));
 
+        _cues = new AudioCues(_ui);
         _watcher = new LogWatcher(_stats)
         {
             Tap = e => { _group.Apply(e); _ledger.Apply(e); _feed.Apply(e); },
-            RawTap = _feed.ApplyRaw,
+            RawTap = line => { _feed.ApplyRaw(line); _cues.OnLine(line); },
             Spawns = _spawnTimers,
         };
         FollowCharacter(force: true);
@@ -479,6 +484,15 @@ public partial class MainWindow : Window
             Group2Label, Group2List, Group2EmptyText, lastFight, s);
 
         _feed.PetName = s.PetName;
+        // Pet-break cue: the claim was there and now is not. Startup replay is excluded
+        // (InitialIngestDone), and so is the few seconds after a manual session reset —
+        // resetting clears the pet by design, and a cue for it would cry wolf.
+        if (_watcher.InitialIngestDone
+            && !(_resetAt is { } reset && (now - reset).TotalSeconds < 5))
+        {
+            if (_lastPetName.Length > 0 && s.PetName.Length == 0) _cues.PetLost();
+            _lastPetName = s.PetName;
+        }
         foreach (var host in _feedHosts.Values)
             host.TopSep.Visibility = Attached(host.Key) ? Visibility.Visible : Visibility.Collapsed;
         RenderFeeds();
@@ -2066,10 +2080,14 @@ public partial class MainWindow : Window
     {
         e.Handled = true;
         var dlg = new SettingsDialog(_ui.GroupBoardUseSync, _ui.ShowGroupMotes,
-            SectionKeys, _ui.HiddenSections, _ui.FeedHistory) { Owner = this };
+            SectionKeys, _ui.HiddenSections, _ui.FeedHistory,
+            _ui.CuePetBreak, _ui.CueMezBreak, _ui.CueInvisBreak) { Owner = this };
         if (dlg.ShowDialog() != true) return;
         _ui.GroupBoardUseSync = dlg.GroupBoardUseSync;
         _ui.ShowGroupMotes = dlg.ShowGroupMotes;
+        _ui.CuePetBreak = dlg.Cue("pet");
+        _ui.CueMezBreak = dlg.Cue("mez");
+        _ui.CueInvisBreak = dlg.Cue("invis");
         _ui.HiddenSections = dlg.HiddenSections;
         _ui.FeedHistory = dlg.FeedHistory;
         _feed.SetCapacity(_ui.FeedHistory);
