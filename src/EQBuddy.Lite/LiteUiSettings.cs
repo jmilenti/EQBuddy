@@ -166,10 +166,14 @@ public sealed class FeedPane
     /// window filtered to someone else has no business claiming it.</summary>
     public bool CombatGlow { get; set; }
 
-    /// <summary>The tab's label. "FEED" for the original, "FEED 2"… derived from the key
-    /// otherwise; stored so a rename would survive, and so the label never has to be
-    /// re-derived in two places.</summary>
+    /// <summary>The tab's label. Null derives "FEED" / "FEED 2"… from the key; set by
+    /// right-click ▸ Rename.</summary>
     public string? Title { get; set; }
+
+    /// <summary>Row text size for the WINDOW this pane names (like Rows, it is a
+    /// window-level property — tabs sharing a window share it, or the window would
+    /// resize on every tab click). Read off the HOST pane only.</summary>
+    public double FontSize { get; set; } = 11;
 
     /// <summary>Everything a brand-new pane starts with — one place, so the + button and
     /// "reset filters" cannot drift apart.</summary>
@@ -237,9 +241,20 @@ public sealed class FeedFilters
     /// concentration", buffs wearing off. On by default: these are lines about what YOU
     /// are doing, and before 1.70 the combat view could not show them at all.</summary>
     public bool Casts { get; set; } = true;
-    /// <summary>Every remaining line the log wrote: chat, emotes, loot, xp, zone changes,
-    /// system messages. Off by default — it is most of a log by volume — but its
-    /// existence is the guarantee that nothing is dropped, only filtered.</summary>
+    /// <summary>"Auto attack is on/off.", stance and invocation changes. On by default —
+    /// two short lines per pull that say what state you flipped into.</summary>
+    public bool Attack { get; set; } = true;
+    /// <summary>Loot, corpse coin, vendor sales, crafting.</summary>
+    public bool Loot { get; set; }
+    /// <summary>Experience, AA, levels, skill-ups, faction.</summary>
+    public bool Xp { get; set; }
+    /// <summary>Zone changes and /loc lines.</summary>
+    public bool Zone { get; set; }
+    /// <summary>Tells, says, shouts, channel chat, auctions.</summary>
+    public bool Chat { get; set; }
+    /// <summary>Every line still left: emotes, mob flavor, system messages. Off by
+    /// default — but its existence is the guarantee that nothing is dropped, only
+    /// filtered.</summary>
     public bool Other { get; set; }
 
     // -- the feed's own summary rows, printed under a mob's death --

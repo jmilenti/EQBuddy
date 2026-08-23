@@ -142,9 +142,11 @@
         </Style>
         <!-- Spans, not Text: a row carries a dim clock, a body colour, and the ability
              picked out inside the line, so it is built from Runs. -->
+        <!-- No FontSize here: the row inherits the ListBox's, which is the feed
+             window's per-window text-size setting. -->
         <DataTemplate x:Key="FeedRowTemplate">
             <TextBlock local:FeedText.Spans="{Binding Spans}"
-                       FontFamily="Consolas" FontSize="11"
+                       FontFamily="Consolas"
                        TextTrimming="CharacterEllipsis"/>
         </DataTemplate>
     </Window.Resources>

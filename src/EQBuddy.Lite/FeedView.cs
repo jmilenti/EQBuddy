@@ -76,7 +76,8 @@ internal sealed class FeedView
     private readonly LiteUiSettings _ui;
     private readonly DamageFeed _feed;
     private readonly WrapPanel _filterRow;
-    private readonly WrapPanel _pillRow;
+    private readonly StackPanel _pillRows;
+    private WrapPanel? _pillCurrentRow;
     private readonly Popup _pillPopup;
     private readonly Button _pillButton;
     private readonly Button _modeButton;
@@ -149,7 +150,9 @@ internal sealed class FeedView
         VirtualizingPanel.SetScrollUnit(_list, ScrollUnit.Item);
         VirtualizingPanel.SetVirtualizationMode(_list, VirtualizationMode.Recycling);
 
-        _pillRow = new WrapPanel { MaxWidth = 320 };
+        // One ROW per category, so "who" never wraps into the middle of "what": each
+        // Group() call starts a fresh horizontal line under the previous one.
+        _pillRows = new StackPanel();
         _pillPopup = new Popup
         {
             StaysOpen = false,
@@ -162,8 +165,8 @@ internal sealed class FeedView
                 BorderBrush = PillOnBorder,
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(6, 5, 6, 5),
-                Child = _pillRow,
+                Padding = new Thickness(8, 6, 8, 6),
+                Child = _pillRows,
             },
         };
 
@@ -247,9 +250,16 @@ internal sealed class FeedView
     {
         var cap = double.IsNaN(width) ? 340 : Math.Max(150, width);
         _filterRow.MaxWidth = cap;
-        _pillRow.MaxWidth = Math.Max(cap, 300);
         _list.Width = cap;
     }
+
+    /// <summary>Row text size, from the WINDOW this pane is drawn in (a per-window
+    /// setting, like Rows). The template inherits the ListBox's FontSize.</summary>
+    public double RowFont => Math.Clamp(HostPane.FontSize, 8, 24);
+
+    /// <summary>One row's height at the current font — the same +3 leading the original
+    /// 11px/14px pairing had. The grip's row-drag and the viewport height both use it.</summary>
+    public double RowHeight => Math.Round(RowFont + 3);
 
     /// <summary>Throw away what is drawn and rebuild from the buffer on the next render.
     /// Anything that changes which rows QUALIFY lands here — the incremental path only
@@ -279,7 +289,8 @@ internal sealed class FeedView
         _backgroundCursor = long.MaxValue;   // re-primed when this tab goes back to sleep
 
         var f = Pane.Filters;
-        _list.Height = RowsClamped() * 14 + 4;
+        if (_list.FontSize != RowFont) _list.FontSize = RowFont;
+        _list.Height = RowsClamped() * RowHeight + 4;
 
         // The ScrollViewer only exists once the list has been templated, which is a
         // layout pass away from the first render — and the first render is the one that
@@ -415,7 +426,12 @@ internal sealed class FeedView
     {
         FeedKind.Summary => _palette.Summary,
         FeedKind.Cast => _palette.Cast,
-        FeedKind.Other => _palette.Other,
+        // The log categories share the Other colour: they are context, not combat, and
+        // thirteen colour rows in the dialog is already plenty. Attack is the exception —
+        // it flips the combat outline, so it borrows the kill gold to stand out.
+        FeedKind.Attack => _palette.Kill,
+        FeedKind.Loot or FeedKind.Xp or FeedKind.Zone or FeedKind.Chat
+            or FeedKind.Other => _palette.Other,
         FeedKind.Kill => _palette.Kill,
         FeedKind.Heal => _palette.Heal,
         FeedKind.Taken => _palette.Incoming,
@@ -457,14 +473,24 @@ internal sealed class FeedView
     private void BuildPills()
     {
         var f = Pane.Filters;
-        void Group(string label) => _pillRow.Children.Add(new TextBlock
+        void Group(string label)
         {
-            Text = label,
-            FontSize = 9,
-            Foreground = PillOffFg,
-            Margin = new Thickness(1, 4, 5, 0),
-            VerticalAlignment = VerticalAlignment.Center,
-        });
+            _pillCurrentRow = new WrapPanel
+            {
+                MaxWidth = 460,
+                Margin = new Thickness(0, _pillRows.Children.Count == 0 ? 0 : 3, 0, 0),
+            };
+            _pillCurrentRow.Children.Add(new TextBlock
+            {
+                Text = label,
+                FontSize = 9,
+                Width = 68,   // aligned label column, so the rows read as a table
+                Foreground = PillOffFg,
+                Margin = new Thickness(1, 3, 5, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+            _pillRows.Children.Add(_pillCurrentRow);
+        }
 
         void Pill(string label, string tip, Func<bool> isOn, Action click, Func<string>? text = null)
         {
@@ -499,7 +525,8 @@ internal sealed class FeedView
             };
             Refresh();
             _pillRefreshers.Add(Refresh);
-            _pillRow.Children.Add(pill);
+            (_pillCurrentRow ?? throw new InvalidOperationException("pill before Group"))
+                .Children.Add(pill);
         }
 
         Group("who");
@@ -519,9 +546,20 @@ internal sealed class FeedView
         Pill("r/f", "Resists and fizzles", () => f.ResistsFizzles, () => f.ResistsFizzles = !f.ResistsFizzles);
         Pill("cast", "Casting: begin casting, interrupts, regaining concentration, "
             + "buffs wearing off", () => f.Casts, () => f.Casts = !f.Casts);
-        Pill("other", "Every remaining line the log writes — chat, emotes, loot, xp, "
-            + "zone changes, system messages. Nothing is hidden from the feed; this is "
-            + "where anything without a bucket of its own lives.",
+
+        Group("log");
+        Pill("atk", "Auto attack is on/off, stance and invocation changes",
+            () => f.Attack, () => f.Attack = !f.Attack);
+        Pill("loot", "Loot, corpse coin, vendor sales, crafting",
+            () => f.Loot, () => f.Loot = !f.Loot);
+        Pill("xp", "Experience, AA, levels, skill-ups, faction",
+            () => f.Xp, () => f.Xp = !f.Xp);
+        Pill("zone", "Zone changes and /loc lines", () => f.Zone, () => f.Zone = !f.Zone);
+        Pill("chat", "Tells, says, shouts, channel chat, auctions",
+            () => f.Chat, () => f.Chat = !f.Chat);
+        Pill("other", "Every line still left — emotes, mob flavor, system messages. "
+            + "Nothing is hidden from the feed; this is where anything without a bucket "
+            + "of its own lives.",
             () => f.Other, () => f.Other = !f.Other);
 
         Group("kill summary");
@@ -572,6 +610,8 @@ internal sealed class FeedView
         Cmp(f.DamageShields, d.DamageShields); Cmp(f.Heals, d.Heals); Cmp(f.Misses, d.Misses);
         Cmp(f.Kills, d.Kills); Cmp(f.ResistsFizzles, d.ResistsFizzles);
         Cmp(f.Casts, d.Casts); Cmp(f.Other, d.Other);
+        Cmp(f.Attack, d.Attack); Cmp(f.Loot, d.Loot); Cmp(f.Xp, d.Xp);
+        Cmp(f.Zone, d.Zone); Cmp(f.Chat, d.Chat);
         Cmp(f.SummaryYou, d.SummaryYou); Cmp(f.SummaryPet, d.SummaryPet);
         Cmp(f.SummaryGroup, d.SummaryGroup);
         Cmp(f.CritsOnly, d.CritsOnly); Cmp(f.OnlySlays, d.OnlySlays);

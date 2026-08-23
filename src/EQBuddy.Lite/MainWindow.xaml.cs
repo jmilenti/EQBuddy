@@ -721,10 +721,11 @@ public partial class MainWindow : Window
     /// row is attributed by, a section becoming attached).</summary>
     private void RenderFeeds()
     {
-        // "In combat" is the log's own answer: blows were landing a moment ago. Six
-        // seconds rides out a swing timer and still lets the outline go out with the
-        // fight rather than a while after it.
-        var combatOn = DateTime.Now - _feed.LastCombat < TimeSpan.FromSeconds(6);
+        // "In combat" is the attack switch you actually threw: the log states "Auto
+        // attack is on/off." every time it flips, which beats inferring from damage
+        // timing (that lingers after a kill and misses the wind-up before the first
+        // swing). Kept honest by the log replay at startup.
+        var combatOn = _feed.AttackOn;
         foreach (var (key, host) in _feedHosts)
         {
             host.Render();
@@ -1575,6 +1576,28 @@ public partial class MainWindow : Window
         OpenFeedWindow(pane.Key, near);
     }
 
+    /// <summary>Right-click ▸ Rename (or double-click the tab): what this pane calls
+    /// itself, on its tab and in every menu. Empty puts the derived name back.</summary>
+    internal void RenameFeedPane(FeedView view)
+    {
+        var dlg = new RenameDialog(view.Title) { Owner = this };
+        if (dlg.ShowDialog() != true) return;
+        view.Pane.Title = string.IsNullOrWhiteSpace(dlg.Value) ? null : dlg.Value.Trim();
+        _ui.Save();
+        RebuildFeedSections();
+        Tick();
+    }
+
+    /// <summary>Right-click ▸ Text size: the row font for one feed WINDOW.</summary>
+    internal void SetFeedFontSize(FeedHost host, double size)
+    {
+        host.Pane.FontSize = size;
+        _ui.Save();
+        foreach (var view in host.Views) view.Invalidate();
+        host.Render();
+        Refit(host.Key);
+    }
+
     /// <summary>Right-click ▸ Colours…: per-window row colours.</summary>
     internal void EditFeedColors(FeedView view)
     {
@@ -1771,13 +1794,18 @@ public partial class MainWindow : Window
 
     internal void SectionResizeDelta(SectionWindow w, double dx, double dy)
     {
-        var width = Math.Clamp(_sectionResizeStartWidth + dx, 170, 720);
+        // Feeds read a whole log line, so they may grow to most of a monitor; the
+        // number sections have nothing to show past ~720.
+        var maxWidth = _feedHosts.ContainsKey(w.SectionKey) ? 2400 : 720;
+        var width = Math.Clamp(_sectionResizeStartWidth + dx, 170, maxWidth);
         _ui.SectionWidths[w.SectionKey] = width;
         ApplySectionWidth(w.SectionKey, width);
         if (_feedHosts.TryGetValue(w.SectionKey, out var host))
         {
-            // ~14 px per Consolas 11 row: dragging down grows the list, up shrinks it.
-            host.Pane.Rows = Math.Clamp(_sectionResizeStartRows + (int)Math.Round(dy / 14), 4, 40);
+            // One text row per row-height of drag, at whatever size this window's font is.
+            var rowHeight = Math.Max(8, host.Active.RowHeight);
+            host.Pane.Rows = Math.Clamp(
+                _sectionResizeStartRows + (int)Math.Round(dy / rowHeight), 4, 40);
             host.Render();
         }
     }
@@ -1826,7 +1854,7 @@ public partial class MainWindow : Window
         foreach (var key in SectionKeys)
         {
             Detach(key, tearOff: false);
-            if (_ui.SectionWidths.TryGetValue(key, out var w) && w is > 100 and < 2000)
+            if (_ui.SectionWidths.TryGetValue(key, out var w) && w is > 100 and < 2600)
                 ApplySectionWidth(key, w);
             if (_ui.SectionPositions.TryGetValue(key, out var p) && p is [var x, var y]
                 && !double.IsNaN(x) && !double.IsNaN(y))

@@ -217,7 +217,7 @@ internal sealed class FeedHost
             var label = new TextBlock
             {
                 Text = view.Title,
-                FontSize = 10,
+                FontSize = 11,
                 VerticalAlignment = VerticalAlignment.Center,
             };
             var row = new StackPanel { Orientation = Orientation.Horizontal };
@@ -234,8 +234,10 @@ internal sealed class FeedHost
                 Foreground = TabOffFg,
                 Background = Brushes.Transparent,
                 BorderBrush = Brushes.Transparent,
-                Padding = new Thickness(3, 0, 1, 1),
-                Margin = new Thickness(3, 0, -2, 0),
+                Padding = new Thickness(4, 1, 4, 2),
+                // A clear gap between the label and the ✕: with them nose to tail,
+                // selecting a tab closed it often enough to be infuriating.
+                Margin = new Thickness(10, 0, -3, 0),
                 Template = (ControlTemplate)_owner.FindResource("FlatButtonTemplate"),
             };
             System.Windows.Automation.AutomationProperties.SetAutomationId(close, "CloseFeedTab");
@@ -245,15 +247,20 @@ internal sealed class FeedHost
             var chrome = new Border
             {
                 CornerRadius = new CornerRadius(4, 4, 0, 0),
-                Padding = new Thickness(6, 1, 5, 2),
-                Margin = new Thickness(0, 0, 3, 0),
+                Padding = new Thickness(10, 3, 7, 4),
+                Margin = new Thickness(0, 0, 4, 0),
                 BorderThickness = new Thickness(1),
                 Cursor = Cursors.Hand,
                 Child = row,
-                ToolTip = "Click to bring this tab forward",
+                ToolTip = "Click to bring this tab forward · double-click to rename",
             };
             var captured = view;
-            chrome.MouseLeftButtonDown += (_, e) => { e.Handled = true; Select(captured); };
+            chrome.MouseLeftButtonDown += (_, e) =>
+            {
+                e.Handled = true;
+                if (e.ClickCount == 2) _owner.RenameFeedPane(captured);
+                else Select(captured);
+            };
             _tabStrip.Children.Add(chrome);
             _tabs.Add((view, label, chrome));
         }
@@ -292,6 +299,26 @@ internal sealed class FeedHost
         }
 
         var active = Active;
+        Item("Rename this tab…", () => _owner.RenameFeedPane(active));
+
+        // Text size is a property of the WINDOW (like its row count): tabs sharing a
+        // window share it, or the window would resize on every tab click.
+        var fonts = new MenuItem { Header = "Text size" };
+        foreach (var size in new double[] { 9, 10, 11, 12, 13, 14, 16, 18 })
+        {
+            var pick = size;
+            var item = new MenuItem
+            {
+                Header = size == 11 ? "11 (default)" : $"{size:0}",
+                IsCheckable = true,
+                IsChecked = Math.Abs(Pane.FontSize - size) < 0.1,
+            };
+            item.Click += (_, _) => _owner.SetFeedFontSize(this, pick);
+            fonts.Items.Add(item);
+        }
+        menu.Items.Add(fonts);
+        menu.Items.Add(new Separator());
+
         Item("New tab in this window", () => _owner.AddFeedTab(this));
         Item("Move this tab to its own window", () => _owner.DetachFeedTab(active),
             _views.Count > 1);
