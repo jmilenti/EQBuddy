@@ -253,6 +253,11 @@ public partial class MainWindow : Window
         }
         if (now - _lastJanitor > TimeSpan.FromMinutes(10)) RunJanitor();
         if (now - _lastUpdateCheck > TimeSpan.FromHours(6)) CheckUpdates();
+        if (_statusUntil is { } until && now > until && _pendingUpdate is null)
+        {
+            _statusUntil = null;
+            UpdateBanner.Visibility = Visibility.Collapsed;
+        }
 
         var s = _stats.Snapshot();
         _snap = s; // the popups read fight details from the latest snapshot
@@ -1081,22 +1086,66 @@ public partial class MainWindow : Window
 
     // ---- updates: same fail-closed UpdateChecker as always, pointed at your fork ----
 
-    private void CheckUpdates()
+    /// <summary>Look for a newer build. <paramref name="userAsked"/> is the difference
+    /// between the silent six-hourly poll and the menu item: a menu item that answers
+    /// nothing at all when you are already up to date is indistinguishable from a menu
+    /// item that did not register the click, so the manual path narrates itself —
+    /// checking, then the verdict, which clears itself a few seconds later.</summary>
+    private void CheckUpdates(bool userAsked = false)
     {
         _lastUpdateCheck = DateTime.Now;
+        if (userAsked) ShowUpdateStatus("Checking for updates…", TimeSpan.FromSeconds(20));
         Task.Run(async () =>
         {
-            var info = await UpdateChecker.FindBestAsync(_settings.UpdateFolder);
-            if (info is null || !UpdateChecker.IsNewer(info)) return;
+            UpdateInfo? info = null;
+            var failed = false;
+            try
+            {
+                info = await UpdateChecker.FindBestAsync(_settings.UpdateFolder);
+            }
+            catch (Exception ex)
+            {
+                // FindBestAsync swallows a dead network already, so reaching here means
+                // something else went wrong — worth saying rather than reporting
+                // "up to date" on the strength of a failure.
+                CoreLog.Error(ex);
+                failed = true;
+            }
+
+            var newer = info is not null && UpdateChecker.IsNewer(info);
             Dispatcher.Invoke(() =>
             {
-                _pendingUpdate = info;
-                UpdateBanner.Text = info.SetupPath is not null || info.DownloadUrl is not null
-                    ? $"Update v{info.Latest} is ready — click to install."
-                    : $"Update v{info.Latest} is available — click to open the release page.";
-                UpdateBanner.Visibility = Visibility.Visible;
+                if (newer)
+                {
+                    _pendingUpdate = info;
+                    _statusUntil = null;   // an offer stays put until it is acted on
+                    UpdateBanner.Text = info!.SetupPath is not null || info.DownloadUrl is not null
+                        ? $"Update v{info.Latest} is ready — click to install."
+                        : $"Update v{info.Latest} is available — click to open the release page.";
+                    UpdateBanner.Visibility = Visibility.Visible;
+                    return;
+                }
+                if (!userAsked) return;   // the background poll stays quiet
+                ShowUpdateStatus(
+                    failed
+                        ? "Couldn't check for updates — see error.log."
+                        : $"You're on the latest version (v{UpdateChecker.CurrentVersion}).",
+                    TimeSpan.FromSeconds(6));
             });
         });
+    }
+
+    /// <summary>A transient line in the update banner. Cleared by the panel tick once
+    /// <see cref="_statusUntil"/> passes, so it needs no timer of its own — and never
+    /// while a real update is being offered, which must not time out.</summary>
+    private DateTime? _statusUntil;
+
+    private void ShowUpdateStatus(string text, TimeSpan linger)
+    {
+        if (_pendingUpdate is not null) return;
+        UpdateBanner.Text = text;
+        UpdateBanner.Visibility = Visibility.Visible;
+        _statusUntil = DateTime.Now + linger;
     }
 
     private void OnUpdateClick(object sender, MouseButtonEventArgs e)
@@ -1214,7 +1263,8 @@ public partial class MainWindow : Window
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 
-    private void OnCheckUpdatesMenu(object sender, RoutedEventArgs e) => CheckUpdates();
+    private void OnCheckUpdatesMenu(object sender, RoutedEventArgs e) =>
+        CheckUpdates(userAsked: true);
 
     /// <summary>Heading gesture: a plain click toggles the section open/closed; a drag
     /// past the threshold tears the section off into its own window (or, if already
