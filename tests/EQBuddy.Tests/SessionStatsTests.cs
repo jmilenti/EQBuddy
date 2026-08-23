@@ -258,14 +258,21 @@ public class SessionStatsTests
     [Fact]
     public void CharmBreakStopsCrediting()
     {
+        // A pet-named hit only reads as the charm breaking once the pet has gone QUIET
+        // past the twin grace: a genuinely broken pet stops helping at the same moment
+        // it turns on you. (This test used to break the charm 2 s after the pet's last
+        // swing and then have "the pet" KEEP attacking the ghoul — which is precisely
+        // what a same-named twin looks like, and dropping on that signal was the
+        // "pet tracking keeps dropping" bug in charm camps full of twins.)
         var s = Replay("Douglas",
             At(0, 0, "A puma told you, 'Attacking a ghoul Master.'"),
             At(0, 2, "A puma slashes a ghoul for 10 points of damage."),
-            At(0, 4, "A puma slashes YOU for 7 points of damage."),   // charm broke
-            At(0, 6, "A puma slashes a ghoul for 99 points of damage.")).Snapshot();
+            At(0, 10, "A puma slashes YOU for 7 points of damage."),   // quiet 8 s: broke
+            At(0, 12, "A puma slashes a ghoul for 99 points of damage.")).Snapshot();
 
         Assert.Equal(10, s.DamageDealt);   // the 99 after the break is not ours
         Assert.Equal(7, s.DamageTaken);
+        Assert.Equal("", s.PetName);
     }
 
     [Fact]

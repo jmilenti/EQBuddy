@@ -24,10 +24,22 @@ public sealed record FeedRow(IReadOnlyList<FeedSpan> Spans)
     /// columns run together and the layout stops reading as a back-and-forth.</summary>
     public bool Gap { get; init; }
 
-    /// <summary>Bound by the row template — Alignment and Margin as WPF wants them.</summary>
-    public TextAlignment Align => Right ? TextAlignment.Right : TextAlignment.Left;
+    /// <summary>Draw a thin rounded frame around this row (the kill summaries) so it
+    /// stands apart from the stream it summarises. Null = no frame, no padding — the
+    /// ordinary rows keep their exact geometry.</summary>
+    public Brush? Frame { get; init; }
+
+    // Bound by the row template — alignment, margins, and frame as WPF wants them.
+    // The row aligns as a BLOCK (shrink-wrapped Border), not by TextAlignment: a
+    // block can wear a frame, and a right-aligned block puts the row's END flush
+    // against the edge, which is what lets a suffix timestamp line up.
+    public HorizontalAlignment HAlign => Right ? HorizontalAlignment.Right : HorizontalAlignment.Left;
 
     public Thickness Pad => Gap ? new Thickness(0, 4, 0, 0) : default;
+
+    public Thickness FrameThickness => Frame is null ? default : new Thickness(1);
+
+    public Thickness FramePad => Frame is null ? default : new Thickness(5, 1, 5, 1);
 
     /// <summary>The whole line as plain text — what a UIA client reads off the row, and
     /// what makes the list testable from outside.</summary>

@@ -250,6 +250,7 @@ public sealed class SessionStats
     private DateTime? _combatStart; private DateTime? _combatLast; private long _combatDamage;
     private DateTime? _lastOwnAction;
     private string? _petName;        // normalized (article stripped, capitalized)
+    private DateTime _petLastOutgoing;  // when the pet last dealt damage — the twin test reads this
     private bool _petConfirmed;      // false = blink-only (charm suspected, no "Master" tell yet)
     private bool _petCharmed;        // the pet arrived via a charm landing (blink/charmed/glaze)
     private DateTime? _petSince;     // when this pet was first claimed — charm duration reads from here
@@ -711,8 +712,20 @@ public sealed class SessionStats
                     _damageByAttacker[sdt.Attacker] = (selfAgg.Item1 + 1, selfAgg.Item2 + sdt.Amount);
                     break;
                 case DamageTakenEvent dt:
-                    // A "pet" attacking us means the charm broke — stop crediting it.
-                    if (IsPet(dt.Attacker)) DropPet();
+                    // A "pet" attacking us USUALLY means the charm broke — but the check
+                    // is by name, and charm camps are full of twins: charm "a will
+                    // sapper" with another will sapper in camp and every hit the twin
+                    // lands used to un-claim the pet mid-fight (the "pet tracking keeps
+                    // dropping" bug). So the claim survives while the pet is visibly
+                    // WORKING — dealing damage within the grace window, or claimed
+                    // moments ago — because a genuinely broken charm stops the pet's
+                    // outgoing stream at the same moment it turns on you. A real break
+                    // still drops here, at most one grace window late, and the explicit
+                    // wear-off lines above drop it instantly.
+                    if (IsPet(dt.Attacker)
+                        && dt.Time - _petLastOutgoing > PetTwinGrace
+                        && !(_petSince is { } since && dt.Time - since <= PetTwinGrace))
+                        DropPet();
                     _damageTaken += dt.Amount;
                     if (dt.Melee) { _meleeHitsTaken++; _runeBlockStreak = 0; }
                     TouchFight(dt.Attacker, dt.Time, dmgIn: dt.Amount);
@@ -1076,6 +1089,12 @@ public sealed class SessionStats
             string.Equals(normalized, _petName, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>How recently the pet must have acted (or been claimed) for a hit from a
+    /// same-named creature to be read as a TWIN rather than as the charm breaking.
+    /// Charmed-pet swing gaps observed in real logs are 2-3 s; a broken pet goes quiet
+    /// on the same tick it turns hostile, so 4 s separates the two cleanly.</summary>
+    private static readonly TimeSpan PetTwinGrace = TimeSpan.FromSeconds(4);
+
     /// <summary>Every path that un-claims the pet clears its provenance with it.</summary>
     private void DropPet()
     {
@@ -1129,6 +1148,7 @@ public sealed class SessionStats
     private void AddPetDamage(DateTime t, int amount, DamageKind kind, string target, string ability,
         bool critical = false)
     {
+        _petLastOutgoing = t;
         _damageDealt += amount;
         AddTimelineDamage(t, amount);
         if (kind == DamageKind.Melee) _meleeDamage += amount; else _spellDamage += amount;

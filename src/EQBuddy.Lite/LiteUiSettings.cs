@@ -75,6 +75,13 @@ public sealed class LiteUiSettings
     /// above, which keep the one-line heading visible.</summary>
     public List<string> HiddenSections { get; set; } = [];
 
+    /// <summary>Audio cues (the ⚙ dialog): "off", "sound" (a distinct system sound),
+    /// or "voice" (the Windows voice saying "pet break" / "mez break" / "invis
+    /// break"). Voice falls back to the sound on a machine with no voice.</summary>
+    public string CuePetBreak { get; set; } = "off";
+    public string CueMezBreak { get; set; } = "off";
+    public string CueInvisBreak { get; set; } = "off";
+
     /// <summary>Where in the log your last session reset happened — the log file and the
     /// byte offset reached at that moment. Replayed at the next launch so a restart
     /// resumes the session you started instead of re-reading everything you cleared.

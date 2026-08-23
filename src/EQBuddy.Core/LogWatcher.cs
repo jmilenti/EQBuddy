@@ -29,6 +29,9 @@ public sealed class LogWatcher : IDisposable
     private readonly object _lock = new();
 
     private string? _path;
+    private FileSystemWatcher? _fsw;
+    /// <summary>Coalesces watcher events: many can fire per flush, one poll serves all.</summary>
+    private int _pokePending;
     private long _offset;
     /// <summary>Read cap for session-range review (#74): Poll never reads past this.
     /// long.MaxValue = live tailing, the normal state.</summary>
@@ -251,6 +254,45 @@ public sealed class LogWatcher : IDisposable
             Poll(); // full-file ingest
             lock (_lock) InitialIngestDone = true;
             _timer.Start();
+            WatchFile(path);
+        });
+    }
+
+    /// <summary>Poll the moment the game flushes a line instead of waiting out the
+    /// timer: a FileSystemWatcher on the log file turns the 150 ms polling interval
+    /// into the FALLBACK it should be, with typical line latency dropping to the
+    /// filesystem notification (~ms). The timer stays — watchers can drop events
+    /// under load (their buffer is finite), and a poll on an unchanged file is a
+    /// length check, so belt and braces costs nothing.</summary>
+    private void WatchFile(string path)
+    {
+        try
+        {
+            _fsw?.Dispose();
+            var dir = Path.GetDirectoryName(path);
+            if (dir is null || !Directory.Exists(dir)) return;
+            _fsw = new FileSystemWatcher(dir, Path.GetFileName(path))
+            {
+                NotifyFilter = NotifyFilters.Size | NotifyFilters.LastWrite,
+            };
+            _fsw.Changed += (_, _) => PokeSoon();
+            _fsw.EnableRaisingEvents = true;
+        }
+        catch (Exception ex)
+        {
+            // No watcher is a latency regression, not a failure — the timer covers it.
+            CoreLog.Error(ex);
+            _fsw = null;
+        }
+    }
+
+    private void PokeSoon()
+    {
+        if (Interlocked.Exchange(ref _pokePending, 1) != 0) return;
+        Task.Run(() =>
+        {
+            Interlocked.Exchange(ref _pokePending, 0);
+            Poll();
         });
     }
 
@@ -363,5 +405,9 @@ public sealed class LogWatcher : IDisposable
         }
     }
 
-    public void Dispose() => _timer.Dispose();
+    public void Dispose()
+    {
+        _timer.Dispose();
+        _fsw?.Dispose();
+    }
 }

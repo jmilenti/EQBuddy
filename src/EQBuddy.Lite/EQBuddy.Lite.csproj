@@ -16,6 +16,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EQBuddy.Core\EQBuddy.Core.csproj" />
+    <!-- SpokenAlerts (the Windows voice) — shared with the full app so the two never
+         drift on how alerts speak. -->
+    <ProjectReference Include="..\EQBuddy.UI.Shared\EQBuddy.UI.Shared.csproj" />
   </ItemGroup>
 
 </Project>
