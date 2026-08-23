@@ -1003,13 +1003,30 @@ public partial class MainWindow : Window
                 m.Tiers.ToDictionary(t => TierShort(t.Name), t => t.Count)));
         }
 
-        // Union of everyone's tiers in ladder order — first-seen order breaks down the
-        // moment two players hold disjoint tiers.
-        var tiers = rows
-            .SelectMany(r => r.ByTier.Keys)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(Motes.LadderRank)
-            .ToList();
+        // The WHOLE ladder shows as fixed columns in its decreed order (user request,
+        // 2026-08-24) — a stable grid to read across sessions, not columns popping in
+        // as tiers drop. Any tier the ladder has never heard of still appends after.
+        var seen = rows.SelectMany(r => r.ByTier.Keys)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var tiers = rows.Count == 0
+            ? []
+            : Motes.LadderTiers
+                .Concat(seen.Where(k => Motes.LadderRank(k) >= Motes.LadderTiers.Count)
+                    .OrderBy(k => k, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
+        // Headers: "Infinitesimal" is wider than any count it heads, and the ranks past
+        // Superior are unconfirmed — they wear "tier 8/9/10" until a drop names them.
+        string HeaderOf(int i, string tier) =>
+            tier.Equals("Infinitesimal", StringComparison.OrdinalIgnoreCase) ? "Inftesmal"
+            : i > 6 && i < Motes.LadderTiers.Count && !seen.Contains(tier) ? $"tier {i + 1}"
+            : tier;
+        string TipOf(int i, string tier) =>
+            tier.Equals("Normal", StringComparison.OrdinalIgnoreCase)
+                ? "Mote of Potential — the tierless \"Normal\" mote"
+            : i > 6 && i < Motes.LadderTiers.Count && !seen.Contains(tier)
+                ? "A tier above Superior — its name is unconfirmed until one drops"
+            : $"Mote of {tier} Potential";
 
         MotesTable.Children.Clear();
         MotesTable.RowDefinitions.Clear();
@@ -1039,10 +1056,8 @@ public partial class MainWindow : Window
         }
 
         for (var c = 0; c < tiers.Count; c++)
-            Cell(0, c + 1, tiers[c], MoteDim, size: 10.5,
-                // TierShort is invertible, so the header can name the actual item.
-                tip: tiers[c] == "Base" ? "Mote of Potential — the tierless base mote"
-                    : $"Mote of {tiers[c]} Potential");
+            Cell(0, c + 1, HeaderOf(c, tiers[c]), MoteDim, size: 10.5,
+                tip: TipOf(c, tiers[c]));
         Cell(0, tiers.Count + 1, "all", MoteDim, size: 10.5, tip: "Total motes");
         Cell(0, tiers.Count + 2, "/h", MoteDim, size: 10.5, tip: "Motes per hour");
         Cell(0, tiers.Count + 3, "time", MoteDim, size: 10.5,
@@ -1065,13 +1080,15 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>"Mote of Greater Potential" → "Greater"; the tierless base mote → "Base".</summary>    /// <summary>"Mote of Greater Potential" → "Greater"; the tierless base mote → "Base".</summary>
+    /// <summary>"Mote of Greater Potential" → "Greater"; the tierless base mote → "Base".</summary>    /// <summary>"Mote of Greater Potential" → "Greater"; the tierless bare mote is the
+    /// "Normal" tier (renamed from "Base", 1.78 — it is what the game treats as the
+    /// plain mote, and Normal is its slot in the ladder).</summary>
     private static string TierShort(string item)
     {
         var t = item.Replace("Mote of", "", StringComparison.OrdinalIgnoreCase)
                     .Replace("Potential", "", StringComparison.OrdinalIgnoreCase)
                     .Trim();
-        return t.Length == 0 ? "Base" : t;
+        return t.Length == 0 ? "Normal" : t;
     }
 
     // ---- updates: same fail-closed UpdateChecker as always, pointed at your fork ----
