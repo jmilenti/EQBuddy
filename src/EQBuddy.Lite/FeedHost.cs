@@ -187,11 +187,6 @@ internal sealed class FeedHost
         foreach (var view in _views) view.ApplyInnerWidth(width);
     }
 
-    /// <summary>True while this window should be wearing its combat outline: some tab
-    /// asked for it, that tab is showing YOUR rows, and blows are still landing.</summary>
-    public bool Wants(bool combatOn) =>
-        combatOn && _views.Any(v => v.Pane.CombatGlow && v.Pane.Filters.You);
-
     public void Render()
     {
         if (_views.Count == 0)
@@ -344,6 +339,33 @@ internal sealed class FeedHost
             fonts.Items.Add(item);
         }
         menu.Items.Add(fonts);
+
+        // Every face here ships with Windows, so a shared layout never lands on a
+        // machine that lacks its font. Classic EQ first — it is what the game's own
+        // chat window draws in.
+        var faces = new MenuItem { Header = "Font" };
+        foreach (var (label, family) in new[]
+                 {
+                     ("Classic EQ (Arial)", "Arial"),
+                     ("Consolas (default)", "Consolas"),
+                     ("Cascadia Mono", "Cascadia Mono"),
+                     ("Segoe UI", "Segoe UI"),
+                     ("Verdana", "Verdana"),
+                     ("Tahoma", "Tahoma"),
+                     ("Georgia", "Georgia"),
+                 })
+        {
+            var pick = family;
+            var item = new MenuItem
+            {
+                Header = label,
+                IsCheckable = true,
+                IsChecked = string.Equals(Pane.FontFamily, family, StringComparison.OrdinalIgnoreCase),
+            };
+            item.Click += (_, _) => _owner.SetFeedFont(this, pick);
+            faces.Items.Add(item);
+        }
+        menu.Items.Add(faces);
         menu.Items.Add(new Separator());
 
         Item("New tab in this window", () => _owner.AddFeedTab(this));
@@ -389,21 +411,6 @@ internal sealed class FeedHost
         };
         split.Click += (_, _) => _owner.SetFeedSplitSides(active, split.IsChecked);
         menu.Items.Add(split);
-
-        var glow = new MenuItem
-        {
-            Header = "Red outline while in combat",
-            IsCheckable = true,
-            IsChecked = active.Pane.CombatGlow,
-            ToolTip = "Flickers a red border around this window while blows are landing. "
-                + "Only lights when the tab is showing YOUR rows (the 'you' filter).",
-        };
-        glow.Click += (_, _) =>
-        {
-            active.Pane.CombatGlow = glow.IsChecked;
-            _ui.Save();
-        };
-        menu.Items.Add(glow);
 
         Item("Colours…", () => _owner.EditFeedColors(active));
         Item("Reset filters", () => active.ResetFilters());

@@ -5,8 +5,8 @@ using System.Windows.Media;
 
 namespace EQBuddy.Lite;
 
-/// <summary>One coloured stretch of a feed row.</summary>
-public sealed record FeedSpan(string Text, Brush Color);
+/// <summary>One coloured stretch of a feed row. Bold is the XP rows' headline weight.</summary>
+public sealed record FeedSpan(string Text, Brush Color, bool Bold = false);
 
 /// <summary>One row of a FEED list: the line broken into coloured stretches — a dim
 /// timestamp, the line itself in whatever colour its kind earns, and the ability or spell
@@ -65,6 +65,10 @@ public static class FeedText
         block.Inlines.Clear();
         if (e.NewValue is not IReadOnlyList<FeedSpan> spans) return;
         foreach (var span in spans)
-            block.Inlines.Add(new Run(span.Text) { Foreground = span.Color });
+            block.Inlines.Add(new Run(span.Text)
+            {
+                Foreground = span.Color,
+                FontWeight = span.Bold ? FontWeights.Bold : FontWeights.Normal,
+            });
     }
 }

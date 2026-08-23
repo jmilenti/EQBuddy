@@ -189,11 +189,6 @@ public sealed class FeedPane
     /// who did what to whom, which is a taste.</summary>
     public bool SplitSides { get; set; }
 
-    /// <summary>Flicker a red border around the window while a fight is on. Only lights
-    /// when this pane is showing YOUR rows — it is a "you are in combat" cue, and a
-    /// window filtered to someone else has no business claiming it.</summary>
-    public bool CombatGlow { get; set; }
-
     /// <summary>The tab's label. Null derives "FEED" / "FEED 2"… from the key; set by
     /// right-click ▸ Rename.</summary>
     public string? Title { get; set; }
@@ -202,6 +197,11 @@ public sealed class FeedPane
     /// window-level property — tabs sharing a window share it, or the window would
     /// resize on every tab click). Read off the HOST pane only.</summary>
     public double FontSize { get; set; } = 11;
+
+    /// <summary>Row typeface, a window property like <see cref="FontSize"/>. "Consolas"
+    /// (the default, columns line up) or "Arial" (what the game's own chat window uses —
+    /// the "Classic EQ" choice). Any installed family name works if hand-edited.</summary>
+    public string FontFamily { get; set; } = "Consolas";
 
     /// <summary>Everything a brand-new pane starts with — one place, so the + button and
     /// "reset filters" cannot drift apart.</summary>
@@ -240,6 +240,17 @@ public sealed class FeedColors
     public string Other { get; set; } = "#78838F";
     /// <summary>The feed's own per-kill damage summaries.</summary>
     public string Summary { get; set; } = "#7FD9E8";
+    /// <summary>Experience, AA, levels, skill-ups, faction — drawn BOLD as well: a ding
+    /// is a headline, not a log line. The yellow, and the three below, match the game's
+    /// own chat colours (user screenshot, 2026-08-23).</summary>
+    public string Xp { get; set; } = "#F2E33D";
+    /// <summary>Loot and sold-loot lines — the game draws these blue.</summary>
+    public string Loot { get; set; } = "#4A8CFF";
+    /// <summary>Corpse coin — the game draws money green.</summary>
+    public string Money { get; set; } = "#33CC33";
+    /// <summary>Auto attack on/off, stance and invocation changes — the game draws the
+    /// stance lines in the same blue family.</summary>
+    public string Attack { get; set; } = "#4A8CFF";
     /// <summary>Misses, resists, fizzles — and every row's timestamp.</summary>
     public string Dim { get; set; } = "#7B8794";
 }

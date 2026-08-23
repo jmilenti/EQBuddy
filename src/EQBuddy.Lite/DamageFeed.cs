@@ -15,8 +15,11 @@ internal enum FeedKind
     /// <summary>Combat state you declared: "Auto attack is on/off.", stance and
     /// invocation changes, "You will now use X while auto attacking."</summary>
     Attack,
-    /// <summary>Loot, corpse coin, vendor sales, crafting results.</summary>
+    /// <summary>Loot, vendor sales, crafting results.</summary>
     Loot,
+    /// <summary>Corpse coin and splits — same filter pill as Loot, its own colour: the
+    /// game draws money green where loot is blue, and the feed matches the game.</summary>
+    Money,
     /// <summary>Progress: experience, AA gains and purchases, levels, skill-ups,
     /// faction hits.</summary>
     Xp,
@@ -122,9 +125,6 @@ internal sealed class DamageFeed
     /// <summary>Current pet name, written by the UI tick, read on the watcher thread —
     /// how a third-party attacker is told apart from your own pet.</summary>
     public volatile string PetName = "";
-
-    /// <summary>When the last damage — dealt, taken, or by anyone nearby — was logged.</summary>
-    public DateTime LastCombat { get; private set; } = DateTime.MinValue;
 
     /// <summary>Whether YOUR auto attack is on, straight from the log's own "Auto attack
     /// is on/off." lines — the game states it every time it flips. This is what the feed
@@ -262,8 +262,8 @@ internal sealed class DamageFeed
         RegenTickEvent => FeedKind.Heal,
         RuneBlockEvent or ThirdMissEvent => FeedKind.Miss,
         StanceEvent or InvocationEvent or SkillSubstitutionEvent => FeedKind.Attack,
-        LootEvent or MoneyEvent or AutoSellEvent or ItemDestroyedEvent
-            or CraftEvent => FeedKind.Loot,
+        MoneyEvent => FeedKind.Money,
+        LootEvent or AutoSellEvent or ItemDestroyedEvent or CraftEvent => FeedKind.Loot,
         XpEvent or AaEvent or AaPurchaseEvent or LevelEvent or SkillUpEvent
             or FactionEvent => FeedKind.Xp,
         ZoneEvent or LocationEvent => FeedKind.Zone,
@@ -338,15 +338,20 @@ internal sealed class DamageFeed
 
     private void Track(FeedEntry e)
     {
-        if (e.Kind is FeedKind.Melee or FeedKind.Spell or FeedKind.Dot or FeedKind.Aux
-            or FeedKind.Taken)
-            LastCombat = e.Time;
         if (e.Incoming || e.Amount <= 0 || e.Target.Length == 0) return;
         if (e.Kind is not (FeedKind.Melee or FeedKind.Spell or FeedKind.Dot or FeedKind.Aux)) return;
 
         if (!_tallies.TryGetValue(e.Target, out var tally))
         {
             PruneTallies(e.Time);
+            _tallies[e.Target] = tally = new Tally { First = e.Time };
+        }
+        else if (e.Time - tally.Last > PullGap)
+        {
+            // Same name, different pull: a cave bear that went quiet three minutes ago
+            // and is being hit again is the RESPAWN, not the same fight. Without this a
+            // lingering tally poisoned the kill summary — "group (1467s): Grumpy 0 dps"
+            // measured one pull's damage over twenty minutes of wall clock.
             _tallies[e.Target] = tally = new Tally { First = e.Time };
         }
         tally.Last = e.Time;
@@ -360,6 +365,10 @@ internal sealed class DamageFeed
                 break;
         }
     }
+
+    /// <summary>Quiet this long = the fight it was part of is over; the next hit on the
+    /// name starts a fresh tally. Generous next to real swing gaps (seconds).</summary>
+    private static readonly TimeSpan PullGap = TimeSpan.FromMinutes(3);
 
     /// <summary>Mobs that stopped taking damage ten minutes ago are gone — they fled, you
     /// zoned, or someone else finished them out of sight. Also caps the dictionary, so a
@@ -398,12 +407,28 @@ internal sealed class DamageFeed
 
         Row(FeedWho.You, "you", tally.You);
         Row(FeedWho.Pet, PetName.Length > 0 ? PetName : "pet", tally.Pet);
-        var group = tally.Others.Values.Sum();
-        Row(FeedWho.Group, "group", group, string.Join(", ", tally.Others
-            .OrderByDescending(kv => kv.Value)
-            .Take(4)
-            .Select(kv => $"{kv.Key} {kv.Value:N0}")));
+        // The group line names the PLAYERS with each one's rate — "group 240 in 41s"
+        // told nobody anything they would act on; "who carried the pull" is the
+        // question the line exists to answer.
+        if (tally.Others.Count > 0)
+        {
+            var players = string.Join(" · ", tally.Others
+                .OrderByDescending(kv => kv.Value)
+                .Take(6)
+                .Select(kv => $"{kv.Key} {kv.Value / seconds:N0} dps ({Compact(kv.Value)})"));
+            Enqueue(new FeedEntry(kill.Time, FeedWho.Group, FeedKind.Summary, "group",
+                kill.Target, (int)Math.Min(int.MaxValue, tally.Others.Values.Sum()),
+                "group", false, null, Incoming: false)
+            {
+                Raw = $"⤷ group ({seconds:0}s): {players}",
+            });
+        }
     }
+
+    /// <summary>"12.4k" / "830" — a damage amount short enough to sit inside a list of
+    /// six players without the line outgrowing every window.</summary>
+    private static string Compact(long amount) =>
+        amount >= 10_000 ? $"{amount / 1000.0:0.#}k" : amount.ToString("N0");
 
     /// <summary>Third-party attackers worth a feed row: your pet, or something that
     /// looks like a player. Mob-on-mob and mob-on-others noise stays out of the combat
@@ -500,7 +525,7 @@ internal sealed class DamageFeed
         {
             case FeedKind.Cast: return f.Casts;
             case FeedKind.Attack: return f.Attack;
-            case FeedKind.Loot: return f.Loot;
+            case FeedKind.Loot or FeedKind.Money: return f.Loot;
             case FeedKind.Xp: return f.Xp;
             case FeedKind.Zone: return f.Zone;
             case FeedKind.Chat: return f.Chat;

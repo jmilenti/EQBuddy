@@ -747,18 +747,7 @@ public partial class MainWindow : Window
     /// row is attributed by, a section becoming attached).</summary>
     private void RenderFeeds()
     {
-        // "In combat" is blows landing: the feed's own damage clock, within a short
-        // window. The attack-switch lines looked better on paper (they name the state
-        // outright) but proved unreliable in the field — the user reports flips the
-        // log never carried — so the outline follows what is indisputably happening
-        // rather than what the game remembered to announce. AttackOn stays tracked for
-        // the atk filter rows; it just no longer drives the glow.
-        var combatOn = DateTime.Now - _feed.LastCombat < TimeSpan.FromSeconds(6);
-        foreach (var (key, host) in _feedHosts)
-        {
-            host.Render();
-            if (_sectionWindows.TryGetValue(key, out var win)) win.SetAlert(host.Wants(combatOn));
-        }
+        foreach (var host in _feedHosts.Values) host.Render();
     }
 
     private static SolidColorBrush Frozen(byte r, byte g, byte b)
@@ -1495,7 +1484,6 @@ public partial class MainWindow : Window
             Order = host.Length == 0 ? 0 : NextTabOrder(host),
             Filters = Copy(from.Pane.Filters) ?? new FeedFilters(),
             Colors = Copy(from.Pane.Colors) ?? new FeedColors(),
-            CombatGlow = from.Pane.CombatGlow,
         };
     }
 
@@ -1693,6 +1681,16 @@ public partial class MainWindow : Window
         _ui.Save();
         view.Invalidate();   // every drawn row has to be re-sided
         RenderFeeds();
+    }
+
+    /// <summary>Right-click ▸ Font: the row typeface for one feed WINDOW.</summary>
+    internal void SetFeedFont(FeedHost host, string family)
+    {
+        host.Pane.FontFamily = family;
+        _ui.Save();
+        foreach (var view in host.Views) view.Invalidate();
+        host.Render();
+        Refit(host.Key);
     }
 
     /// <summary>Right-click ▸ Colours…: per-window row colours.</summary>
@@ -2101,13 +2099,22 @@ public partial class MainWindow : Window
 
         if (MessageBox.Show(this,
                 $"Replace your layout with this one?\n\n{LayoutShare.Describe(payload)}",
-                "Apply shared layout", MessageBoxButton.YesNo, MessageBoxImage.Question)
+                "Import layout", MessageBoxButton.YesNo, MessageBoxImage.Question)
             != MessageBoxResult.Yes) return;
 
         LayoutShare.Apply(payload, _ui, Left, Top);
         _ui.Save();
 
-        // Rebuild the feed windows from the shared panes, then put every section where
+        // Tear the feed UI down COMPLETELY before rebuilding: views are keyed by pane
+        // KEY and survive RebuildFeedSections, so a key the import shares with the old
+        // layout ("feed", nearly always) kept its view bound to the OLD pane object —
+        // the first tab showed the pre-import filters, and any rename after the import
+        // wrote its Title onto that orphan and evaporated on the next save. Fresh views
+        // from the imported panes are the fix for both.
+        foreach (var key in _feedHosts.Keys.ToList()) DropFeedSection(key);
+        _feedViews.Clear();
+
+        // Rebuild the feed windows from the imported panes, then put every section where
         // the layout says. Windows the payload names are re-detached and repositioned;
         // the dock graph does the rest on the next RepinStack.
         foreach (var key in RebuildFeedSections()) MakeFeedWindow(key);
