@@ -218,7 +218,9 @@ public sealed class SectionWindow : Window
             {
                 From = 0.25,
                 To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(550),
+                // 110 ms, a hard flicker — the slow 550 ms breathe read as ambient
+                // rather than as an alarm (user: 5× faster).
+                Duration = TimeSpan.FromMilliseconds(110),
                 AutoReverse = true,
                 RepeatBehavior = RepeatBehavior.Forever,
             });
