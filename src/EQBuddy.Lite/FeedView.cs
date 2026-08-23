@@ -16,6 +16,7 @@ internal sealed class FeedPalette
     public Brush Kill = Frozen("#D9C46B"), Spell = Frozen("#E8B24A"), Ability = Frozen("#FF8FC7");
     public Brush Cast = Frozen("#9FB6D0"), Other = Frozen("#78838F");
     public Brush Summary = Frozen("#7FD9E8"), Dim = Frozen("#7B8794");
+    public Brush Xp = Frozen("#F0D54A");
 
     public FeedPalette(FeedColors c)
     {
@@ -24,7 +25,7 @@ internal sealed class FeedPalette
         Crit = Frozen(c.Crit, Crit); Kill = Frozen(c.Kill, Kill); Spell = Frozen(c.Spell, Spell);
         Ability = Frozen(c.Ability, Ability); Cast = Frozen(c.Cast, Cast);
         Other = Frozen(c.Other, Other); Summary = Frozen(c.Summary, Summary);
-        Dim = Frozen(c.Dim, Dim);
+        Dim = Frozen(c.Dim, Dim); Xp = Frozen(c.Xp, Xp);
     }
 
     /// <summary>A hex colour as a frozen brush, or <paramref name="fallback"/> when the
@@ -414,7 +415,7 @@ internal sealed class FeedView
         // before 1.68.1): a filtered feed is easier to read when its rows say exactly
         // what the log says.
         var body = e.Raw is { Length: > 0 } raw ? raw : Fallback(e);
-        AddAccented(spans, body, e.Ability, BrushFor(e));
+        AddAccented(spans, body, e.Ability, BrushFor(e), bold: e.Kind == FeedKind.Xp);
         if (right) spans.Add(new FeedSpan($"  {e.Time:HH:mm:ss}", _palette.Dim));
         return new FeedRow(spans)
         {
@@ -429,20 +430,21 @@ internal sealed class FeedView
     /// accent colour. Matching on the text the log actually printed is what keeps the
     /// highlight honest — no accent is shown when the line does not literally contain the
     /// name (a third-party hit with no skill, say).</summary>
-    private void AddAccented(List<FeedSpan> spans, string body, string ability, Brush baseBrush)
+    private void AddAccented(List<FeedSpan> spans, string body, string ability,
+        Brush baseBrush, bool bold = false)
     {
         var at = ability.Length >= 3
             ? body.IndexOf(ability, StringComparison.OrdinalIgnoreCase)
             : -1;
         if (at < 0)
         {
-            spans.Add(new FeedSpan(body, baseBrush));
+            spans.Add(new FeedSpan(body, baseBrush, bold));
             return;
         }
-        if (at > 0) spans.Add(new FeedSpan(body[..at], baseBrush));
-        spans.Add(new FeedSpan(body.Substring(at, ability.Length), _palette.Ability));
+        if (at > 0) spans.Add(new FeedSpan(body[..at], baseBrush, bold));
+        spans.Add(new FeedSpan(body.Substring(at, ability.Length), _palette.Ability, bold));
         var rest = at + ability.Length;
-        if (rest < body.Length) spans.Add(new FeedSpan(body[rest..], baseBrush));
+        if (rest < body.Length) spans.Add(new FeedSpan(body[rest..], baseBrush, bold));
     }
 
     /// <summary>Row colour by what the line turned out to be — the one piece of reading
@@ -453,11 +455,13 @@ internal sealed class FeedView
     {
         FeedKind.Summary => _palette.Summary,
         FeedKind.Cast => _palette.Cast,
-        // The log categories share the Other colour: they are context, not combat, and
-        // thirteen colour rows in the dialog is already plenty. Attack is the exception —
-        // it flips the combat outline, so it borrows the kill gold to stand out.
+        // Most log categories share the Other colour: they are context, not combat,
+        // and the colour dialog is already long. The exceptions earn theirs: Attack
+        // borrows the kill gold (it is combat state), and Xp gets its own bold yellow —
+        // a ding is a headline, not a log line.
         FeedKind.Attack => _palette.Kill,
-        FeedKind.Loot or FeedKind.Xp or FeedKind.Zone or FeedKind.Chat
+        FeedKind.Xp => _palette.Xp,
+        FeedKind.Loot or FeedKind.Zone or FeedKind.Chat
             or FeedKind.Other => _palette.Other,
         FeedKind.Kill => _palette.Kill,
         FeedKind.Heal => _palette.Heal,

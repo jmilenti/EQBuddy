@@ -3,19 +3,23 @@ using System.Windows.Controls;
 
 namespace EQBuddy.Lite;
 
-/// <summary>Share a layout as a pasteable string: yours is in the box ready to copy, and
-/// pasting someone else's over it and pressing Apply rebuilds your panel to match.</summary>
+/// <summary>Import / export the panel layout as a pasteable string. Export puts YOUR
+/// current layout on the clipboard; Import applies whatever string is in the box —
+/// paste a friend's there (or press Paste) and the panel rebuilds to match.</summary>
 public sealed class LayoutShareDialog : Window
 {
     private readonly TextBox _box;
     private readonly TextBlock _status;
 
-    /// <summary>The string the user asked to apply — null unless Apply succeeded.</summary>
+    /// <summary>The layout the user asked to import — null unless Import succeeded.</summary>
     internal LayoutShare.Payload? Applied { get; private set; }
+
+    private readonly string _mine;
 
     internal LayoutShareDialog(string mine)
     {
-        Title = "Share layout";
+        _mine = mine;
+        Title = "Import / export layout";
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         SizeToContent = SizeToContent.Height;
         Width = 520;
@@ -27,11 +31,11 @@ public sealed class LayoutShareDialog : Window
         {
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 0, 0, 8),
-            Text = "Your whole panel layout as one string — feed windows and tabs with "
-                 + "their filters and colours, section widths, what is docked where, and "
-                 + "what is hidden. Copy it to share; paste someone else's in and press "
-                 + "Apply to take theirs. Your group code, log path, and session are NOT "
-                 + "included.",
+            Text = "The whole panel layout as one string — feed windows and tabs with "
+                 + "their filters, names and colours, section widths, what is docked "
+                 + "where, and what is hidden. EXPORT copies yours to the clipboard to "
+                 + "share; IMPORT applies the string in the box (paste a friend's "
+                 + "there). Your group code, log path, and session are never included.",
         });
 
         _box = new TextBox
@@ -52,7 +56,7 @@ public sealed class LayoutShareDialog : Window
             Margin = new Thickness(0, 6, 0, 0),
             TextWrapping = TextWrapping.Wrap,
             Foreground = System.Windows.Media.Brushes.Gray,
-            Text = "Applying replaces your current layout.",
+            Text = "The box holds your current layout. Importing replaces it.",
         };
         panel.Children.Add(_status);
 
@@ -62,13 +66,21 @@ public sealed class LayoutShareDialog : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 12, 0, 0),
         };
-        var copy = new Button { Content = "Copy", Width = 84, Margin = new Thickness(0, 0, 8, 0) };
+        var copy = new Button
+        {
+            Content = "Export",
+            Width = 84,
+            Margin = new Thickness(0, 0, 8, 0),
+            ToolTip = "Copy YOUR current layout to the clipboard (whatever is typed in "
+                + "the box is not what is exported — your live layout is)",
+        };
         copy.Click += (_, _) =>
         {
             try
             {
-                Clipboard.SetText(_box.Text);
-                Say("Copied to the clipboard.", ok: true);
+                _box.Text = _mine;
+                Clipboard.SetText(_mine);
+                Say("Exported — your layout is on the clipboard.", ok: true);
             }
             catch (Exception ex)
             {
@@ -87,7 +99,14 @@ public sealed class LayoutShareDialog : Window
             }
             catch (Exception ex) { EQBuddy.Core.CoreLog.Error(ex); }
         };
-        var apply = new Button { Content = "Apply", Width = 84, IsDefault = true, Margin = new Thickness(0, 0, 8, 0) };
+        var apply = new Button
+        {
+            Content = "Import",
+            Width = 84,
+            IsDefault = true,
+            Margin = new Thickness(0, 0, 8, 0),
+            ToolTip = "Apply the layout string in the box, replacing your current layout",
+        };
         apply.Click += (_, _) =>
         {
             if (LayoutShare.Import(_box.Text) is not { } payload)

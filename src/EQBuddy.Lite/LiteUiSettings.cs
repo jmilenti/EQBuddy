@@ -189,11 +189,6 @@ public sealed class FeedPane
     /// who did what to whom, which is a taste.</summary>
     public bool SplitSides { get; set; }
 
-    /// <summary>Flicker a red border around the window while a fight is on. Only lights
-    /// when this pane is showing YOUR rows — it is a "you are in combat" cue, and a
-    /// window filtered to someone else has no business claiming it.</summary>
-    public bool CombatGlow { get; set; }
-
     /// <summary>The tab's label. Null derives "FEED" / "FEED 2"… from the key; set by
     /// right-click ▸ Rename.</summary>
     public string? Title { get; set; }
@@ -240,6 +235,9 @@ public sealed class FeedColors
     public string Other { get; set; } = "#78838F";
     /// <summary>The feed's own per-kill damage summaries.</summary>
     public string Summary { get; set; } = "#7FD9E8";
+    /// <summary>Experience, AA, levels, skill-ups, faction — drawn BOLD as well: a ding
+    /// is a headline, not a log line (user request, 2026-08-23).</summary>
+    public string Xp { get; set; } = "#F0D54A";
     /// <summary>Misses, resists, fizzles — and every row's timestamp.</summary>
     public string Dim { get; set; } = "#7B8794";
 }

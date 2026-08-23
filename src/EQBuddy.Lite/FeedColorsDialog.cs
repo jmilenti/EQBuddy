@@ -98,6 +98,7 @@ public sealed class FeedColorsDialog : Window
         Row("Casting messages", nameof(FeedColors.Cast), current.Cast, c => c.Cast);
         Row("Everything else", nameof(FeedColors.Other), current.Other, c => c.Other);
         Row("Kill summaries", nameof(FeedColors.Summary), current.Summary, c => c.Summary);
+        Row("XP / levels / faction", nameof(FeedColors.Xp), current.Xp, c => c.Xp);
         Row("Timestamps / misses", nameof(FeedColors.Dim), current.Dim, c => c.Dim);
         panel.Children.Add(grid);
 

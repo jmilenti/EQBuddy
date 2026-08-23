@@ -187,11 +187,6 @@ internal sealed class FeedHost
         foreach (var view in _views) view.ApplyInnerWidth(width);
     }
 
-    /// <summary>True while this window should be wearing its combat outline: some tab
-    /// asked for it, that tab is showing YOUR rows, and blows are still landing.</summary>
-    public bool Wants(bool combatOn) =>
-        combatOn && _views.Any(v => v.Pane.CombatGlow && v.Pane.Filters.You);
-
     public void Render()
     {
         if (_views.Count == 0)
@@ -389,21 +384,6 @@ internal sealed class FeedHost
         };
         split.Click += (_, _) => _owner.SetFeedSplitSides(active, split.IsChecked);
         menu.Items.Add(split);
-
-        var glow = new MenuItem
-        {
-            Header = "Red outline while in combat",
-            IsCheckable = true,
-            IsChecked = active.Pane.CombatGlow,
-            ToolTip = "Flickers a red border around this window while blows are landing. "
-                + "Only lights when the tab is showing YOUR rows (the 'you' filter).",
-        };
-        glow.Click += (_, _) =>
-        {
-            active.Pane.CombatGlow = glow.IsChecked;
-            _ui.Save();
-        };
-        menu.Items.Add(glow);
 
         Item("Colours…", () => _owner.EditFeedColors(active));
         Item("Reset filters", () => active.ResetFilters());
