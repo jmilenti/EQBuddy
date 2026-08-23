@@ -960,7 +960,13 @@ public partial class MainWindow : Window
     {
         var rows = new List<(string Name, bool IsYou, int Total, double Rate,
             TimeSpan Span, Dictionary<string, int> ByTier)>();
-        if (yours.Total > 0)
+        // Your row shows even at ZERO whenever anyone else is on the board. A missing
+        // row reads as "the app has stopped counting my motes", which is exactly how a
+        // 60-minute break got reported as a bug: SessionStats rolls the session on that
+        // gap, so motes looted before it belong to the previous one, while the group's
+        // numbers come from THEIR apps and keep counting. Zero is information, and the
+        // time column beside it says which window each row is measuring.
+        if (yours.Total > 0 || members.Count > 0)
             rows.Add((_stats.CharacterName is { Length: > 0 } cn ? cn : "You",
                 true, yours.Total, yours.PerHour, yourElapsed,
                 yours.Tiers.ToDictionary(t => TierShort(t.Item), t => t.Count)));
