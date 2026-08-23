@@ -339,6 +339,33 @@ internal sealed class FeedHost
             fonts.Items.Add(item);
         }
         menu.Items.Add(fonts);
+
+        // Every face here ships with Windows, so a shared layout never lands on a
+        // machine that lacks its font. Classic EQ first — it is what the game's own
+        // chat window draws in.
+        var faces = new MenuItem { Header = "Font" };
+        foreach (var (label, family) in new[]
+                 {
+                     ("Classic EQ (Arial)", "Arial"),
+                     ("Consolas (default)", "Consolas"),
+                     ("Cascadia Mono", "Cascadia Mono"),
+                     ("Segoe UI", "Segoe UI"),
+                     ("Verdana", "Verdana"),
+                     ("Tahoma", "Tahoma"),
+                     ("Georgia", "Georgia"),
+                 })
+        {
+            var pick = family;
+            var item = new MenuItem
+            {
+                Header = label,
+                IsCheckable = true,
+                IsChecked = string.Equals(Pane.FontFamily, family, StringComparison.OrdinalIgnoreCase),
+            };
+            item.Click += (_, _) => _owner.SetFeedFont(this, pick);
+            faces.Items.Add(item);
+        }
+        menu.Items.Add(faces);
         menu.Items.Add(new Separator());
 
         Item("New tab in this window", () => _owner.AddFeedTab(this));

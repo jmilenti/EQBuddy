@@ -1683,6 +1683,16 @@ public partial class MainWindow : Window
         RenderFeeds();
     }
 
+    /// <summary>Right-click ▸ Font: the row typeface for one feed WINDOW.</summary>
+    internal void SetFeedFont(FeedHost host, string family)
+    {
+        host.Pane.FontFamily = family;
+        _ui.Save();
+        foreach (var view in host.Views) view.Invalidate();
+        host.Render();
+        Refit(host.Key);
+    }
+
     /// <summary>Right-click ▸ Colours…: per-window row colours.</summary>
     internal void EditFeedColors(FeedView view)
     {

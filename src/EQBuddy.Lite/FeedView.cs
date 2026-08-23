@@ -16,7 +16,8 @@ internal sealed class FeedPalette
     public Brush Kill = Frozen("#D9C46B"), Spell = Frozen("#E8B24A"), Ability = Frozen("#FF8FC7");
     public Brush Cast = Frozen("#9FB6D0"), Other = Frozen("#78838F");
     public Brush Summary = Frozen("#7FD9E8"), Dim = Frozen("#7B8794");
-    public Brush Xp = Frozen("#F0D54A");
+    public Brush Xp = Frozen("#F2E33D"), Loot = Frozen("#4A8CFF");
+    public Brush Money = Frozen("#33CC33"), Attack = Frozen("#4A8CFF");
 
     public FeedPalette(FeedColors c)
     {
@@ -26,6 +27,8 @@ internal sealed class FeedPalette
         Ability = Frozen(c.Ability, Ability); Cast = Frozen(c.Cast, Cast);
         Other = Frozen(c.Other, Other); Summary = Frozen(c.Summary, Summary);
         Dim = Frozen(c.Dim, Dim); Xp = Frozen(c.Xp, Xp);
+        Loot = Frozen(c.Loot, Loot); Money = Frozen(c.Money, Money);
+        Attack = Frozen(c.Attack, Attack);
     }
 
     /// <summary>A hex colour as a frozen brush, or <paramref name="fallback"/> when the
@@ -268,6 +271,10 @@ internal sealed class FeedView
     /// setting, like Rows). The template inherits the ListBox's FontSize.</summary>
     public double RowFont => Math.Clamp(HostPane.FontSize, 8, 24);
 
+    /// <summary>The family last pushed onto the list, so a render compares a string
+    /// instead of allocating a FontFamily per frame.</summary>
+    private string _appliedFamily = "";
+
     /// <summary>One row's height at the current font — the same +3 leading the original
     /// 11px/14px pairing had. The grip's row-drag and the viewport height both use it.</summary>
     public double RowHeight => Math.Round(RowFont + 3);
@@ -301,6 +308,12 @@ internal sealed class FeedView
 
         var f = Pane.Filters;
         if (_list.FontSize != RowFont) _list.FontSize = RowFont;
+        var family = HostPane.FontFamily is { Length: > 0 } ff ? ff : "Consolas";
+        if (_appliedFamily != family)
+        {
+            _appliedFamily = family;
+            _list.FontFamily = new FontFamily(family);
+        }
         _list.Height = RowsClamped() * RowHeight + 4;
 
         // The ScrollViewer only exists once the list has been templated, which is a
@@ -455,14 +468,15 @@ internal sealed class FeedView
     {
         FeedKind.Summary => _palette.Summary,
         FeedKind.Cast => _palette.Cast,
-        // Most log categories share the Other colour: they are context, not combat,
-        // and the colour dialog is already long. The exceptions earn theirs: Attack
-        // borrows the kill gold (it is combat state), and Xp gets its own bold yellow —
-        // a ding is a headline, not a log line.
-        FeedKind.Attack => _palette.Kill,
+        // The log kinds wear the GAME's chat colours (user screenshot): loot blue,
+        // money green, stances blue, xp bold yellow. Zone and chat stay in the dim
+        // context colour — the game gives every channel its own and the feed cannot
+        // know which channel a line came from.
+        FeedKind.Attack => _palette.Attack,
         FeedKind.Xp => _palette.Xp,
-        FeedKind.Loot or FeedKind.Zone or FeedKind.Chat
-            or FeedKind.Other => _palette.Other,
+        FeedKind.Loot => _palette.Loot,
+        FeedKind.Money => _palette.Money,
+        FeedKind.Zone or FeedKind.Chat or FeedKind.Other => _palette.Other,
         FeedKind.Kill => _palette.Kill,
         FeedKind.Heal => _palette.Heal,
         FeedKind.Taken => _palette.Incoming,

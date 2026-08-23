@@ -15,8 +15,11 @@ internal enum FeedKind
     /// <summary>Combat state you declared: "Auto attack is on/off.", stance and
     /// invocation changes, "You will now use X while auto attacking."</summary>
     Attack,
-    /// <summary>Loot, corpse coin, vendor sales, crafting results.</summary>
+    /// <summary>Loot, vendor sales, crafting results.</summary>
     Loot,
+    /// <summary>Corpse coin and splits — same filter pill as Loot, its own colour: the
+    /// game draws money green where loot is blue, and the feed matches the game.</summary>
+    Money,
     /// <summary>Progress: experience, AA gains and purchases, levels, skill-ups,
     /// faction hits.</summary>
     Xp,
@@ -259,8 +262,8 @@ internal sealed class DamageFeed
         RegenTickEvent => FeedKind.Heal,
         RuneBlockEvent or ThirdMissEvent => FeedKind.Miss,
         StanceEvent or InvocationEvent or SkillSubstitutionEvent => FeedKind.Attack,
-        LootEvent or MoneyEvent or AutoSellEvent or ItemDestroyedEvent
-            or CraftEvent => FeedKind.Loot,
+        MoneyEvent => FeedKind.Money,
+        LootEvent or AutoSellEvent or ItemDestroyedEvent or CraftEvent => FeedKind.Loot,
         XpEvent or AaEvent or AaPurchaseEvent or LevelEvent or SkillUpEvent
             or FactionEvent => FeedKind.Xp,
         ZoneEvent or LocationEvent => FeedKind.Zone,
@@ -522,7 +525,7 @@ internal sealed class DamageFeed
         {
             case FeedKind.Cast: return f.Casts;
             case FeedKind.Attack: return f.Attack;
-            case FeedKind.Loot: return f.Loot;
+            case FeedKind.Loot or FeedKind.Money: return f.Loot;
             case FeedKind.Xp: return f.Xp;
             case FeedKind.Zone: return f.Zone;
             case FeedKind.Chat: return f.Chat;
