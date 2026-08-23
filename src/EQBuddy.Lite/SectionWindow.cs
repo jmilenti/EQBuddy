@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Animation;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -35,6 +36,8 @@ public sealed class SectionWindow : Window
     private readonly Grid _grid;
     private readonly ScaleTransform _scale = new(1, 1);
     private readonly Button _close;
+    private readonly Border _alert;
+    private bool _alerting;
     private Action? _closeOverride;
 
     private const string DockBackTip = "Hook back under the main stack";
@@ -142,7 +145,7 @@ public sealed class SectionWindow : Window
         _grid.Children.Add(_close);
         _grid.Children.Add(grip);
 
-        Content = new Border
+        var body = new Border
         {
             Background = new SolidColorBrush(Color.FromArgb(0xF0, 0x10, 0x14, 0x18)),
             BorderBrush = new SolidColorBrush(Color.FromArgb(0x3C, 0xFF, 0xFF, 0xFF)),
@@ -151,8 +154,22 @@ public sealed class SectionWindow : Window
             Padding = new Thickness(14, 6, 14, 12),
             MinWidth = 200,
             Child = _grid,
-            LayoutTransform = _scale,
         };
+        // The combat outline rides OVER the panel rather than recolouring its border, so
+        // it can pulse without the window resizing or the content shifting by a pixel.
+        _alert = new Border
+        {
+            BorderBrush = new SolidColorBrush(Color.FromRgb(0xE8, 0x3B, 0x3B)),
+            BorderThickness = new Thickness(2),
+            CornerRadius = new CornerRadius(10),
+            IsHitTestVisible = false,
+            Opacity = 0,
+            Visibility = Visibility.Collapsed,
+        };
+        var stack = new Grid { LayoutTransform = _scale };
+        stack.Children.Add(body);
+        stack.Children.Add(_alert);
+        Content = stack;
 
         MouseLeftButtonDown += (_, e) =>
         {
@@ -186,4 +203,31 @@ public sealed class SectionWindow : Window
         Dispatcher.BeginInvoke(BeginUserDrag, DispatcherPriority.Input);
 
     public void SetScale(double scale) => _scale.ScaleX = _scale.ScaleY = scale;
+
+    /// <summary>Pulse a red outline around the window (a feed window's "combat is on"
+    /// cue), or stop. Idempotent — the render tick calls it every frame, and restarting
+    /// the animation each time would freeze it at whatever phase the tick caught.</summary>
+    public void SetAlert(bool on)
+    {
+        if (on == _alerting) return;
+        _alerting = on;
+        if (on)
+        {
+            _alert.Visibility = Visibility.Visible;
+            _alert.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation
+            {
+                From = 0.25,
+                To = 1.0,
+                Duration = TimeSpan.FromMilliseconds(550),
+                AutoReverse = true,
+                RepeatBehavior = RepeatBehavior.Forever,
+            });
+        }
+        else
+        {
+            _alert.BeginAnimation(UIElement.OpacityProperty, null);
+            _alert.Opacity = 0;
+            _alert.Visibility = Visibility.Collapsed;
+        }
+    }
 }

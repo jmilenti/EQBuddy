@@ -1,86 +1,127 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace EQBuddy.Lite;
 
-/// <summary>One row of a FEED list: pre-formatted text and its brush. Bound by the
-/// FeedRowTemplate resource in MainWindow.xaml.</summary>
-public sealed record FeedRow(string Text, Brush Color);
+/// <summary>One feed window's resolved colours. Built from the pane's <see cref="FeedColors"/>
+/// once and rebuilt when the user changes them, so a render never parses a hex string.</summary>
+internal sealed class FeedPalette
+{
+    public Brush You = Frozen("#CFE3F5"), Pet = Frozen("#8FD4C8"), Group = Frozen("#B9A7E8");
+    public Brush Incoming = Frozen("#E89C9C"), Heal = Frozen("#8BE28B"), Crit = Frozen("#E8CE9C");
+    public Brush Kill = Frozen("#D9C46B"), Spell = Frozen("#E8B24A"), Ability = Frozen("#FF8FC7");
+    public Brush Cast = Frozen("#9FB6D0"), Other = Frozen("#78838F");
+    public Brush Summary = Frozen("#7FD9E8"), Dim = Frozen("#7B8794");
 
-/// <summary>One FEED window: heading (with the + that spawns another, and ✕ to close
-/// extras), the search-chip row, the sixteen filter pills, and the fixed-height list.
-/// The panel can hold any number of these, all filtering the same shared
-/// <see cref="DamageFeed"/> buffers at render time — filtering is a lens, so extra
-/// windows cost only their own render, never a second copy of the scrollback.
-/// Everything the view owns persists in its <see cref="FeedPane"/>.</summary>
+    public FeedPalette(FeedColors c)
+    {
+        You = Frozen(c.You, You); Pet = Frozen(c.Pet, Pet); Group = Frozen(c.Group, Group);
+        Incoming = Frozen(c.Incoming, Incoming); Heal = Frozen(c.Heal, Heal);
+        Crit = Frozen(c.Crit, Crit); Kill = Frozen(c.Kill, Kill); Spell = Frozen(c.Spell, Spell);
+        Ability = Frozen(c.Ability, Ability); Cast = Frozen(c.Cast, Cast);
+        Other = Frozen(c.Other, Other); Summary = Frozen(c.Summary, Summary);
+        Dim = Frozen(c.Dim, Dim);
+    }
+
+    /// <summary>A hex colour as a frozen brush, or <paramref name="fallback"/> when the
+    /// string is missing or malformed — a typo in the settings file must not blank a row.</summary>
+    public static Brush Frozen(string? hex, Brush? fallback = null)
+    {
+        if (Parse(hex) is not { } color) return fallback ?? Brushes.Silver;
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        return brush;
+    }
+
+    public static Color? Parse(string? hex)
+    {
+        if (string.IsNullOrWhiteSpace(hex)) return null;
+        try
+        {
+            return ColorConverter.ConvertFromString(hex.Trim()) is Color c ? c : null;
+        }
+        catch (FormatException) { return null; }
+    }
+
+    public static string Hex(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";
+}
+
+/// <summary>One FEED pane's contents: the single filter line (mode, the filter popup,
+/// search chips) and the fixed-height list. The window chrome around it — heading, tab
+/// strip, +, ✕, context menu — belongs to <see cref="FeedHost"/>, because several panes
+/// can share one window as tabs.
+///
+/// Every pane filters the same shared <see cref="DamageFeed"/> buffer at render time, so
+/// extra panes cost only their own render, never a second copy of the scrollback.</summary>
 internal sealed class FeedView
 {
     public FeedPane Pane { get; }
     public string Key => Pane.Key;
-    public StackPanel Root { get; }
-    public TextBlock Header { get; }
-    public Rectangle TopSep { get; }
+    public StackPanel Body { get; }
+
+    /// <summary>The pane whose window draws this one. Its Rows is the viewport height and
+    /// its Show is the collapse state — those are properties of a WINDOW, and tabs in one
+    /// window that disagreed about their height would resize it on every tab click.</summary>
+    public FeedPane HostPane { get; set; }
+
+    /// <summary>Rows that have arrived since this pane was last drawn at the bottom of its
+    /// list — the "N new below" hint, and the dot on a background tab.</summary>
+    public int Unseen { get; private set; }
 
     private readonly MainWindow _owner;
     private readonly LiteUiSettings _ui;
     private readonly DamageFeed _feed;
-    private readonly WrapPanel _searchRow;
+    private readonly WrapPanel _filterRow;
     private readonly WrapPanel _pillRow;
+    private readonly Popup _pillPopup;
+    private readonly Button _pillButton;
+    private readonly Button _modeButton;
     private readonly ListBox _list;
     private readonly TextBox _searchBox;
     private readonly List<Action> _pillRefreshers = [];
+    private FeedPalette _palette;
 
-    /// <summary>The bound row list, newest first. Held for the life of the window and
-    /// mutated in place: a live feed inserts the handful of rows that arrived since the
-    /// last frame at the top and drops the same number off the bottom. Rebuilding it (the
-    /// old behaviour, once a second) reset the ListBox, threw away every realised row
-    /// container, and made the arrival of a line something you saw happen in a lump.</summary>
+    /// <summary>The bound row list, OLDEST first. Held for the life of the pane and
+    /// mutated in place: a live feed appends the handful of rows that arrived since the
+    /// last frame and drops the same number off the top.</summary>
     private readonly ObservableCollection<FeedRow> _rows = [];
 
     /// <summary>How far into <see cref="DamageFeed"/>'s sequence <see cref="_rows"/> has
     /// been filled, or -1 when the next render must rebuild from scratch (a filter moved,
-    /// the mode flipped, the window was re-opened).</summary>
+    /// the mode flipped, the tab was brought forward).</summary>
     private long _cursor = -1;
 
     /// <summary>The list is showing the "nothing matching yet" placeholder, which the
     /// first real row has to clear.</summary>
     private bool _placeholder;
 
-    /// <summary>Rows kept per window. Deep enough to scroll back through a long fight;
+    /// <summary>Rows kept per pane. Deep enough to scroll back through a long fight;
     /// virtualisation means only the visible dozen ever become controls.</summary>
     private const int MaxRows = 2000;
 
-    private static SolidColorBrush Frozen(byte r, byte g, byte b)
+    private static readonly Brush PillOnFg = FeedPalette.Frozen("#D9C46B");
+    private static readonly Brush PillOffFg = FeedPalette.Frozen("#55616C");
+    private static readonly Brush InputBrush = FeedPalette.Frozen("#DDE5EC");
+    private static readonly Brush PillOnBg = Fill(0x2E);
+    private static readonly Brush PillOffBg = Fill(0x10);
+    private static readonly Brush PillOnBorder = Fill(0x55);
+    private static readonly Brush PillOffBorder = Fill(0x1E);
+    private static readonly Brush PopupBg = FeedPalette.Frozen("#F5141A20");
+    private static readonly Brush RemoveFg = FeedPalette.Frozen("#8A97A3");
+
+    private static Brush Fill(byte alpha)
     {
-        var brush = new SolidColorBrush(Color.FromRgb(r, g, b));
-        brush.Freeze();
-        return brush;
+        var b = new SolidColorBrush(Color.FromArgb(alpha, 0xFF, 0xFF, 0xFF));
+        b.Freeze();
+        return b;
     }
 
-    private static readonly Brush YouBrush = Frozen(0xCF, 0xE3, 0xF5);
-    private static readonly Brush CritBrush = Frozen(0xE8, 0xCE, 0x9C);
-    private static readonly Brush PetBrush = Frozen(0x8F, 0xD4, 0xC8);
-    private static readonly Brush GroupBrush = Frozen(0xB9, 0xA7, 0xE8);
-    private static readonly Brush TakenBrush = Frozen(0xE8, 0x9C, 0x9C);
-    private static readonly Brush HealBrush = Frozen(0x8B, 0xE2, 0x8B);
-    private static readonly Brush DimBrush = Frozen(0x7B, 0x87, 0x94);
-    private static readonly Brush KillBrush = Frozen(0xD9, 0xC4, 0x6B);
-    private static readonly Brush RawBrush = Frozen(0xAE, 0xBB, 0xC7);
-    private static readonly Brush LinkBrush = Frozen(0x55, 0x61, 0x6C);
-    private static readonly Brush InputBrush = Frozen(0xDD, 0xE5, 0xEC);
-
-    private static readonly Brush PillOnFg = Frozen(0xD9, 0xC4, 0x6B);
-    private static readonly Brush PillOffFg = Frozen(0x55, 0x61, 0x6C);
-    private static readonly Brush PillOnBg = new SolidColorBrush(Color.FromArgb(0x2E, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush PillOffBg = new SolidColorBrush(Color.FromArgb(0x10, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush PillOnBorder = new SolidColorBrush(Color.FromArgb(0x55, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush PillOffBorder = new SolidColorBrush(Color.FromArgb(0x1E, 0xFF, 0xFF, 0xFF));
-
-    private string Title => Key == "feed" ? "FEED" : "FEED " + Key[4..];
+    public string Title => Pane.Title is { Length: > 0 } t ? t
+        : Key == "feed" ? "FEED" : "FEED " + Key[4..];
 
     public FeedView(MainWindow owner, LiteUiSettings ui, DamageFeed feed, FeedPane pane)
     {
@@ -88,80 +129,67 @@ internal sealed class FeedView
         _ui = ui;
         _feed = feed;
         Pane = pane;
-
-        TopSep = new Rectangle
-        {
-            Height = 1,
-            Fill = new SolidColorBrush(Color.FromArgb(0x2A, 0xFF, 0xFF, 0xFF)),
-            Margin = new Thickness(0, 9, 0, 7),
-        };
-
-        Header = new TextBlock
-        {
-            Text = $"▸ {Title} · live",
-            FontSize = 9.5,
-            Foreground = DimBrush,
-            Cursor = Cursors.Hand,
-            ToolTip = "Click to show/hide · drag to pop out · a live feed of combat "
-                + "from your log, with filters",
-        };
-        // The + is a real Button parked at the RIGHT end of the heading row, away from
-        // the heading's own drag/toggle surface. It was a bare "+" TextBlock beside the
-        // title in 1.68.0 and went unclicked: a 10 px glyph only hit-tests over its own
-        // strokes, so most of what looks like the button isn't. A templated Button has
-        // padding, a border, and a hover state — the whole pill is the target.
-        // (Closing lives on the section window's ✕, which spawned feeds repoint to a
-        // real close; the original FEED can be hidden in ⚙ but never closed, so there
-        // is always a window left to press + on.)
-        var spawn = new Button
-        {
-            Content = "+",
-            ToolTip = "Open another FEED window — its own filters, starting as a copy "
-                + "of this one's",
-            Cursor = Cursors.Hand,
-            Focusable = false,
-            FontSize = 11,
-            Foreground = PillOnFg,
-            Background = PillOffBg,
-            BorderBrush = PillOnBorder,
-            Padding = new Thickness(7, 0, 7, 1),
-            // Clear of the section window's ✕, which overlays the same top-right
-            // corner: the two controls do opposite things and must not share a pixel.
-            Margin = new Thickness(8, 0, 16, 0),
-            VerticalAlignment = VerticalAlignment.Center,
-            Template = (ControlTemplate)owner.FindResource("FlatButtonTemplate"),
-        };
-        System.Windows.Automation.AutomationProperties.SetAutomationId(spawn, "SpawnFeed");
-        spawn.Click += (_, _) => _owner.SpawnFeedPane(this);
-
-        // DockPanel, not StackPanel: the + rides the right edge of whatever width the
-        // ◢ grip has given this window, so it reads as its own control rather than
-        // punctuation after the title.
-        var headRow = new DockPanel { LastChildFill = true };
-        DockPanel.SetDock(spawn, Dock.Right);
-        headRow.Children.Add(spawn);
-        headRow.Children.Add(Header);
-        Header.VerticalAlignment = VerticalAlignment.Center;
-
-        _searchRow = new WrapPanel { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 4, 0, 0) };
-        _pillRow = new WrapPanel { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 2, 0, 2) };
+        HostPane = pane;
+        _palette = new FeedPalette(pane.Colors);
 
         _list = new ListBox
         {
             Margin = new Thickness(2, 2, 0, 0),
-            Visibility = Visibility.Collapsed,
             Background = Brushes.Transparent,
             BorderThickness = new Thickness(0),
-            ItemContainerStyle = (Style)_owner.FindResource("FeedItemStyle"),
-            ItemTemplate = (DataTemplate)_owner.FindResource("FeedRowTemplate"),
+            ItemContainerStyle = (Style)owner.FindResource("FeedItemStyle"),
+            ItemTemplate = (DataTemplate)owner.FindResource("FeedRowTemplate"),
             ItemsSource = _rows,
         };
         ScrollViewer.SetHorizontalScrollBarVisibility(_list, ScrollBarVisibility.Disabled);
         ScrollViewer.SetVerticalScrollBarVisibility(_list, ScrollBarVisibility.Auto);
+        // Item-unit scrolling is what makes "keep the reader where they are" exact: when
+        // the oldest rows fall off the top, the offset is shifted back by the number of
+        // rows removed, which is only meaningful if an offset counts rows.
+        VirtualizingPanel.SetScrollUnit(_list, ScrollUnit.Item);
+        VirtualizingPanel.SetVirtualizationMode(_list, VirtualizationMode.Recycling);
+
+        _pillRow = new WrapPanel { MaxWidth = 320 };
+        _pillPopup = new Popup
+        {
+            StaysOpen = false,
+            AllowsTransparency = true,
+            Placement = PlacementMode.Bottom,
+            PopupAnimation = PopupAnimation.Fade,
+            Child = new Border
+            {
+                Background = PopupBg,
+                BorderBrush = PillOnBorder,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(6, 5, 6, 5),
+                Child = _pillRow,
+            },
+        };
+
+        _modeButton = FlatButton("all", PillOffFg,
+            "Show the RAW log — every line the game writes, in order, with no filtering "
+            + "but your search chips. Click again for the filtered combat view.");
+        _modeButton.Click += (_, _) =>
+        {
+            Pane.Filters.RawMode = !Pane.Filters.RawMode;
+            _ui.Save();
+            RefreshFilterRow();
+            Invalidate();
+            Render(active: true);
+        };
+
+        _pillButton = FlatButton("filters", PillOffFg,
+            "Which rows this window shows — click for the whole set");
+        _pillButton.Click += (_, _) =>
+        {
+            _pillPopup.PlacementTarget = _pillButton;
+            _pillPopup.IsOpen = !_pillPopup.IsOpen;
+        };
 
         _searchBox = new TextBox
         {
-            MinWidth = 64,
+            MinWidth = 54,
             FontSize = 10,
             Padding = new Thickness(3, 0, 3, 1),
             Margin = new Thickness(0, 1, 2, 1),
@@ -181,19 +209,36 @@ internal sealed class FeedView
             else if (e.Key == System.Windows.Input.Key.Escape) { e.Handled = true; _searchBox.Clear(); }
         };
 
-        Root = new StackPanel();
-        Root.Children.Add(TopSep);
-        Root.Children.Add(headRow);
-        Root.Children.Add(_searchRow);
-        Root.Children.Add(_pillRow);
-        Root.Children.Add(_list);
+        _filterRow = new WrapPanel { Margin = new Thickness(0, 3, 0, 3) };
+
+        Body = new StackPanel();
+        Body.Children.Add(_filterRow);
+        Body.Children.Add(_list);
 
         BuildPills();
-        RefreshSearchRow();
+        RefreshFilterRow();
         ApplyInnerWidth(double.NaN);
     }
 
-    public int RowsClamped() => Math.Clamp(Pane.Rows, 4, 40);
+    public int RowsClamped() => Math.Clamp(HostPane.Rows, 4, 40);
+
+    /// <summary>Re-read the pane's colours (the colour dialog just changed them).</summary>
+    public void ApplyColors()
+    {
+        _palette = new FeedPalette(Pane.Colors);
+        Invalidate();
+    }
+
+    /// <summary>Put every filter back to what a brand-new window would have.</summary>
+    public void ResetFilters()
+    {
+        Pane.Filters = FeedPane.DefaultFilters();
+        _ui.Save();
+        RefreshPills();
+        RefreshFilterRow();
+        Invalidate();
+        Render(active: true);
+    }
 
     /// <summary>The section's width, from the ◢ grip (NaN = auto). The list takes the
     /// cap as a FIXED width, not a max — this window holds the size the user set and
@@ -201,8 +246,8 @@ internal sealed class FeedView
     public void ApplyInnerWidth(double width)
     {
         var cap = double.IsNaN(width) ? 340 : Math.Max(150, width);
-        _searchRow.MaxWidth = cap;
-        _pillRow.MaxWidth = cap;
+        _filterRow.MaxWidth = cap;
+        _pillRow.MaxWidth = Math.Max(cap, 300);
         _list.Width = cap;
     }
 
@@ -211,91 +256,110 @@ internal sealed class FeedView
     /// knows how to add what is new, not to re-judge what is already on screen.</summary>
     public void Invalidate() => _cursor = -1;
 
-    public void Render()
+    /// <summary>Draw. <paramref name="active"/> is false for a tab sitting behind another
+    /// one: it is not on screen, so it only keeps score of what it would have shown, for
+    /// the dot on its tab.</summary>
+    public void Render(bool active)
     {
-        if (!Pane.Show)
+        if (!active)
         {
-            SetHeader($"▸ {Title} · live");
-            _searchRow.Visibility = Visibility.Collapsed;
-            _pillRow.Visibility = Visibility.Collapsed;
-            _list.Visibility = Visibility.Collapsed;
-            // Nothing repaints a hidden list, so re-opening starts from scratch.
+            // Not visible, so never partially drawn: whatever is in _rows is stale the
+            // moment this tab comes forward.
             Invalidate();
+            if (_backgroundCursor == long.MaxValue)
+            {
+                // Just went to sleep: note where the buffer is now, so the dot counts what
+                // happens NEXT rather than everything already scrolled past.
+                _feed.Snapshot(Pane.Filters, 0, 0, out _backgroundCursor);
+                return;
+            }
+            Unseen += _feed.Snapshot(Pane.Filters, 200, _backgroundCursor, out _backgroundCursor).Count;
             return;
         }
-        var f = Pane.Filters;
-        var raw = f.RawMode;
-        _searchRow.Visibility = Visibility.Visible;
-        // The who/kind pills describe parsed combat events; raw mode shows the log
-        // verbatim, so they'd be dead controls there.
-        _pillRow.Visibility = raw ? Visibility.Collapsed : Visibility.Visible;
-        // The grip's row count is the VIEWPORT, and a FIXED one: this many rows tall
-        // whether the filter matches two rows or two thousand, so the window (and the
-        // stack docked under it) never moves as the fight ebbs.
-        _list.Height = RowsClamped() * 14 + 4;
-        _list.Visibility = Visibility.Visible;
+        _backgroundCursor = long.MaxValue;   // re-primed when this tab goes back to sleep
 
-        // Newest-first means every refresh shifts rows under a reader who has scrolled
-        // back — so while they're anywhere but the top, the list freezes and the header
-        // says so. The cursor doesn't advance either, so resuming catches up rather than
-        // skipping whatever landed while they were reading.
-        if (Scroller() is { VerticalOffset: > 0.5 })
+        var f = Pane.Filters;
+        _list.Height = RowsClamped() * 14 + 4;
+
+        // The ScrollViewer only exists once the list has been templated, which is a
+        // layout pass away from the first render — and the first render is the one that
+        // fills the list. Without this the feed would open showing its OLDEST rows.
+        if (_pendingBottom && Scroller() is { } late)
         {
-            SetHeader($"▾ {Title} · paused — scroll to top to resume");
-            return;
+            late.ScrollToBottom();
+            _pendingBottom = false;
+            Unseen = 0;
         }
-        SetHeader(raw ? $"▾ {Title} · raw log · live" : $"▾ {Title} · live");
 
         var rebuild = _cursor < 0;
-        var since = rebuild ? 0 : _cursor;
-        List<FeedRow> fresh;
-        if (raw)
+        var fresh = _feed.Snapshot(f, MaxRows, rebuild ? 0 : _cursor, out var cursor)
+            .Select(RowOf)
+            .ToList();
+        _cursor = cursor;
+        if (!rebuild && fresh.Count == 0)
         {
-            fresh = _feed.SnapshotRaw(f.SearchTerms, MaxRows, since, out var cursor)
-                .Select(l => new FeedRow(
-                    l.Time == DateTime.MinValue ? l.Text : $"{l.Time:HH:mm:ss}  {l.Text}",
-                    RawBrush))
-                .ToList();
-            _cursor = cursor;
+            // Still worth asking where the reader is: scrolling back to the bottom clears
+            // the "new below" count even on a quiet frame.
+            if (AtBottom()) Unseen = 0;
+            return;
         }
-        else
-        {
-            fresh = _feed.Snapshot(f, MaxRows, since, out var cursor).Select(RowOf).ToList();
-            _cursor = cursor;
-        }
-        if (!rebuild && fresh.Count == 0) return;   // the common frame: nothing to do
+
+        var scroller = Scroller();
+        var atBottom = AtBottom();
 
         // A rebuild starts empty; so does a list showing only the placeholder, which is
-        // not a row anyone wants pushed down the page.
+        // not a row anyone wants pushed up the page.
         if (rebuild || _placeholder)
         {
             _rows.Clear();
             _placeholder = false;
+            atBottom = true;   // a fresh list belongs at its newest end
         }
-        if (_rows.Count == 0)
+        foreach (var row in fresh) _rows.Add(row);
+
+        var dropped = 0;
+        while (_rows.Count > MaxRows) { _rows.RemoveAt(0); dropped++; }
+
+        if (atBottom)
         {
-            foreach (var row in fresh) _rows.Add(row);   // already newest-first
+            if (scroller is null) _pendingBottom = true;
+            else scroller.ScrollToBottom();
+            Unseen = 0;
         }
         else
         {
-            // Oldest of the new rows first, each pushed onto the top, so they end up
-            // newest-first above whatever was already there.
-            for (var i = fresh.Count - 1; i >= 0; i--) _rows.Insert(0, fresh[i]);
+            // The reader is somewhere above, so the view must not move under them.
+            // Appending below does not disturb the offset; rows falling off the TOP do,
+            // by exactly the number removed.
+            if (dropped > 0 && scroller is not null)
+                scroller.ScrollToVerticalOffset(Math.Max(0, scroller.VerticalOffset - dropped));
+            Unseen += fresh.Count;
         }
-        while (_rows.Count > MaxRows) _rows.RemoveAt(_rows.Count - 1);
 
         // An empty match set renders as one dim row INSIDE the fixed-height list —
         // swapping the list for a message would change the window's height.
         if (_rows.Count == 0)
         {
-            _rows.Add(new FeedRow("(nothing matching yet)", DimBrush));
+            _rows.Add(new FeedRow("(nothing matching yet)", _palette.Dim));
             _placeholder = true;
         }
     }
 
-    private void SetHeader(string text)
+    /// <summary>A scroll-to-bottom that could not happen yet because the list had not
+    /// been templated. Retried on the next frame, so it costs at most 100 ms.</summary>
+    private bool _pendingBottom = true;
+
+    /// <summary>Where a background tab's score-keeping got to. MaxValue means "start from
+    /// the newest" — a tab that has just been put to sleep should count what happens
+    /// NEXT, not everything already in the buffer.</summary>
+    private long _backgroundCursor = long.MaxValue;
+
+    /// <summary>Is the reader parked at the newest end? A list too short to scroll always
+    /// is, and so is one that has not been templated yet.</summary>
+    private bool AtBottom()
     {
-        if (Header.Text != text) Header.Text = text;
+        if (Scroller() is not { } sv) return true;
+        return sv.ScrollableHeight <= 0 || sv.VerticalOffset >= sv.ScrollableHeight - 0.5;
     }
 
     /// <summary>The ListBox's internal ScrollViewer, once templated (null before the
@@ -306,68 +370,102 @@ internal sealed class FeedView
         return VisualTreeHelper.GetChild(_list, 0) is Border b ? b.Child as ScrollViewer : null;
     }
 
-    private static FeedRow RowOf(FeedEntry e)
+    // ---- rows ----
+
+    private FeedRow RowOf(FeedEntry e)
     {
-        var t = e.Time.ToString("HH:mm:ss");
-        // The line as the game wrote it, colour-coded by what the parser made of it.
-        // The reformatted version below is only a fallback for entries with no raw text
-        // (captured before 1.68.1): a filtered feed is easier to read when its rows say
-        // exactly what the log says, and it stops the two modes looking like two apps.
-        if (e.Raw is { Length: > 0 } raw) return new FeedRow($"{t}  {raw}", BrushFor(e));
-        // The log's own annotation wins (it already says "Riposte Critical" when both
-        // apply); a bare crit flag gets the plain tag.
+        var spans = new List<FeedSpan>(4)
+        {
+            new($"{e.Time:HH:mm:ss}  ", _palette.Dim),
+        };
+        // The line as the game wrote it, colour-coded by what the parser made of it. The
+        // reformatted version is only a fallback for entries with no raw text (captured
+        // before 1.68.1): a filtered feed is easier to read when its rows say exactly
+        // what the log says.
+        var body = e.Raw is { Length: > 0 } raw ? raw : Fallback(e);
+        AddAccented(spans, body, e.Ability, BrushFor(e));
+        return new FeedRow(spans);
+    }
+
+    /// <summary>Add the line, with the ability/spell/item it names picked out in the
+    /// accent colour. Matching on the text the log actually printed is what keeps the
+    /// highlight honest — no accent is shown when the line does not literally contain the
+    /// name (a third-party hit with no skill, say).</summary>
+    private void AddAccented(List<FeedSpan> spans, string body, string ability, Brush baseBrush)
+    {
+        var at = ability.Length >= 3
+            ? body.IndexOf(ability, StringComparison.OrdinalIgnoreCase)
+            : -1;
+        if (at < 0)
+        {
+            spans.Add(new FeedSpan(body, baseBrush));
+            return;
+        }
+        if (at > 0) spans.Add(new FeedSpan(body[..at], baseBrush));
+        spans.Add(new FeedSpan(body.Substring(at, ability.Length), _palette.Ability));
+        var rest = at + ability.Length;
+        if (rest < body.Length) spans.Add(new FeedSpan(body[rest..], baseBrush));
+    }
+
+    /// <summary>Row colour by what the line turned out to be — the one piece of reading
+    /// help a verbatim log line can't give you itself. Spells, DoTs and procs share a gold
+    /// base so a caster's window reads as a column of casts with the spell names picked
+    /// out; melee keeps the who-colour it always had.</summary>
+    private Brush BrushFor(FeedEntry e) => e.Kind switch
+    {
+        FeedKind.Summary => _palette.Summary,
+        FeedKind.Cast => _palette.Cast,
+        FeedKind.Other => _palette.Other,
+        FeedKind.Kill => _palette.Kill,
+        FeedKind.Heal => _palette.Heal,
+        FeedKind.Taken => _palette.Incoming,
+        FeedKind.Miss or FeedKind.Resist or FeedKind.Fizzle => _palette.Dim,
+        FeedKind.Spell or FeedKind.Dot or FeedKind.Aux => e.Crit ? _palette.Crit : _palette.Spell,
+        _ => e.Crit ? _palette.Crit : e.Who switch
+        {
+            FeedWho.Pet => _palette.Pet,
+            FeedWho.Group => _palette.Group,
+            _ => _palette.You,
+        },
+    };
+
+    /// <summary>What a row said before 1.68.1 started keeping the raw line.</summary>
+    private static string Fallback(FeedEntry e)
+    {
         var tag = e.Note is { Length: > 0 } n ? $" ({n})" : e.Crit ? " (Crit)" : "";
         var actor = e.Who == FeedWho.You ? "" : $"{e.Actor}: ";
         return e.Kind switch
         {
-            FeedKind.Melee or FeedKind.Spell or FeedKind.Dot or FeedKind.Aux => new FeedRow(
-                $"{t}  {actor}{e.Ability} → {e.Target}  {e.Amount:N0}{tag}",
-                e.Crit ? CritBrush : e.Who switch
-                {
-                    FeedWho.Pet => PetBrush,
-                    FeedWho.Group => GroupBrush,
-                    _ => YouBrush,
-                }),
-            FeedKind.Taken => new FeedRow(
-                $"{t}  {e.Actor}{(e.Ability.Length > 0 ? $" {e.Ability}" : "")} → you  {e.Amount:N0}",
-                TakenBrush),
-            FeedKind.Heal => new FeedRow(
-                e.Incoming
-                    ? $"{t}  {e.Actor} heals you  +{e.Amount:N0}"
-                    : $"{t}  {e.Ability} → {e.Target}  +{e.Amount:N0}",
-                HealBrush),
-            FeedKind.Miss => new FeedRow(
-                e.Incoming ? $"{t}  missed you" : $"{t}  you miss", DimBrush),
-            FeedKind.Kill => new FeedRow($"{t}  {e.Actor} slew {e.Target}", KillBrush),
-            FeedKind.Resist => new FeedRow(
-                $"{t}  {(e.Ability.Length > 0 ? e.Ability : "spell")} resisted", DimBrush),
-            _ => new FeedRow(
-                $"{t}  {(e.Ability.Length > 0 ? e.Ability : "spell")} fizzled", DimBrush),
+            FeedKind.Melee or FeedKind.Spell or FeedKind.Dot or FeedKind.Aux =>
+                $"{actor}{e.Ability} → {e.Target}  {e.Amount:N0}{tag}",
+            FeedKind.Taken =>
+                $"{e.Actor}{(e.Ability.Length > 0 ? $" {e.Ability}" : "")} → you  {e.Amount:N0}",
+            FeedKind.Heal => e.Incoming
+                ? $"{e.Actor} heals you  +{e.Amount:N0}"
+                : $"{e.Ability} → {e.Target}  +{e.Amount:N0}",
+            FeedKind.Miss => e.Incoming ? "missed you" : "you miss",
+            FeedKind.Kill => $"{e.Actor} slew {e.Target}",
+            FeedKind.Resist => $"{(e.Ability.Length > 0 ? e.Ability : "spell")} resisted",
+            _ => $"{(e.Ability.Length > 0 ? e.Ability : "spell")} fizzled",
         };
     }
 
-    /// <summary>Row colour by what the line turned out to be — the one piece of reading
-    /// help a verbatim log line can't give you itself.</summary>
-    private static Brush BrushFor(FeedEntry e) => e.Kind switch
-    {
-        FeedKind.Kill => KillBrush,
-        FeedKind.Heal => HealBrush,
-        FeedKind.Taken => TakenBrush,
-        FeedKind.Miss or FeedKind.Resist or FeedKind.Fizzle => DimBrush,
-        _ => e.Crit ? CritBrush : e.Who switch
-        {
-            FeedWho.Pet => PetBrush,
-            FeedWho.Group => GroupBrush,
-            _ => YouBrush,
-        },
-    };
+    // ---- the filter popup ----
 
-    /// <summary>The filter pills — sixteen toggles sharing one tiny template. Each pill
-    /// owns its refresh closure; clicking saves and re-renders THIS view only, so two
-    /// feed windows never fight over a filter.</summary>
+    /// <summary>The filter pills. Each owns its refresh closure; clicking saves and
+    /// re-renders THIS pane only, so two feed windows never fight over a filter.</summary>
     private void BuildPills()
     {
         var f = Pane.Filters;
+        void Group(string label) => _pillRow.Children.Add(new TextBlock
+        {
+            Text = label,
+            FontSize = 9,
+            Foreground = PillOffFg,
+            Margin = new Thickness(1, 4, 5, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
         void Pill(string label, string tip, Func<bool> isOn, Action click, Func<string>? text = null)
         {
             var tb = new TextBlock { FontSize = 10, Text = label };
@@ -395,20 +493,22 @@ internal sealed class FeedView
                 click();
                 _ui.Save();
                 Refresh();
+                RefreshFilterRow();
                 Invalidate();
-                Render();
+                Render(active: true);
             };
             Refresh();
             _pillRefreshers.Add(Refresh);
             _pillRow.Children.Add(pill);
         }
 
-        // who
+        Group("who");
         Pill("you", "Your own damage", () => f.You, () => f.You = !f.You);
         Pill("pet", "Your pet's damage", () => f.Pet, () => f.Pet = !f.Pet);
         Pill("grp", "Other players near you, from your log", () => f.Group, () => f.Group = !f.Group);
         Pill("in", "Damage you take", () => f.Incoming, () => f.Incoming = !f.Incoming);
-        // kind
+
+        Group("what");
         Pill("melee", "Melee hits", () => f.Melee, () => f.Melee = !f.Melee);
         Pill("spell", "Direct spell damage", () => f.Spells, () => f.Spells = !f.Spells);
         Pill("dot", "Damage-over-time ticks", () => f.Dots, () => f.Dots = !f.Dots);
@@ -417,7 +517,21 @@ internal sealed class FeedView
         Pill("miss", "Misses, dodges, parries", () => f.Misses, () => f.Misses = !f.Misses);
         Pill("kill", "Killing blows", () => f.Kills, () => f.Kills = !f.Kills);
         Pill("r/f", "Resists and fizzles", () => f.ResistsFizzles, () => f.ResistsFizzles = !f.ResistsFizzles);
-        // narrowing
+        Pill("cast", "Casting: begin casting, interrupts, regaining concentration, "
+            + "buffs wearing off", () => f.Casts, () => f.Casts = !f.Casts);
+        Pill("other", "Every remaining line the log writes — chat, emotes, loot, xp, "
+            + "zone changes, system messages. Nothing is hidden from the feed; this is "
+            + "where anything without a bucket of its own lives.",
+            () => f.Other, () => f.Other = !f.Other);
+
+        Group("kill summary");
+        Pill("sum·you", "After a mob dies, a line with YOUR damage and dps against it",
+            () => f.SummaryYou, () => f.SummaryYou = !f.SummaryYou);
+        Pill("sum·pet", "The same line for your pet", () => f.SummaryPet, () => f.SummaryPet = !f.SummaryPet);
+        Pill("sum·grp", "The same line for everyone else who hit it",
+            () => f.SummaryGroup, () => f.SummaryGroup = !f.SummaryGroup);
+
+        Group("only");
         Pill("crit", "Critical hits only", () => f.CritsOnly, () => f.CritsOnly = !f.CritsOnly);
         Pill("slay", "Slay Undead hits only (combines with rip/crip as either-or)",
             () => f.OnlySlays, () => f.OnlySlays = !f.OnlySlays);
@@ -439,7 +553,35 @@ internal sealed class FeedView
             () => $"type·{f.MeleeType}");
     }
 
-    // ---- search chips: [all] [term ✕]… [box] [+] ----
+    private void RefreshPills()
+    {
+        foreach (var refresh in _pillRefreshers) refresh();
+    }
+
+    /// <summary>How many filters are narrowing this window, for the button's badge. The
+    /// count is of switches turned AWAY from the default, so a window showing everything
+    /// reads "filters" and a tuned one reads "filters · 4".</summary>
+    private int NarrowingCount()
+    {
+        var f = Pane.Filters;
+        var d = FeedPane.DefaultFilters();
+        var n = 0;
+        void Cmp(bool a, bool b) { if (a != b) n++; }
+        Cmp(f.You, d.You); Cmp(f.Pet, d.Pet); Cmp(f.Group, d.Group); Cmp(f.Incoming, d.Incoming);
+        Cmp(f.Melee, d.Melee); Cmp(f.Spells, d.Spells); Cmp(f.Dots, d.Dots);
+        Cmp(f.DamageShields, d.DamageShields); Cmp(f.Heals, d.Heals); Cmp(f.Misses, d.Misses);
+        Cmp(f.Kills, d.Kills); Cmp(f.ResistsFizzles, d.ResistsFizzles);
+        Cmp(f.Casts, d.Casts); Cmp(f.Other, d.Other);
+        Cmp(f.SummaryYou, d.SummaryYou); Cmp(f.SummaryPet, d.SummaryPet);
+        Cmp(f.SummaryGroup, d.SummaryGroup);
+        Cmp(f.CritsOnly, d.CritsOnly); Cmp(f.OnlySlays, d.OnlySlays);
+        Cmp(f.OnlyRipostes, d.OnlyRipostes); Cmp(f.OnlyCrippling, d.OnlyCrippling);
+        if (f.MinDamage != d.MinDamage) n++;
+        if (f.MeleeType != d.MeleeType) n++;
+        return n;
+    }
+
+    // ---- the single filter line: [all] [filters ▾] [chip ✕]… [box] [+] ----
 
     private void CommitSearch()
     {
@@ -450,37 +592,42 @@ internal sealed class FeedView
         if (!f.SearchTerms.Any(t => string.Equals(t, term, StringComparison.OrdinalIgnoreCase)))
             f.SearchTerms.Add(term);
         _ui.Save();
-        RefreshSearchRow();
+        RefreshFilterRow();
         Invalidate();
-        Render();
+        Render(active: true);
     }
 
-    /// <summary>Rebuild the whole row — chips are cheap and a full rebuild keeps one
+    /// <summary>Rebuild the one filter line. Chips are cheap and a full rebuild keeps one
     /// source of truth (the pane's list). The text box is a persistent instance so
-    /// half-typed input survives a chip add/remove.</summary>
-    private void RefreshSearchRow()
+    /// half-typed input survives a chip add/remove.
+    ///
+    /// ONE line, not four: the mode button and the pills used to sit on rows of their own,
+    /// which cost more of the window than the log did. The pills moved into a popup that
+    /// stays open while you click through it, and "all" (the raw log) is a MODE — when it
+    /// is on, the pills do not apply and their button is not shown, so the line only ever
+    /// offers the filters that are live.</summary>
+    private void RefreshFilterRow()
     {
         var f = Pane.Filters;
-        _searchRow.Children.Clear();
+        _filterRow.Children.Clear();
 
-        var all = FlatButton("all", f.RawMode ? PillOnFg : PillOffFg,
-            "Show the raw log — every line the game writes (chat, emotes, system, " +
-            "everything), not just parsed combat. Chips filter by text; click again " +
-            "for the combat view.");
+        _modeButton.Foreground = f.RawMode ? PillOnFg : PillOffFg;
+        _modeButton.Background = f.RawMode ? PillOnBg : PillOffBg;
+        _modeButton.BorderBrush = f.RawMode ? PillOnBorder : PillOffBorder;
+        _filterRow.Children.Add(_modeButton);
+
         if (f.RawMode)
         {
-            all.Background = PillOnBg;
-            all.BorderBrush = PillOnBorder;
+            _pillPopup.IsOpen = false;
         }
-        all.Click += (_, _) =>
+        else
         {
-            f.RawMode = !f.RawMode;
-            _ui.Save();
-            RefreshSearchRow();
-            Invalidate();
-            Render();
-        };
-        _searchRow.Children.Add(all);
+            var narrowing = NarrowingCount();
+            _pillButton.Content = narrowing == 0 ? "filters ▾" : $"filters · {narrowing} ▾";
+            _pillButton.Foreground = narrowing == 0 ? PillOffFg : PillOnFg;
+            _pillButton.BorderBrush = narrowing == 0 ? PillOffBorder : PillOnBorder;
+            _filterRow.Children.Add(_pillButton);
+        }
 
         foreach (var term in f.SearchTerms.ToList())
         {
@@ -491,7 +638,7 @@ internal sealed class FeedView
                 Foreground = PillOnFg,
                 VerticalAlignment = VerticalAlignment.Center,
             };
-            var remove = FlatButton("✕", Frozen(0x8A, 0x97, 0xA3), $"Stop filtering by {term}");
+            var remove = FlatButton("✕", RemoveFg, $"Stop filtering by {term}");
             remove.Margin = new Thickness(3, 0, 0, 0);
             remove.Padding = new Thickness(2, 0, 2, 1);
             remove.BorderThickness = new Thickness(0);
@@ -500,14 +647,14 @@ internal sealed class FeedView
             {
                 f.SearchTerms.RemoveAll(t => string.Equals(t, term, StringComparison.OrdinalIgnoreCase));
                 _ui.Save();
-                RefreshSearchRow();
+                RefreshFilterRow();
                 Invalidate();
-                Render();
+                Render(active: true);
             };
             var body = new StackPanel { Orientation = Orientation.Horizontal };
             body.Children.Add(text);
             body.Children.Add(remove);
-            _searchRow.Children.Add(new Border
+            _filterRow.Children.Add(new Border
             {
                 CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(5, 1, 3, 1),
@@ -519,10 +666,10 @@ internal sealed class FeedView
             });
         }
 
-        _searchRow.Children.Add(_searchBox);
+        _filterRow.Children.Add(_searchBox);
         var plus = FlatButton("+", PillOnFg, "Add the typed word as a chip (same as Enter)");
         plus.Click += (_, _) => CommitSearch();
-        _searchRow.Children.Add(plus);
+        _filterRow.Children.Add(plus);
     }
 
     private Button FlatButton(string text, Brush fg, string tip) => new()
@@ -539,4 +686,9 @@ internal sealed class FeedView
         Margin = new Thickness(0, 1, 4, 1),
         Template = (ControlTemplate)_owner.FindResource("FlatButtonTemplate"),
     };
+
+    /// <summary>Formatted for the heading: what this pane is showing right now.</summary>
+    public string StatusSuffix => Pane.Filters.RawMode
+        ? Unseen > 0 ? $"raw log · {Unseen} new below" : "raw log · live"
+        : Unseen > 0 ? $"{Unseen} new below" : "live";
 }

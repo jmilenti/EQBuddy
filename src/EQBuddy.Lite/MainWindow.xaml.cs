@@ -42,10 +42,17 @@ public partial class MainWindow : Window
     // "feed2", …) join this list from FeedPanes at startup and as the user adds them.
     private readonly List<string> SectionKeys = ["motes", "loot", "fights", "spawns", "group", "group2"];
     private readonly Dictionary<string, SectionWindow> _sectionWindows = new();
+    /// <summary>Every OPEN feed pane, whether it is a window of its own or a tab inside
+    /// one. Closed panes live on in <see cref="LiteUiSettings.FeedPanes"/> with their
+    /// settings, but have no view until they are reopened.</summary>
     private readonly Dictionary<string, FeedView> _feedViews = new();
 
+    /// <summary>The feed WINDOWS, by the key of the pane that names each one. A host
+    /// draws one of its panes at a time and a tab strip for the rest.</summary>
+    private readonly Dictionary<string, FeedHost> _feedHosts = new();
+
     private FrameworkElement SectionElement(string key) =>
-        _feedViews.TryGetValue(key, out var feedView) ? feedView.Root : key switch
+        _feedHosts.TryGetValue(key, out var host) ? host.Root : key switch
         {
             "motes" => MotesSection,
             "loot" => LootSection,
@@ -153,15 +160,15 @@ public partial class MainWindow : Window
                 Rows = _ui.FeedRows,
                 Show = _ui.ShowFeed,
             });
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var pane in _ui.FeedPanes.ToList())
-        {
-            if (string.IsNullOrEmpty(pane.Key) || _feedViews.ContainsKey(pane.Key))
-            {
-                _ui.FeedPanes.Remove(pane);  // a hand-edited duplicate; drop it
-                continue;
-            }
-            AddFeedView(pane);
-        }
+            if (string.IsNullOrEmpty(pane.Key) || !seen.Add(pane.Key))
+                _ui.FeedPanes.Remove(pane);   // a hand-edited duplicate; drop it
+        // Closed panes are remembered, not deleted — but the app must never come up with
+        // no feed at all, or there is no + to press and no menu to reopen from.
+        if (_ui.FeedPanes.Count > 0 && _ui.FeedPanes.TrueForAll(pane => pane.Closed))
+            _ui.FeedPanes[0].Closed = false;
+        RebuildFeedSections();
         Loaded += (_, _) => SetupSectionWindows();
         LocationChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
         SizeChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
@@ -472,8 +479,8 @@ public partial class MainWindow : Window
             Group2Label, Group2List, Group2EmptyText, lastFight, s);
 
         _feed.PetName = s.PetName;
-        foreach (var view in _feedViews.Values)
-            view.TopSep.Visibility = Attached(view.Key) ? Visibility.Visible : Visibility.Collapsed;
+        foreach (var host in _feedHosts.Values)
+            host.TopSep.Visibility = Attached(host.Key) ? Visibility.Visible : Visibility.Collapsed;
         RenderFeeds();
 
         // Everything above may have changed a section's height; re-seat the stack once
@@ -714,7 +721,15 @@ public partial class MainWindow : Window
     /// row is attributed by, a section becoming attached).</summary>
     private void RenderFeeds()
     {
-        foreach (var view in _feedViews.Values) view.Render();
+        // "In combat" is the log's own answer: blows were landing a moment ago. Six
+        // seconds rides out a swing timer and still lets the outline go out with the
+        // fight rather than a while after it.
+        var combatOn = DateTime.Now - _feed.LastCombat < TimeSpan.FromSeconds(6);
+        foreach (var (key, host) in _feedHosts)
+        {
+            host.Render();
+            if (_sectionWindows.TryGetValue(key, out var win)) win.SetAlert(host.Wants(combatOn));
+        }
     }
 
     private static SolidColorBrush Frozen(byte r, byte g, byte b)
@@ -1215,12 +1230,21 @@ public partial class MainWindow : Window
         RootStack.Children.Remove(el);
         var win = new SectionWindow(key, el, this);
         win.SetScale(RootScale.ScaleX);
-        // A user-spawned feed window's ✕ closes it for good; every shipped section's ✕
-        // keeps its "hook back under the stack" meaning.
-        if (key != "feed" && _feedViews.ContainsKey(key))
+        // A FEED window's ✕ closes it (remembering its settings); every shipped
+        // section's ✕ keeps its "hook back under the stack" meaning.
+        if (_feedHosts.ContainsKey(key))
             win.CloseOverride = () =>
             {
-                if (_feedViews.TryGetValue(key, out var view)) CloseFeedPane(view);
+                if (!_feedHosts.TryGetValue(key, out var host)) return;
+                // The LAST feed window can't be closed — there would be no + left to
+                // press and no menu to reopen from — so its ✕ keeps the old meaning and
+                // hooks it back under the stack.
+                if (_ui.FeedPanes.Count(p => !p.Closed) <= host.Views.Count)
+                {
+                    DockToStack(win);
+                    return;
+                }
+                foreach (var view in host.Views.ToList()) CloseFeedPane(view);
             };
         var at = Mouse.GetPosition(this);
         win.Left = Left + at.X - 24;
@@ -1253,53 +1277,268 @@ public partial class MainWindow : Window
         SaveLayout();   // the dock graph is remembered now, so every change to it is saved
     }
 
-    /// <summary>Wire a pane into the panel: view, section key, heading toggle.</summary>
-    private void AddFeedView(FeedPane pane)
+    /// <summary>Where a feed window sat, so a successor can take its place exactly.</summary>
+    private sealed record SectionSlot(double Left, double Top, Window? Host, DockSide Side,
+        List<SectionWindow> Followers);
+
+    /// <summary>Bring the feed windows into line with the panes. One function does every
+    /// structural change — a new window, a new tab, a tab detached, two windows merged,
+    /// one closed or reopened — because they are all the same operation: work out which
+    /// panes are open, which of them name a window, and make the UI say so. Views are
+    /// keyed by pane and survive the rebuild, so a tab dragged between windows keeps its
+    /// scrollback. Returns the windows that are new, for the caller to place.</summary>
+    private List<string> RebuildFeedSections()
     {
-        var view = new FeedView(this, _ui, _feed, pane);
-        _feedViews[pane.Key] = view;
-        SectionKeys.Add(pane.Key);
-        RootStack.Children.Add(view.Root);
-        WireSection(view.Header, pane.Key, () => pane.Show = !pane.Show);
+        var open = _ui.FeedPanes.Where(p => !p.Closed && p.Key.Length > 0).ToList();
+        var openKeys = open.Select(p => p.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // A host must be an open pane other than this one, and must host itself: tabs
+        // never chain, so a settings file (or a merge of a merge) that says otherwise is
+        // straightened out here rather than defended against everywhere else.
+        foreach (var pane in open)
+            if (pane.Host.Length > 0 &&
+                (!openKeys.Contains(pane.Host) ||
+                 pane.Host.Equals(pane.Key, StringComparison.OrdinalIgnoreCase)))
+                pane.Host = "";
+        foreach (var pane in open)
+            if (pane.Host.Length > 0 && open.First(x => x.Key == pane.Host).Host.Length > 0)
+                pane.Host = "";
+
+        foreach (var pane in open)
+            if (!_feedViews.ContainsKey(pane.Key))
+                _feedViews[pane.Key] = new FeedView(this, _ui, _feed, pane);
+        foreach (var key in _feedViews.Keys.Where(k => !openKeys.Contains(k)).ToList())
+            _feedViews.Remove(key);
+
+        var hostKeys = open.Where(p => p.Host.Length == 0).Select(p => p.Key).ToList();
+        foreach (var key in _feedHosts.Keys.Where(k => !hostKeys.Contains(k)).ToList())
+            DropFeedSection(key);
+
+        var added = new List<string>();
+        foreach (var key in hostKeys)
+        {
+            if (_feedHosts.ContainsKey(key)) continue;
+            var host = new FeedHost(this, _ui, _feedViews[key].Pane);
+            _feedHosts[key] = host;
+            SectionKeys.Add(key);
+            RootStack.Children.Add(host.Root);
+            WireSection(host.Header, key, () => host.Pane.Show = !host.Pane.Show);
+            added.Add(key);
+        }
+
+        // Two passes: every window lets go of the body it is showing before any window
+        // takes one up, or a pane moving from one window to another would be claimed
+        // while the old window still holds it.
+        foreach (var host in _feedHosts.Values) host.ClearBody();
+        foreach (var (key, host) in _feedHosts)
+        {
+            var views = open
+                .Where(p => (p.Host.Length == 0 ? p.Key : p.Host)
+                    .Equals(key, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(p => p.Order).ThenBy(p => p.Key, StringComparer.Ordinal)
+                .Select(p => _feedViews[p.Key])
+                .ToList();
+            foreach (var view in views) view.HostPane = host.Pane;
+            host.SetViews(views);
+            host.ApplyInnerWidth(_ui.SectionWidths.TryGetValue(key, out var w) ? w : double.NaN);
+        }
+        _ui.Save();
+        return added;
+    }
+
+    /// <summary>Tear down a feed window whose pane no longer names one (it was closed, or
+    /// merged into another window as a tab). Without a successor its followers bridge to
+    /// its own host so the stack closes over the gap; with one they are handed over by
+    /// <see cref="AdoptSlot"/> instead, and the returned slot says where to put it.</summary>
+    private SectionSlot? DropFeedSection(string key, bool capture = false)
+    {
+        SectionSlot? slot = null;
+        if (_sectionWindows.TryGetValue(key, out var win))
+        {
+            var followers = _sectionWindows.Values
+                .Where(f => ReferenceEquals(f.DockHost, win)).ToList();
+            if (capture)
+            {
+                slot = new SectionSlot(win.Left, win.Top, win.DockHost, win.DockSide, followers);
+            }
+            else
+            {
+                foreach (var follower in followers)
+                {
+                    follower.DockSide = win.DockSide;
+                    follower.DockHost = win.DockHost ?? this;
+                }
+            }
+            _sectionWindows.Remove(key);
+            win.Close();
+        }
+        else if (_feedHosts.TryGetValue(key, out var host))
+        {
+            RootStack.Children.Remove(host.Root);
+        }
+        _feedHosts.Remove(key);
+        SectionKeys.Remove(key);
+        return slot;
+    }
+
+    /// <summary>Put a newly detached window into the place a departed one held, and hand
+    /// it that window's followers — a tab taking over from the pane that named the window
+    /// should leave the stack looking untouched.</summary>
+    private void AdoptSlot(string key, SectionSlot slot)
+    {
+        if (!_sectionWindows.TryGetValue(key, out var win)) return;
+        win.DockHost = slot.Host;
+        win.DockSide = slot.Side;
+        win.Left = slot.Left;
+        win.Top = slot.Top;
+        foreach (var follower in slot.Followers)
+            if (!ReferenceEquals(follower, win)) follower.DockHost = win;
+        RepositionFollowers(win);
     }
 
     /// <summary>The + on a FEED heading: another FEED window, starting as a copy of
     /// the clicked one's filters (set up a view, clone it, tweak the copy). It hooks
     /// under the stack's tail like any new section.</summary>
-    internal void SpawnFeedPane(FeedView from)
+    /// <summary>A fresh pane cloned from an existing one — same filters, same colours,
+    /// same size. A JSON round-trip is the cheapest deep copy of the settings bags, and
+    /// sharing the instances would tie the two windows together.</summary>
+    private FeedPane ClonePane(FeedView from, string host)
     {
         var n = 2;
-        while (_feedViews.ContainsKey("feed" + n)) n++;
-        var pane = new FeedPane
+        while (_ui.FeedPanes.Any(p => p.Key == "feed" + n)) n++;
+        return new FeedPane
         {
             Key = "feed" + n,
-            Rows = from.Pane.Rows,
+            Rows = from.HostPane.Rows,
             Show = true,
-            // A JSON round-trip is the cheapest deep copy — FeedFilters is a plain
-            // settings bag, and sharing the instance would tie the two windows together.
-            Filters = System.Text.Json.JsonSerializer.Deserialize<FeedFilters>(
-                System.Text.Json.JsonSerializer.Serialize(from.Pane.Filters)) ?? new FeedFilters(),
+            Host = host,
+            Order = host.Length == 0 ? 0 : NextTabOrder(host),
+            Filters = Copy(from.Pane.Filters) ?? new FeedFilters(),
+            Colors = Copy(from.Pane.Colors) ?? new FeedColors(),
+            CombatGlow = from.Pane.CombatGlow,
         };
-        // Same width as the window it came from, not the 340 px default: the pill rows
-        // WRAP on width, so a copy even slightly narrower stands a whole pill row taller
-        // than its source and the two can never be lined up however carefully they are
+    }
+
+    private static T? Copy<T>(T value) => System.Text.Json.JsonSerializer.Deserialize<T>(
+        System.Text.Json.JsonSerializer.Serialize(value));
+
+    private int NextTabOrder(string host) =>
+        _ui.FeedPanes.Where(p => p.Host == host).Select(p => p.Order + 1).DefaultIfEmpty(1).Max();
+
+    /// <summary>The + on a FEED heading: another FEED WINDOW, starting as a copy of the
+    /// tab that was in front.</summary>
+    internal void SpawnFeedPane(FeedView from)
+    {
+        var pane = ClonePane(from, host: "");
+        // Same width as the window it came from, not the 340 px default: the filter line
+        // WRAPS on width, so a copy even slightly narrower can stand a row taller than
+        // its source and the two could never be lined up however carefully they are
         // dragged. Matching the width is what makes the heights match.
-        if (_ui.SectionWidths.TryGetValue(from.Key, out var srcWidth))
+        if (_ui.SectionWidths.TryGetValue(SectionKeyOf(from), out var srcWidth))
             _ui.SectionWidths[pane.Key] = srcWidth;
         _ui.FeedPanes.Add(pane);
-        AddFeedView(pane);
-        Detach(pane.Key, tearOff: false);
-        ApplySectionWidth(pane.Key,
-            _ui.SectionWidths.TryGetValue(pane.Key, out var w) ? w : double.NaN);
+        RebuildFeedSections();
+        OpenFeedWindow(pane.Key, SectionKeyOf(from));
+    }
+
+    /// <summary>Right-click ▸ New tab: another pane inside THIS window, cloned from the
+    /// tab in front — the game's own chat windows stack lenses this way, and a second
+    /// view of the log rarely deserves a second rectangle of screen.</summary>
+    internal void AddFeedTab(FeedHost host)
+    {
+        var pane = ClonePane(host.Active, host.Key);
+        _ui.FeedPanes.Add(pane);
+        RebuildFeedSections();
+        if (_feedViews.TryGetValue(pane.Key, out var view)) host.Select(view);
+        Tick();
+    }
+
+    /// <summary>Right-click ▸ Move this tab to its own window. The tab that NAMES the
+    /// window is allowed to leave too: one of the tabs staying behind takes the window
+    /// over, inheriting its place in the stack, and the departing pane gets a new one
+    /// beside it. Without that, the one tab you cannot move would be the first one.</summary>
+    internal void DetachFeedTab(FeedView view)
+    {
+        var hostKey = SectionKeyOf(view);
+        if (!_feedHosts.TryGetValue(hostKey, out var host) || host.Views.Count < 2) return;
+
+        var near = hostKey;
+        SectionSlot? slot = null;
+        if (view.Pane.Host.Length == 0)
+        {
+            var successor = host.Views.First(v => !ReferenceEquals(v, view)).Pane;
+            slot = DropFeedSection(hostKey, capture: true);
+            InheritSectionSettings(hostKey, successor.Key);
+            foreach (var stays in host.Views)
+                stays.Pane.Host = ReferenceEquals(stays.Pane, successor) ? "" : successor.Key;
+            near = successor.Key;
+        }
+        view.Pane.Host = "";
+
+        foreach (var key in RebuildFeedSections()) MakeFeedWindow(key);
+        if (slot is not null) AdoptSlot(near, slot);
+        PlaceFeedWindow(view.Key, near);
+        RepinStack();
+        SaveLayout();
+        Tick();
+    }
+
+    /// <summary>Right-click ▸ Merge this window into ▸ …: every tab here becomes a tab
+    /// there, and this window goes away.</summary>
+    internal void MergeFeedWindow(FeedHost from, FeedHost into)
+    {
+        if (ReferenceEquals(from, into)) return;
+        foreach (var view in from.Views.ToList())
+        {
+            view.Pane.Host = into.Key;
+            view.Pane.Order = NextTabOrder(into.Key);
+        }
+        RebuildFeedSections();
+        RepinStack();
+        SaveLayout();
+        Tick();
+    }
+
+    /// <summary>Give a host pane a window of its own, at the width remembered for it.</summary>
+    private void MakeFeedWindow(string key)
+    {
+        if (!_feedHosts.TryGetValue(key, out var host) || _sectionWindows.ContainsKey(key)) return;
+        // Draw the contents BEFORE the window wraps them: a feed list only gets its height
+        // from a render, and a SizeToContent window built around an unrendered one comes
+        // up as a heading with nothing under it.
+        host.Render();
+        Detach(key, tearOff: false);
+        ApplySectionWidth(key, _ui.SectionWidths.TryGetValue(key, out var w) ? w : double.NaN);
+        Refit(key);
+    }
+
+    /// <summary>Make a section window re-measure. SizeToContent can latch the size the
+    /// content had when the window was created, and a window that has just adopted a
+    /// different pane is exactly that case.</summary>
+    private void Refit(string key) => Dispatcher.BeginInvoke(() =>
+    {
+        if (!_sectionWindows.TryGetValue(key, out var win)) return;
+        win.SizeToContent = SizeToContent.Manual;
+        win.SizeToContent = SizeToContent.WidthAndHeight;
+    }, System.Windows.Threading.DispatcherPriority.Loaded);
+
+    /// <summary>Give a pane a window of its own and park it beside <paramref name="near"/>.</summary>
+    private void OpenFeedWindow(string key, string near)
+    {
+        MakeFeedWindow(key);
+        PlaceFeedWindow(key, near);
+    }
+
+    /// <summary>Park an existing feed window beside another one.</summary>
+    private void PlaceFeedWindow(string key, string near)
+    {
+        if (!_sectionWindows.TryGetValue(key, out var win)) return;
 
         // BESIDE the window it came from, not under it: a full stack already reaches the
         // bottom of the screen, so a window added below it opens off-screen and reads as
         // the + having done nothing at all. Docked to that side rather than left loose,
-        // so the two stay top-aligned and move together — lining them up by hand was the
-        // fiddly part, and dropping one beside another now snaps anyway (SnapWindow).
-        var win = _sectionWindows[pane.Key];
-        var src = _sectionWindows.TryGetValue(from.Key, out var s) && s.IsVisible
-            ? (Window)s : this;
+        // so the two stay top-aligned and move together.
+        var src = _sectionWindows.TryGetValue(near, out var s) && s.IsVisible ? (Window)s : this;
         win.DockHost = null;
         win.Left = src.Left + Math.Max(src.ActualWidth, 200) + DockGap;
         win.Top = src.Top;
@@ -1312,6 +1551,42 @@ public partial class MainWindow : Window
             SeatBeside(win, src);
             SaveLayout();
         }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    /// <summary>The window key a view is drawn in.</summary>
+    private static string SectionKeyOf(FeedView view) =>
+        view.Pane.Host.Length == 0 ? view.Key : view.Pane.Host;
+
+    /// <summary>Feed windows other than this one, for the merge submenu.</summary>
+    internal List<FeedHost> FeedHostsOtherThan(FeedHost host) =>
+        _feedHosts.Values.Where(h => !ReferenceEquals(h, host)).ToList();
+
+    /// <summary>Panes the user closed, newest first — the reopen submenu. Their filters,
+    /// colours, and size are all still here; closing a feed no longer throws them away.</summary>
+    internal List<FeedPane> ClosedFeedPanes() =>
+        _ui.FeedPanes.Where(p => p.Closed).Reverse().ToList();
+
+    internal void ReopenFeedPane(FeedPane pane)
+    {
+        var near = _feedHosts.Keys.FirstOrDefault() ?? "";
+        pane.Closed = false;
+        pane.Host = "";
+        RebuildFeedSections();
+        OpenFeedWindow(pane.Key, near);
+    }
+
+    /// <summary>Right-click ▸ Colours…: per-window row colours.</summary>
+    internal void EditFeedColors(FeedView view)
+    {
+        var dlg = new FeedColorsDialog(view.Title, view.Pane.Colors) { Owner = this };
+        if (dlg.ShowDialog() != true) return;
+        foreach (var target in dlg.ApplyToAll ? _feedViews.Values.ToList() : [view])
+        {
+            target.Pane.Colors = Copy(dlg.Colors) ?? new FeedColors();
+            target.ApplyColors();
+        }
+        _ui.Save();
+        RenderFeeds();
     }
 
     /// <summary>Park a freshly spawned window against its source: to the right, or to the
@@ -1346,38 +1621,52 @@ public partial class MainWindow : Window
         w.Top = Math.Clamp(w.Top, top, Math.Max(top, bottom - Math.Max(80, w.ActualHeight)));
     }
 
-    /// <summary>The ✕ on a spawned FEED's heading: the window, its pane, and every
-    /// setting saved under its key go away for good; followers bridge to its host so
-    /// the stack closes over the gap. The original "feed" pane never gets here.</summary>
+    /// <summary>Close a feed — the window's ✕ or a tab's. The pane is REMEMBERED, not
+    /// deleted: its filters, colours, and size stay in the settings file so "reopen closed
+    /// feed" brings back the window that was tuned. (Deleting was the old behaviour, and
+    /// it meant a closed window's tuning was gone for good.) The last remaining feed is
+    /// never closed — there would be no + left to press.
+    ///
+    /// Closing the pane that NAMES a window with tabs behind it promotes the first of
+    /// them, which then takes over the window's place in the stack exactly.</summary>
     internal void CloseFeedPane(FeedView view)
     {
-        var key = view.Key;
-        if (key == "feed" || !_feedViews.ContainsKey(key)) return;
-        if (_sectionWindows.TryGetValue(key, out var win))
+        var pane = view.Pane;
+        if (!_feedViews.ContainsKey(pane.Key)) return;
+        if (_ui.FeedPanes.Count(p => !p.Closed) <= 1) return;   // never the last one
+
+        var successor = pane.Host.Length == 0
+            ? _ui.FeedPanes.FirstOrDefault(p => !p.Closed && p.Host
+                .Equals(pane.Key, StringComparison.OrdinalIgnoreCase))
+            : null;
+        var slot = successor is null ? null : DropFeedSection(pane.Key, capture: true);
+        if (successor is not null)
         {
-            foreach (var follower in _sectionWindows.Values
-                         .Where(f => ReferenceEquals(f.DockHost, win)))
-            {
-                // Inherit the slot, not just the host: a follower of a window that was
-                // itself docked to one SIDE belongs on that side too, or it drops into
-                // the vertical stack on top of whatever is already there.
-                follower.DockSide = win.DockSide;
-                follower.DockHost = win.DockHost ?? this;
-            }
-            _sectionWindows.Remove(key);
-            win.Close();
+            successor.Host = "";
+            InheritSectionSettings(pane.Key, successor.Key);
         }
-        else RootStack.Children.Remove(view.Root);
-        _feedViews.Remove(key);
-        SectionKeys.Remove(key);
-        _ui.FeedPanes.RemoveAll(p => p.Key == key);
-        _ui.SectionWidths.Remove(key);
-        _ui.SectionPositions.Remove(key);
-        _ui.SectionDocks.Remove(key);
-        _ui.SectionDockSides.Remove(key);
-        _ui.HiddenSections.Remove(key);
+
+        pane.Closed = true;
+        pane.Host = "";
+        _ui.HiddenSections.Remove(pane.Key);
+        foreach (var key in RebuildFeedSections()) MakeFeedWindow(key);
+        if (slot is not null && successor is not null) AdoptSlot(successor.Key, slot);
         RepinStack();
         SaveLayout();
+        Tick();
+    }
+
+    /// <summary>Move everything remembered about one section window onto another key, so
+    /// a promoted tab inherits the window it is taking over rather than starting fresh.</summary>
+    private void InheritSectionSettings(string from, string to)
+    {
+        if (_ui.SectionPositions.Remove(from, out var pos)) _ui.SectionPositions[to] = pos;
+        if (_ui.SectionDocks.Remove(from, out var dock)) _ui.SectionDocks[to] = dock;
+        if (_ui.SectionDockSides.Remove(from, out var side)) _ui.SectionDockSides[to] = side;
+        if (_ui.SectionWidths.TryGetValue(from, out var width)) _ui.SectionWidths[to] = width;
+        // Anything docked to the old key by NAME now means the new one.
+        foreach (var (key, host) in _ui.SectionDocks.ToList())
+            if (host.Equals(from, StringComparison.OrdinalIgnoreCase)) _ui.SectionDocks[key] = to;
     }
 
     /// <summary>Magnetise: dropped near another EQdps window's bottom edge — or either
@@ -1476,7 +1765,8 @@ public partial class MainWindow : Window
         _sectionResizeStartWidth = _ui.SectionWidths.TryGetValue(w.SectionKey, out var saved)
             ? saved
             : SectionElement(w.SectionKey).ActualWidth;
-        _sectionResizeStartRows = _feedViews.TryGetValue(w.SectionKey, out var v) ? v.RowsClamped() : 0;
+        _sectionResizeStartRows = _feedHosts.TryGetValue(w.SectionKey, out var v)
+            ? v.Active.RowsClamped() : 0;
     }
 
     internal void SectionResizeDelta(SectionWindow w, double dx, double dy)
@@ -1484,11 +1774,11 @@ public partial class MainWindow : Window
         var width = Math.Clamp(_sectionResizeStartWidth + dx, 170, 720);
         _ui.SectionWidths[w.SectionKey] = width;
         ApplySectionWidth(w.SectionKey, width);
-        if (_feedViews.TryGetValue(w.SectionKey, out var view))
+        if (_feedHosts.TryGetValue(w.SectionKey, out var host))
         {
             // ~14 px per Consolas 11 row: dragging down grows the list, up shrinks it.
-            view.Pane.Rows = Math.Clamp(_sectionResizeStartRows + (int)Math.Round(dy / 14), 4, 40);
-            view.Render();
+            host.Pane.Rows = Math.Clamp(_sectionResizeStartRows + (int)Math.Round(dy / 14), 4, 40);
+            host.Render();
         }
     }
 
@@ -1502,10 +1792,10 @@ public partial class MainWindow : Window
     {
         _ui.SectionWidths.Remove(w.SectionKey);
         ApplySectionWidth(w.SectionKey, double.NaN);
-        if (_feedViews.TryGetValue(w.SectionKey, out var view))
+        if (_feedHosts.TryGetValue(w.SectionKey, out var host))
         {
-            view.Pane.Rows = 12;
-            view.Render();
+            host.Pane.Rows = 12;
+            host.Render();
         }
         _ui.Save();
     }
@@ -1516,7 +1806,7 @@ public partial class MainWindow : Window
     private void ApplySectionWidth(string key, double width)
     {
         SectionElement(key).Width = width;
-        if (_feedViews.TryGetValue(key, out var view)) view.ApplyInnerWidth(width);
+        if (_feedHosts.TryGetValue(key, out var host)) host.ApplyInnerWidth(width);
     }
 
     internal void RepositionFollowers(Window host)
@@ -1743,6 +2033,7 @@ public partial class MainWindow : Window
         // Shrinking the buffer drops the oldest entries out from under rows already
         // drawn; redraw from what survived.
         foreach (var view in _feedViews.Values) view.Invalidate();
+        RenderFeeds();
         _ui.Save();
         ApplySectionVisibility();
         Tick();

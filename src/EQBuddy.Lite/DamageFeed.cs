@@ -2,7 +2,25 @@ using EQBuddy.Core;
 
 namespace EQBuddy.Lite;
 
-internal enum FeedKind { Melee, Spell, Dot, Aux, Heal, Taken, Miss, Kill, Resist, Fizzle }
+/// <summary>What a feed row IS. Everything the log says now lands in one of these — the
+/// combat kinds it always had, plus <see cref="Cast"/> and <see cref="Other"/> so that no
+/// line is ever dropped on the floor, and <see cref="Summary"/> for the synthetic
+/// per-kill lines the feed writes itself.</summary>
+internal enum FeedKind
+{
+    Melee, Spell, Dot, Aux, Heal, Taken, Miss, Kill, Resist, Fizzle,
+    /// <summary>Casting lifecycle: begin casting, interrupted, "You regain your
+    /// concentration", a buff wearing off, someone else's cast landing.</summary>
+    Cast,
+    /// <summary>Everything else the log wrote — chat, emotes, loot, xp, zone lines,
+    /// system messages. Off by default, but reachable: the point is that a line the feed
+    /// has no better bucket for is FILTERED, never silently missing.</summary>
+    Other,
+    /// <summary>A line the feed composed itself: the damage summary printed under a
+    /// mob's death.</summary>
+    Summary,
+}
+
 internal enum FeedWho { You, Pet, Group }
 
 /// <summary>One row of the live feed, captured at parse time with everything the
@@ -14,7 +32,8 @@ internal sealed record FeedEntry(DateTime Time, FeedWho Who, FeedKind Kind, stri
     /// <summary>The log line this event was parsed from, message part only — what the
     /// feed actually displays. The parsed fields above stay the filters' material, so
     /// a row reads exactly as the game wrote it while still being filterable by who,
-    /// kind, crit, and amount. Null only for entries captured before 1.68.1.</summary>
+    /// kind, crit, and amount. Null only for <see cref="FeedKind.Summary"/> rows, which
+    /// no log line stands behind.</summary>
     public string? Raw { get; set; }
 
     /// <summary>Monotonic id, assigned on enqueue. The feed views render incrementally —
@@ -24,17 +43,18 @@ internal sealed record FeedEntry(DateTime Time, FeedWho Who, FeedKind Kind, stri
 }
 
 /// <summary>
-/// The FEED section's engine: a rolling buffer of combat events from your own log,
-/// filtered at render time so flipping a filter re-reads the recent past instead of
-/// only changing what arrives next. Rides LogWatcher.Tap beside the group trackers;
-/// like them it holds raw material only — presentation stays in MainWindow.
+/// The FEED section's engine: a rolling buffer of EVERY line from your own log, each
+/// classified into a <see cref="FeedKind"/> and filtered at render time, so flipping a
+/// filter re-reads the recent past instead of only changing what arrives next. Rides
+/// LogWatcher.Tap/RawTap beside the group trackers; like them it holds raw material only —
+/// presentation stays in <see cref="FeedView"/>.
 /// </summary>
 internal sealed class DamageFeed
 {
     /// <summary>Scrollback depth, user-set (the ⚙ dialog; 20k default is hours of the
-    /// busiest AE fighting — a full day's log is ~20-30k combat events). Entries are
-    /// ~300-byte records, so even 100k is ~30 MB; the working limit is the per-tick
-    /// filter pass over the buffer, still comfortable at 100k. Oldest fall off first.</summary>
+    /// busiest AE fighting — a full day's log is ~20-30k lines). Entries are ~300-byte
+    /// records, so even 100k is ~30 MB; the working limit is the per-render filter pass
+    /// over the buffer, still comfortable at 100k. Oldest fall off first.</summary>
     private int _capacity = 20_000;
 
     /// <summary>Change the buffer depth, trimming immediately on a shrink.</summary>
@@ -45,11 +65,10 @@ internal sealed class DamageFeed
         {
             _capacity = cap;
             Trim(_entries, cap, force: true);
-            Trim(_raw, cap, force: true);
         }
     }
 
-    /// <summary>Lists, not queues: a render walks the newest end backwards by index, and
+    /// <summary>A List, not a Queue: a render walks the newest end backwards by index, and
     /// Queue.Reverse() would copy the whole buffer (up to 200k entries) to do that — once
     /// per feed window per frame. Dropping the oldest entries is a block move, so it
     /// happens in <see cref="TrimSlack"/>-sized batches rather than one item at a time.</summary>
@@ -62,10 +81,15 @@ internal sealed class DamageFeed
         buffer.RemoveRange(0, excess);
     }
 
+    /// <summary>ONE buffer for everything. Before 1.70 the combat view and the raw view
+    /// had a buffer each, and a line that made no combat event existed only in the raw
+    /// one — which is why "You regain your concentration and continue your casting" could
+    /// not be shown in the combat view under any filter. Now every line becomes an entry
+    /// (classified <see cref="FeedKind.Cast"/> or <see cref="FeedKind.Other"/> when it is
+    /// nothing more specific) and the raw view is simply the unfiltered read of it.</summary>
     private readonly List<FeedEntry> _entries = [];
 
-    /// <summary>Ids handed out to entries and raw lines alike — one counter, so a view
-    /// holds a single cursor whichever buffer it happens to be reading.</summary>
+    /// <summary>Ids handed out to every entry — a view holds one cursor into this.</summary>
     private long _seq;
 
     /// <summary>Entries made from the line currently being processed, waiting for that
@@ -75,18 +99,22 @@ internal sealed class DamageFeed
     /// from being load-bearing.)</summary>
     private readonly List<FeedEntry> _awaitingRaw = [];
 
-    /// <summary>Raw-mode buffer: every log line verbatim (message part), timestamped.
-    /// MinValue marks a line whose prefix didn't parse — shown without a clock.</summary>
-    private readonly List<RawLine> _raw = [];
-
-    /// <summary>One verbatim log line in the raw-mode buffer.</summary>
-    internal readonly record struct RawLine(long Seq, DateTime Time, string Text);
+    /// <summary>The event parsed from the line currently being processed, whether or not
+    /// the feed made a row of it. Same one-thread hand-off as <see cref="_awaitingRaw"/>:
+    /// it lets ApplyRaw classify a line the combat view has no row for — a cast, a loot
+    /// line, a zone change — instead of guessing from the text.</summary>
+    private GameEvent? _lastEvent;
 
     private readonly object _lock = new();
 
     /// <summary>Current pet name, written by the UI tick, read on the watcher thread —
     /// how a third-party attacker is told apart from your own pet.</summary>
     public volatile string PetName = "";
+
+    /// <summary>When the last damage — dealt, taken, or by anyone nearby — was logged.
+    /// The feed windows' combat glow reads this: a fight is "on" while blows are still
+    /// landing, and the log's own clock is the only honest source for that.</summary>
+    public DateTime LastCombat { get; private set; } = DateTime.MinValue;
 
     public void Apply(GameEvent e)
     {
@@ -132,18 +160,30 @@ internal sealed class DamageFeed
 
             _ => null,
         };
-        if (entry is null) return;
         lock (_lock)
         {
-            entry.Seq = ++_seq;
-            _entries.Add(entry);
+            _lastEvent = e;
+            if (entry is null) return;
+            Enqueue(entry);
             _awaitingRaw.Add(entry);
-            Trim(_entries, _capacity);
+            Track(entry);
+            if (e is KillEvent kill) Summarise(kill);
         }
     }
 
-    /// <summary>Raw-mode capture, straight off LogWatcher.RawTap. The "[Sat Aug 22
-    /// 17:20:01 2026] " prefix is split off here once rather than at render time.</summary>
+    /// <summary>Add an entry to the buffer under the lock, stamping its id.</summary>
+    private void Enqueue(FeedEntry entry)
+    {
+        entry.Seq = ++_seq;
+        _entries.Add(entry);
+        Trim(_entries, _capacity);
+    }
+
+    /// <summary>Raw capture, straight off LogWatcher.RawTap — every line, in order. The
+    /// "[Sat Aug 22 17:20:01 2026] " prefix is split off here once rather than at render
+    /// time. A line the combat view made no row for becomes one HERE, classified from the
+    /// event the parser did or didn't make of it, so it can be filtered rather than
+    /// silently missing.</summary>
     public void ApplyRaw(string line)
     {
         var time = DateTime.MinValue;
@@ -158,46 +198,160 @@ internal sealed class DamageFeed
         }
         lock (_lock)
         {
-            // Hand this line's text to the entry parsed from it (see _awaitingRaw), and
+            // Hand this line's text to the entries parsed from it (see _awaitingRaw), and
             // clear the slate either way — an unclaimed entry must not adopt the NEXT
             // line's text.
+            var claimed = _awaitingRaw.Count > 0;
             foreach (var pending in _awaitingRaw) pending.Raw = text;
             _awaitingRaw.Clear();
-            if (text.Length == 0) return;
-            _raw.Add(new RawLine(++_seq, time, text));
-            Trim(_raw, _capacity);
+            var evt = _lastEvent;
+            _lastEvent = null;
+            if (claimed || text.Length == 0) return;
+
+            // Nothing combat-shaped came of this line, so make the row here. Time from the
+            // event when the parser read one (it agrees with the prefix), else the prefix,
+            // else now — a row with no clock at all reads as broken.
+            var stamp = evt?.Time ?? (time == DateTime.MinValue ? DateTime.Now : time);
+            Enqueue(new FeedEntry(stamp, FeedWho.You, KindOf(evt, text), "", "", 0,
+                AbilityOf(evt), false, null, Incoming: false)
+            {
+                Raw = text,
+            });
         }
     }
 
-    /// <summary>Raw mode's view: newest-first lines containing ANY search term (all of
-    /// them when no chips are set), at most <paramref name="max"/>, and only what arrived
-    /// after <paramref name="since"/> (0 = the whole buffer). <paramref name="cursor"/>
-    /// comes back as the sequence this snapshot has caught up to.</summary>
-    public List<RawLine> SnapshotRaw(IReadOnlyList<string> terms, int max, long since, out long cursor)
+    /// <summary>Which bucket a line with no combat row belongs in. The parsed event
+    /// decides when there is one; otherwise the handful of casting messages the parser
+    /// has no event for are recognised by text, and everything else is Other.</summary>
+    private static FeedKind KindOf(GameEvent? evt, string text) => evt switch
     {
-        lock (_lock)
+        SpellCastEvent or SpellInterruptedEvent or SpellWornOffEvent or BuffFadeEvent
+            or OtherCastEvent or ItemProcEvent or MezzedEvent or CharmedEvent => FeedKind.Cast,
+        DeathEvent => FeedKind.Kill,
+        RegenTickEvent => FeedKind.Heal,
+        RuneBlockEvent or ThirdMissEvent => FeedKind.Miss,
+        null when LooksLikeCasting(text) => FeedKind.Cast,
+        _ => FeedKind.Other,
+    };
+
+    /// <summary>Casting messages the parser makes no event of — the interruption and
+    /// recovery chatter that belongs beside "You begin casting" rather than in with the
+    /// zone lines and the guild chat.</summary>
+    private static bool LooksLikeCasting(string text) =>
+        text.Contains("regain your concentration", StringComparison.OrdinalIgnoreCase) ||
+        text.Contains("lose your concentration", StringComparison.OrdinalIgnoreCase) ||
+        text.Contains("Your spell is interrupted", StringComparison.OrdinalIgnoreCase) ||
+        text.Contains("Your spell did not take hold", StringComparison.OrdinalIgnoreCase) ||
+        text.Contains("Your target resisted", StringComparison.OrdinalIgnoreCase) ||
+        text.Contains("spell would not have taken hold", StringComparison.OrdinalIgnoreCase) ||
+        text.Contains("Insufficient Mana", StringComparison.OrdinalIgnoreCase) ||
+        text.Contains("You must first select a target", StringComparison.OrdinalIgnoreCase) ||
+        text.Contains("Your spell fizzles", StringComparison.OrdinalIgnoreCase) ||
+        text.StartsWith("You begin casting", StringComparison.OrdinalIgnoreCase) ||
+        text.StartsWith("You begin singing", StringComparison.OrdinalIgnoreCase) ||
+        text.StartsWith("You begin to sing", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The spell or item a non-combat row is ABOUT, so the accent colour has
+    /// something to pick out of the line.</summary>
+    private static string AbilityOf(GameEvent? evt) => evt switch
+    {
+        SpellCastEvent c => c.Spell,
+        SpellInterruptedEvent i => i.Spell,
+        SpellWornOffEvent w => w.Spell,
+        OtherCastEvent o => o.Spell,
+        BuffFadeEvent b => b.Label,
+        ItemProcEvent p => p.Item,
+        LootEvent l => l.Item,
+        _ => "",
+    };
+
+    // ---- per-mob tallies, for the summary line under a kill ----
+
+    private sealed class Tally
+    {
+        public DateTime First, Last;
+        public long You, Pet;
+        public readonly Dictionary<string, long> Others = new(StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Damage done to each creature since it was first hit, so the moment it dies
+    /// the feed can say what the pull was worth. Keyed by target name — the same
+    /// same-named-mobs caveat the rest of the app carries. Cleared per kill; capped and
+    /// aged out so a mob that wanders off never accumulates.</summary>
+    private readonly Dictionary<string, Tally> _tallies = new(StringComparer.OrdinalIgnoreCase);
+
+    private void Track(FeedEntry e)
+    {
+        if (e.Kind is FeedKind.Melee or FeedKind.Spell or FeedKind.Dot or FeedKind.Aux
+            or FeedKind.Taken)
+            LastCombat = e.Time;
+        if (e.Incoming || e.Amount <= 0 || e.Target.Length == 0) return;
+        if (e.Kind is not (FeedKind.Melee or FeedKind.Spell or FeedKind.Dot or FeedKind.Aux)) return;
+
+        if (!_tallies.TryGetValue(e.Target, out var tally))
         {
-            cursor = _seq;
-            var rows = new List<RawLine>();
-            for (var i = _raw.Count - 1; i >= 0; i--)
-            {
-                var line = _raw[i];
-                if (line.Seq <= since || rows.Count >= max) break;
-                if (terms.Count > 0)
-                {
-                    var any = false;
-                    foreach (var term in terms)
-                        if (line.Text.Contains(term, StringComparison.OrdinalIgnoreCase)) { any = true; break; }
-                    if (!any) continue;
-                }
-                rows.Add(line);
-            }
-            return rows;
+            PruneTallies(e.Time);
+            _tallies[e.Target] = tally = new Tally { First = e.Time };
         }
+        tally.Last = e.Time;
+        switch (e.Who)
+        {
+            case FeedWho.You: tally.You += e.Amount; break;
+            case FeedWho.Pet: tally.Pet += e.Amount; break;
+            default:
+                tally.Others.TryGetValue(e.Actor, out var had);
+                tally.Others[e.Actor] = had + e.Amount;
+                break;
+        }
+    }
+
+    /// <summary>Mobs that stopped taking damage ten minutes ago are gone — they fled, you
+    /// zoned, or someone else finished them out of sight. Also caps the dictionary, so a
+    /// long session of runners can't grow it without bound.</summary>
+    private void PruneTallies(DateTime now)
+    {
+        if (_tallies.Count < 64) return;
+        foreach (var (name, t) in _tallies.ToList())
+            if (now - t.Last > TimeSpan.FromMinutes(10)) _tallies.Remove(name);
+        while (_tallies.Count >= 128)
+        {
+            var oldest = _tallies.OrderBy(kv => kv.Value.Last).First().Key;
+            _tallies.Remove(oldest);
+        }
+    }
+
+    /// <summary>The synthetic rows under a death line: what you, your pet, and everyone
+    /// else did to that mob over the pull. Written as entries like any other row, so they
+    /// filter, colour, and scroll the same — each behind its own toggle.</summary>
+    private void Summarise(KillEvent kill)
+    {
+        if (!_tallies.Remove(kill.Target, out var tally)) return;
+        var seconds = Math.Max(1, (tally.Last - tally.First).TotalSeconds);
+
+        void Row(FeedWho who, string label, long damage, string? detail = null)
+        {
+            if (damage <= 0) return;
+            var text = $"⤷ {label} {damage:N0} in {seconds:0}s · {damage / seconds:N0} dps"
+                + (detail is { Length: > 0 } d ? $" · {d}" : "");
+            Enqueue(new FeedEntry(kill.Time, who, FeedKind.Summary, label, kill.Target,
+                (int)Math.Min(int.MaxValue, damage), label, false, null, Incoming: false)
+            {
+                Raw = text,
+            });
+        }
+
+        Row(FeedWho.You, "you", tally.You);
+        Row(FeedWho.Pet, PetName.Length > 0 ? PetName : "pet", tally.Pet);
+        var group = tally.Others.Values.Sum();
+        Row(FeedWho.Group, "group", group, string.Join(", ", tally.Others
+            .OrderByDescending(kv => kv.Value)
+            .Take(4)
+            .Select(kv => $"{kv.Key} {kv.Value:N0}")));
     }
 
     /// <summary>Third-party attackers worth a feed row: your pet, or something that
-    /// looks like a player. Mob-on-mob and mob-on-others noise stays out.</summary>
+    /// looks like a player. Mob-on-mob and mob-on-others noise stays out of the combat
+    /// kinds — it still reaches the feed as <see cref="FeedKind.Other"/>.</summary>
     private bool Interesting(string attacker) =>
         IsPet(attacker) || GroupDpsTracker.LooksLikePlayer(attacker);
 
@@ -209,7 +363,7 @@ internal sealed class DamageFeed
         : IsPet(actor) ? FeedWho.Pet
         : FeedWho.Group;
 
-    /// <summary>Newest-first rows passing the filters, at most <paramref name="max"/>,
+    /// <summary>Oldest-first rows passing the filters, at most <paramref name="max"/>,
     /// and only what arrived after <paramref name="since"/> (0 = the whole buffer, i.e. a
     /// full rebuild). <paramref name="cursor"/> comes back as the sequence this snapshot
     /// has caught up to — hand it back next time to be given only the newer rows.
@@ -217,7 +371,7 @@ internal sealed class DamageFeed
     /// The cursor stops SHORT of an entry still waiting for its raw text (see
     /// <see cref="_awaitingRaw"/>): the watcher fires Tap and RawTap under two separate
     /// lock acquisitions, so a render landing between them would otherwise publish the row
-    /// in its fallback shape and — being incremental — never redraw it.</summary>
+    /// with no text at all and — being incremental — never redraw it.</summary>
     public List<FeedEntry> Snapshot(FeedFilters f, int max, long since, out long cursor)
     {
         lock (_lock)
@@ -226,6 +380,9 @@ internal sealed class DamageFeed
             foreach (var e in _awaitingRaw) pending = Math.Min(pending, e.Seq);
             cursor = Math.Max(since, pending == long.MaxValue ? _seq : pending - 1);
 
+            // Walk backwards from the newest (that is where "the last N matching rows"
+            // lives), then flip: the list reads oldest at the top, newest at the bottom,
+            // the way a chat window does.
             var rows = new List<FeedEntry>();
             for (var i = _entries.Count - 1; i >= 0; i--)
             {
@@ -234,12 +391,50 @@ internal sealed class DamageFeed
                 if (e.Seq >= pending) continue;
                 if (Matches(e, f)) rows.Add(e);
             }
+            rows.Reverse();
             return rows;
         }
     }
 
     internal static bool Matches(FeedEntry e, FeedFilters f)
     {
+        // Everything below is ANDed, and the search chips are checked last so that a chip
+        // never widens what the pills allow. Raw mode is the log verbatim — no kind or
+        // who gating at all — except that the feed's OWN summary rows still answer to
+        // their toggles, since no log line stands behind them to be shown "as written".
+        if (f.RawMode)
+        {
+            if (e.Kind == FeedKind.Summary && !SummaryAllowed(e, f)) return false;
+        }
+        else if (!KindAllowed(e, f)) return false;
+
+        // Search chips: OR within, AND against everything else. The haystack carries
+        // the words a player would type — "slay" hits the note, "heal" the kind,
+        // "crit" both the flag and a "(Critical)" note, and the displayed line itself
+        // so a chip matches what the reader can actually see on the row.
+        if (f.SearchTerms is { Count: > 0 } terms)
+        {
+            var hay = $"{e.Actor} {e.Ability} {e.Target} {e.Note} {e.Kind} {e.Raw}"
+                + (e.Crit ? " critical" : "");
+            var any = false;
+            foreach (var term in terms)
+                if (hay.Contains(term, StringComparison.OrdinalIgnoreCase)) { any = true; break; }
+            if (!any) return false;
+        }
+        return true;
+    }
+
+    private static bool KindAllowed(FeedEntry e, FeedFilters f)
+    {
+        // Cast and Other describe the log talking, not somebody hitting something, so the
+        // who-pills don't apply to them — gating "You regain your concentration" behind a
+        // pill called "pet" would be nonsense.
+        switch (e.Kind)
+        {
+            case FeedKind.Cast: return f.Casts;
+            case FeedKind.Other: return f.Other;
+        }
+
         // who — incoming rows ride their own toggle, not the actor's
         if (e.Incoming)
         {
@@ -250,7 +445,8 @@ internal sealed class DamageFeed
             return false;
         }
 
-        // kind
+        if (e.Kind == FeedKind.Summary) return SummaryAllowed(e, f);
+
         var kindOn = e.Kind switch
         {
             FeedKind.Melee => f.Melee,
@@ -265,21 +461,6 @@ internal sealed class DamageFeed
             _ => false,
         };
         if (!kindOn) return false;
-
-        // Search chips: OR within, AND against everything else. The haystack carries
-        // the words a player would type — "slay" hits the note, "heal" the kind,
-        // "crit" both the flag and a "(Critical)" note.
-        if (f.SearchTerms is { Count: > 0 } terms)
-        {
-            // The haystack carries the displayed line too, so a chip matches what the
-            // reader can actually see on the row.
-            var hay = $"{e.Actor} {e.Ability} {e.Target} {e.Note} {e.Kind} {e.Raw}"
-                + (e.Crit ? " critical" : "");
-            var any = false;
-            foreach (var term in terms)
-                if (hay.Contains(term, StringComparison.OrdinalIgnoreCase)) { any = true; break; }
-            if (!any) return false;
-        }
 
         // narrowing — only damage rows are subject to these; a kill or resist row has
         // no amount or crit flag to judge
@@ -306,6 +487,15 @@ internal sealed class DamageFeed
 
         return true;
     }
+
+    /// <summary>A kill summary shows when its own toggle is on — one per subject, so a
+    /// window can carry your own numbers without the group's.</summary>
+    private static bool SummaryAllowed(FeedEntry e, FeedFilters f) => e.Who switch
+    {
+        FeedWho.You => f.SummaryYou,
+        FeedWho.Pet => f.SummaryPet,
+        _ => f.SummaryGroup,
+    };
 
     /// <summary>The physical damage type behind a melee skill label — the parser's
     /// VerbToSkill vocabulary bucketed the way EQ players talk about it.</summary>

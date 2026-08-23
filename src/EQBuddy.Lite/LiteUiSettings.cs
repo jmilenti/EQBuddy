@@ -134,14 +134,82 @@ public sealed class LiteUiSettings
     }
 }
 
-/// <summary>One FEED window's persisted state. Rows is the viewport height in text
-/// rows (the vertical half of the ◢ grip); Show is the ▸/▾ collapse toggle.</summary>
+/// <summary>One FEED pane's persisted state — a window of its own, or a tab inside
+/// another pane's window. Rows is the viewport height in text rows (the vertical half of
+/// the ◢ grip); Show is the ▸/▾ collapse toggle of the WINDOW, so only a host pane's
+/// copy of it is read.</summary>
 public sealed class FeedPane
 {
     public string Key { get; set; } = "feed";
     public FeedFilters Filters { get; set; } = new();
     public int Rows { get; set; } = 12;
     public bool Show { get; set; } = true;
+
+    /// <summary>The pane whose WINDOW draws this one, as a tab. Empty (or its own key)
+    /// means it is a window in its own right — the only case before 1.70. A host is
+    /// always a pane that hosts itself, so tabs never chain.</summary>
+    public string Host { get; set; } = "";
+
+    /// <summary>Position among its host's tabs, low to high.</summary>
+    public int Order { get; set; }
+
+    /// <summary>Closed by the user, but REMEMBERED: filters, colours, and size stay here
+    /// so "reopen closed feed" brings back the window that was tuned, not a fresh one.
+    /// Closing used to delete the pane outright, which threw the tuning away.</summary>
+    public bool Closed { get; set; }
+
+    /// <summary>Per-window row colours (see <see cref="FeedColors"/>).</summary>
+    public FeedColors Colors { get; set; } = new();
+
+    /// <summary>Flicker a red border around the window while a fight is on. Only lights
+    /// when this pane is showing YOUR rows — it is a "you are in combat" cue, and a
+    /// window filtered to someone else has no business claiming it.</summary>
+    public bool CombatGlow { get; set; }
+
+    /// <summary>The tab's label. "FEED" for the original, "FEED 2"… derived from the key
+    /// otherwise; stored so a rename would survive, and so the label never has to be
+    /// re-derived in two places.</summary>
+    public string? Title { get; set; }
+
+    /// <summary>Everything a brand-new pane starts with — one place, so the + button and
+    /// "reset filters" cannot drift apart.</summary>
+    public static FeedFilters DefaultFilters() => new();
+
+    public static FeedColors DefaultColors() => new();
+}
+
+/// <summary>Row colours for one feed window, as #RRGGBB strings so the file stays
+/// hand-editable. Unset or unparseable falls back to the default, which is what these
+/// defaults are: the palette the feed always used, plus the spell/ability pair added in
+/// 1.70. Kept as strings rather than brushes because this type is serialised.</summary>
+public sealed class FeedColors
+{
+    /// <summary>Your own damage.</summary>
+    public string You { get; set; } = "#CFE3F5";
+    /// <summary>Your pet's damage.</summary>
+    public string Pet { get; set; } = "#8FD4C8";
+    /// <summary>Other players near you.</summary>
+    public string Group { get; set; } = "#B9A7E8";
+    /// <summary>Damage you take.</summary>
+    public string Incoming { get; set; } = "#E89C9C";
+    /// <summary>Heals, cast and received.</summary>
+    public string Heal { get; set; } = "#8BE28B";
+    /// <summary>Critical hits (overrides the who-colour).</summary>
+    public string Crit { get; set; } = "#E8CE9C";
+    /// <summary>Killing blows.</summary>
+    public string Kill { get; set; } = "#D9C46B";
+    /// <summary>Spell, DoT, and proc/damage-shield lines — the gold base.</summary>
+    public string Spell { get; set; } = "#E8B24A";
+    /// <summary>The ability, spell, or item named INSIDE a row, picked out of the line.</summary>
+    public string Ability { get; set; } = "#FF8FC7";
+    /// <summary>Casting chatter: begin casting, interrupted, concentration, buffs fading.</summary>
+    public string Cast { get; set; } = "#9FB6D0";
+    /// <summary>Everything else the log wrote — chat, loot, xp, zone lines.</summary>
+    public string Other { get; set; } = "#78838F";
+    /// <summary>The feed's own per-kill damage summaries.</summary>
+    public string Summary { get; set; } = "#7FD9E8";
+    /// <summary>Misses, resists, fizzles — and every row's timestamp.</summary>
+    public string Dim { get; set; } = "#7B8794";
 }
 
 /// <summary>What the FEED section shows. Who-toggles and kind-toggles are ANDed: a row
@@ -165,6 +233,22 @@ public sealed class FeedFilters
     public bool Misses { get; set; }
     public bool Kills { get; set; } = true;
     public bool ResistsFizzles { get; set; }
+    /// <summary>Casting chatter — "You begin casting X", interrupts, "You regain your
+    /// concentration", buffs wearing off. On by default: these are lines about what YOU
+    /// are doing, and before 1.70 the combat view could not show them at all.</summary>
+    public bool Casts { get; set; } = true;
+    /// <summary>Every remaining line the log wrote: chat, emotes, loot, xp, zone changes,
+    /// system messages. Off by default — it is most of a log by volume — but its
+    /// existence is the guarantee that nothing is dropped, only filtered.</summary>
+    public bool Other { get; set; }
+
+    // -- the feed's own summary rows, printed under a mob's death --
+    /// <summary>Your damage to the mob that just died.</summary>
+    public bool SummaryYou { get; set; } = true;
+    /// <summary>Your pet's damage to it.</summary>
+    public bool SummaryPet { get; set; } = true;
+    /// <summary>Everyone else's damage to it.</summary>
+    public bool SummaryGroup { get; set; } = true;
 
     // -- narrowing --
     public bool CritsOnly { get; set; }
