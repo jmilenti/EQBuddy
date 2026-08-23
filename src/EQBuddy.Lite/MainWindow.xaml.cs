@@ -457,7 +457,14 @@ public partial class MainWindow : Window
         }
         else if (!Attached("spawns"))
         {
-            SpawnHeader.Text = "SPAWNS · none running";
+            // "none running" alone reads as BROKEN when you have been killing for an
+            // hour — but only NAMED spawns get a clock, and a trash camp produces none.
+            // Saying what is being watched, and where, is the difference between a dead
+            // section and an armed one (reported as "spawns aren't tracking again").
+            SpawnHeader.Text = _spawnTimers.CurrentZone is { } watching
+                ? $"SPAWNS · none running · watching {watching.Named.Count} named "
+                    + $"in {watching.Zone}"
+                : "SPAWNS · none running · zone unknown";
             SpawnList.Visibility = Visibility.Collapsed;
             SpawnSection.Visibility = Visibility.Visible;
         }
@@ -2022,6 +2029,57 @@ public partial class MainWindow : Window
         SaveLayout();
     }
 
+    /// <summary>Share layout…: the whole arrangement as one pasteable string, and the
+    /// way back in. Applying rebuilds the feed windows from the shared panes and re-seats
+    /// every section, so it takes effect without a restart.</summary>
+    private void OnShareLayout(object sender, RoutedEventArgs e)
+    {
+        SaveLayout();   // export what is on screen, not what was last banked
+        var dlg = new LayoutShareDialog(LayoutShare.Export(_ui, Left, Top)) { Owner = this };
+        if (dlg.ShowDialog() != true || dlg.Applied is not { } payload) return;
+
+        if (MessageBox.Show(this,
+                $"Replace your layout with this one?\n\n{LayoutShare.Describe(payload)}",
+                "Apply shared layout", MessageBoxButton.YesNo, MessageBoxImage.Question)
+            != MessageBoxResult.Yes) return;
+
+        LayoutShare.Apply(payload, _ui, Left, Top);
+        _ui.Save();
+
+        // Rebuild the feed windows from the shared panes, then put every section where
+        // the layout says. Windows the payload names are re-detached and repositioned;
+        // the dock graph does the rest on the next RepinStack.
+        foreach (var key in RebuildFeedSections()) MakeFeedWindow(key);
+        foreach (var key in SectionKeys)
+        {
+            ApplySectionWidth(key,
+                _ui.SectionWidths.TryGetValue(key, out var w) ? w : double.NaN);
+            if (!_sectionWindows.TryGetValue(key, out var win)) continue;
+            if (_ui.SectionPositions.TryGetValue(key, out var p) && p is [var x, var y])
+            {
+                win.Left = x;
+                win.Top = y;
+            }
+            win.DockSide = _ui.SectionDockSides.TryGetValue(key, out var side)
+                ? side switch { "right" => DockSide.Right, "left" => DockSide.Left, _ => DockSide.Below }
+                : DockSide.Below;
+            win.DockHost = _ui.SectionDocks.TryGetValue(key, out var host)
+                ? host switch { "" => null, "main" => this, _ => _sectionWindows.GetValueOrDefault(host) }
+                : win.DockHost;
+        }
+        BreakDockCycles();
+        ApplySectionVisibility();
+        foreach (var view in _feedViews.Values) { view.ApplyColors(); view.Invalidate(); }
+        RenderFeeds();
+        // Every feed window re-measures: an imported pane changes the row count and the
+        // font under a window that has already latched its SizeToContent, so two windows
+        // sharing a width would otherwise come up different heights.
+        foreach (var key in _feedHosts.Keys) Refit(key);
+        RepinStack();
+        SaveLayout();
+        Tick();
+    }
+
     private void OnResetLayout(object sender, RoutedEventArgs e)
     {
         if (MessageBox.Show(this,
@@ -2080,14 +2138,11 @@ public partial class MainWindow : Window
     {
         e.Handled = true;
         var dlg = new SettingsDialog(_ui.GroupBoardUseSync, _ui.ShowGroupMotes,
-            SectionKeys, _ui.HiddenSections, _ui.FeedHistory,
-            _ui.CuePetBreak, _ui.CueMezBreak, _ui.CueInvisBreak) { Owner = this };
+            SectionKeys, _ui.HiddenSections, _ui.FeedHistory, _ui) { Owner = this };
         if (dlg.ShowDialog() != true) return;
         _ui.GroupBoardUseSync = dlg.GroupBoardUseSync;
         _ui.ShowGroupMotes = dlg.ShowGroupMotes;
-        _ui.CuePetBreak = dlg.Cue("pet");
-        _ui.CueMezBreak = dlg.Cue("mez");
-        _ui.CueInvisBreak = dlg.Cue("invis");
+        dlg.ApplyCues(_ui);
         _ui.HiddenSections = dlg.HiddenSections;
         _ui.FeedHistory = dlg.FeedHistory;
         _feed.SetCapacity(_ui.FeedHistory);

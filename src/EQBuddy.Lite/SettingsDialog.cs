@@ -14,7 +14,7 @@ public sealed class SettingsDialog : Window
     private readonly CheckBox _groupMotes;
     private readonly Dictionary<string, CheckBox> _sections = new();
     private readonly ComboBox _history;
-    private readonly Dictionary<string, ComboBox> _cues = new();
+    private readonly Dictionary<string, (ComboBox Mode, ComboBox Sound, TextBox Phrase)> _cues = new();
 
     public bool GroupBoardUseSync => _groupSync.IsChecked == true;
     public bool ShowGroupMotes => _groupMotes.IsChecked == true;
@@ -26,13 +26,26 @@ public sealed class SettingsDialog : Window
     public int FeedHistory =>
         _history.SelectedItem is ComboBoxItem { Tag: int n } ? n : 20_000;
 
-    /// <summary>The chosen mode for one audio cue: "off", "sound", or "voice".</summary>
-    public string Cue(string key) =>
-        _cues[key].SelectedItem is ComboBoxItem { Tag: string mode } ? mode : "off";
+    private static string Pick(ComboBox box) =>
+        box.SelectedItem is ComboBoxItem { Tag: string tag } ? tag : "";
+
+    /// <summary>Write every cue's mode, sound, and phrase back to the settings.</summary>
+    public void ApplyCues(LiteUiSettings ui)
+    {
+        ui.CuePetBreak = Pick(_cues["pet"].Mode);
+        ui.CuePetSound = Pick(_cues["pet"].Sound);
+        ui.CuePetPhrase = _cues["pet"].Phrase.Text.Trim();
+        ui.CueMezBreak = Pick(_cues["mez"].Mode);
+        ui.CueMezSound = Pick(_cues["mez"].Sound);
+        ui.CueMezPhrase = _cues["mez"].Phrase.Text.Trim();
+        ui.CueInvisBreak = Pick(_cues["invis"].Mode);
+        ui.CueInvisSound = Pick(_cues["invis"].Sound);
+        ui.CueInvisPhrase = _cues["invis"].Phrase.Text.Trim();
+    }
 
     public SettingsDialog(bool groupBoardUseSync, bool showGroupMotes,
         IReadOnlyList<string> sectionKeys, IReadOnlyList<string> hiddenSections,
-        int feedHistory, string cuePetBreak, string cueMezBreak, string cueInvisBreak)
+        int feedHistory, LiteUiSettings ui)
     {
         Title = "EQdps settings";
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -123,16 +136,35 @@ public sealed class SettingsDialog : Window
             FontSize = 11,
             Foreground = System.Windows.Media.Brushes.Gray,
             Text = "A sound or the Windows voice for the moments that cost a fight if " +
-                   "missed. ▶ previews the choice.",
+                   "missed. ▶ previews the row (Off previews its sound). Voice falls " +
+                   "back to the sound if this machine has no voice.",
         });
         var cueGrid = new Grid { Margin = new Thickness(0, 0, 0, 12) };
-        cueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        cueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        cueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        void CueRow(string key, string label, string phrase, string current)
+        for (var c = 0; c < 4; c++)
+            cueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        // A header row, so the phrase column explains itself.
+        cueGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        void Head(int col, string text)
+        {
+            var t = new TextBlock
+            {
+                Text = text,
+                FontSize = 11,
+                Foreground = System.Windows.Media.Brushes.Gray,
+                Margin = new Thickness(0, 0, 6, 2),
+            };
+            Grid.SetColumn(t, col);
+            cueGrid.Children.Add(t);
+        }
+        Head(1, "When on");
+        Head(2, "Sound");
+        Head(3, "Voice says");
+
+        void CueRow(string key, string label, string mode, string sound, string phrase)
         {
             var r = cueGrid.RowDefinitions.Count;
             cueGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
             var name = new TextBlock
             {
                 Text = label,
@@ -142,35 +174,58 @@ public sealed class SettingsDialog : Window
             Grid.SetRow(name, r);
             cueGrid.Children.Add(name);
 
-            var combo = new ComboBox { MinWidth = 90, Margin = new Thickness(0, 2, 6, 2) };
+            var modeBox = new ComboBox { MinWidth = 78, Margin = new Thickness(0, 2, 6, 2) };
             foreach (var (tag, text) in new[] { ("off", "Off"), ("sound", "Sound"), ("voice", "Voice") })
-                combo.Items.Add(new ComboBoxItem
-                {
-                    Tag = tag,
-                    Content = text,
-                    IsSelected = tag == current,
-                });
-            if (combo.SelectedItem is null) combo.SelectedIndex = 0;
-            Grid.SetRow(combo, r);
-            Grid.SetColumn(combo, 1);
-            cueGrid.Children.Add(combo);
-            _cues[key] = combo;
+                modeBox.Items.Add(new ComboBoxItem { Tag = tag, Content = text, IsSelected = tag == mode });
+            if (modeBox.SelectedItem is null) modeBox.SelectedIndex = 0;
+            Grid.SetRow(modeBox, r);
+            Grid.SetColumn(modeBox, 1);
+            cueGrid.Children.Add(modeBox);
 
+            var soundBox = new ComboBox { MinWidth = 96, Margin = new Thickness(0, 2, 6, 2) };
+            var chosen = EQBuddy.UI.Shared.AlertSoundCatalog.Normalize(sound);
+            foreach (var n in EQBuddy.UI.Shared.AlertSoundCatalog.Names)
+                soundBox.Items.Add(new ComboBoxItem { Tag = n, Content = n, IsSelected = n == chosen });
+            if (soundBox.SelectedItem is null) soundBox.SelectedIndex = 0;
+            Grid.SetRow(soundBox, r);
+            Grid.SetColumn(soundBox, 2);
+            cueGrid.Children.Add(soundBox);
+
+            // The voice reads "mez" as "may"; spelling it "mezz" fixes it, so the phrase
+            // is the user's to type. Shown next to the sound because Voice falls back to
+            // that sound when the machine has no voice.
+            var phraseRow = new StackPanel { Orientation = Orientation.Horizontal };
+            var phraseBox = new TextBox
+            {
+                Text = phrase,
+                MinWidth = 104,
+                MaxLength = 60,
+                Margin = new Thickness(0, 2, 4, 2),
+                VerticalContentAlignment = VerticalAlignment.Center,
+                ToolTip = "What the Windows voice says. Spell it how it should SOUND — "
+                    + "the voice reads \"mez\" as \"may\", so \"mezz\" is the fix.",
+            };
+            phraseRow.Children.Add(phraseBox);
             var play = new Button
             {
                 Content = "▶",
                 Width = 26,
                 Margin = new Thickness(0, 2, 0, 2),
-                ToolTip = "Preview this cue as it would fire",
+                ToolTip = "Preview this cue exactly as it would fire",
             };
-            play.Click += (_, _) => AudioCues.Preview(Cue(key), phrase);
-            Grid.SetRow(play, r);
-            Grid.SetColumn(play, 2);
-            cueGrid.Children.Add(play);
+            play.Click += (_, _) => AudioCues.Preview(
+                Pick(modeBox) is { Length: > 0 } m and not "off" ? m : "sound",
+                Pick(soundBox), phraseBox.Text.Trim());
+            phraseRow.Children.Add(play);
+            Grid.SetRow(phraseRow, r);
+            Grid.SetColumn(phraseRow, 3);
+            cueGrid.Children.Add(phraseRow);
+
+            _cues[key] = (modeBox, soundBox, phraseBox);
         }
-        CueRow("pet", "Pet break", "pet break", cuePetBreak);
-        CueRow("mez", "Mez break", "mez break", cueMezBreak);
-        CueRow("invis", "Invis break", "invis break", cueInvisBreak);
+        CueRow("pet", "Pet break", ui.CuePetBreak, ui.CuePetSound, ui.CuePetPhrase);
+        CueRow("mez", "Mez break", ui.CueMezBreak, ui.CueMezSound, ui.CueMezPhrase);
+        CueRow("invis", "Invis break", ui.CueInvisBreak, ui.CueInvisSound, ui.CueInvisPhrase);
         panel.Children.Add(cueGrid);
 
         panel.Children.Add(new TextBlock
