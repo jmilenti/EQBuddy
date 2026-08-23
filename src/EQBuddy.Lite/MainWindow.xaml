@@ -207,8 +207,11 @@
                     BorderBrush="{Binding Frame}" BorderThickness="{Binding FrameThickness}"
                     Padding="{Binding FramePad}" CornerRadius="4"
                     ToolTip="{Binding Tip}" Cursor="{Binding Pointer}">
+                <!-- Wrap, not ellipsis (1.78, user request): a clipped log line hid
+                     its own tail, and the fixed-height list scrolls by ITEM, so a row
+                     taking two visual lines costs viewport rows, never layout. -->
                 <TextBlock local:FeedText.Spans="{Binding Spans}"
-                           TextTrimming="CharacterEllipsis"/>
+                           TextWrapping="Wrap"/>
             </Border>
         </DataTemplate>
     </Window.Resources>
@@ -225,7 +228,7 @@
                 <MenuItem Header="Group sync…" Click="OnGroupSyncMenu"/>
                 <MenuItem Header="Reset session" Click="OnResetSession"/>
                 <MenuItem Header="Reset window layout" Click="OnResetLayout"/>
-                <MenuItem Header="Import / export layout…" Click="OnShareLayout"/>
+                <MenuItem Header="Layout functions…" Click="OnShareLayout"/>
                 <Separator/>
                 <MenuItem Header="Exit" Click="OnClose"/>
             </ContextMenu>

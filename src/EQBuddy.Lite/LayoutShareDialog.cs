@@ -3,23 +3,32 @@ using System.Windows.Controls;
 
 namespace EQBuddy.Lite;
 
-/// <summary>Import / export the panel layout as a pasteable string. Export puts YOUR
-/// current layout on the clipboard; Import applies whatever string is in the box —
-/// paste a friend's there (or press Paste) and the panel rebuilds to match.</summary>
+/// <summary>Main menu ▸ "Layout functions…": everything that moves a whole layout at
+/// once. SAVED LAYOUTS are named presets kept in lite-ui.json (save the current
+/// arrangement under a name, load or delete one later — raid layout, solo layout).
+/// The SHARE half is the old import/export: the layout as one pasteable EQDPS1 string.
+/// A preset IS that string, saved under a name instead of pasted to a friend.</summary>
 public sealed class LayoutShareDialog : Window
 {
     private readonly TextBox _box;
     private readonly TextBlock _status;
+    private readonly ComboBox _presetList;
+    private readonly TextBox _nameBox;
 
-    /// <summary>The layout the user asked to import — null unless Import succeeded.</summary>
+    /// <summary>The layout the user asked to apply — from Load or Import — null until
+    /// one of them succeeded.</summary>
     internal LayoutShare.Payload? Applied { get; private set; }
 
     private readonly string _mine;
+    private readonly Dictionary<string, string> _presets;
+    private readonly Action _persist;
 
-    internal LayoutShareDialog(string mine)
+    internal LayoutShareDialog(string mine, Dictionary<string, string> presets, Action persist)
     {
         _mine = mine;
-        Title = "Import / export layout";
+        _presets = presets;
+        _persist = persist;
+        Title = "Layout functions";
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         SizeToContent = SizeToContent.Height;
         Width = 520;
@@ -30,21 +39,109 @@ public sealed class LayoutShareDialog : Window
         panel.Children.Add(new TextBlock
         {
             TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(0, 0, 0, 8),
-            Text = "The whole panel layout as one string — feed windows and tabs with "
-                 + "their filters, names and colours, section widths, what is docked "
-                 + "where, and what is hidden. EXPORT copies yours to the clipboard to "
-                 + "share; IMPORT applies the string in the box (paste a friend's "
-                 + "there). Your group code, log path, and session are never included.",
+            Margin = new Thickness(0, 0, 0, 10),
+            Text = "A layout is the whole arrangement: feed windows and tabs with their "
+                 + "filters, names and colours, section widths and fonts, what is docked "
+                 + "where, and what is hidden. Your group code, log path, and session "
+                 + "are never included.",
         });
 
+        // ---- saved layouts: named presets, kept locally ---------------------
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Saved layouts",
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 0, 0, 4),
+        });
+        var loadRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 6) };
+        _presetList = new ComboBox { MinWidth = 220 };
+        loadRow.Children.Add(_presetList);
+        var load = new Button
+        {
+            Content = "Load",
+            Width = 70,
+            Margin = new Thickness(8, 0, 0, 0),
+            ToolTip = "Apply the selected saved layout, replacing the current one",
+        };
+        load.Click += (_, _) =>
+        {
+            if (_presetList.SelectedItem is not string name
+                || !_presets.TryGetValue(name, out var text))
+            {
+                Say("Pick a saved layout to load.");
+                return;
+            }
+            if (LayoutShare.Import(text) is not { } payload)
+            {
+                // A hand-edited settings file can hold anything; say so, don't crash.
+                Say($"\"{name}\" is not a readable layout — was lite-ui.json edited?");
+                return;
+            }
+            Applied = payload;
+            DialogResult = true;
+        };
+        loadRow.Children.Add(load);
+        var delete = new Button
+        {
+            Content = "Delete",
+            Width = 70,
+            Margin = new Thickness(8, 0, 0, 0),
+            ToolTip = "Forget the selected saved layout (your current arrangement is untouched)",
+        };
+        delete.Click += (_, _) =>
+        {
+            if (_presetList.SelectedItem is not string name) { Say("Pick a saved layout to delete."); return; }
+            _presets.Remove(name);
+            _persist();
+            RefreshPresets(null);
+            Say($"Deleted \"{name}\".", ok: true);
+        };
+        loadRow.Children.Add(delete);
+        panel.Children.Add(loadRow);
+
+        var saveRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 10) };
+        _nameBox = new TextBox
+        {
+            MinWidth = 220,
+            MaxLength = 32,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            ToolTip = "A name for the current arrangement — \"raid\", \"solo\", \"two monitors\"…",
+        };
+        saveRow.Children.Add(_nameBox);
+        var save = new Button
+        {
+            Content = "Save current",
+            Width = 148,
+            Margin = new Thickness(8, 0, 0, 0),
+            ToolTip = "Save the current arrangement under this name (same name = overwrite)",
+        };
+        save.Click += (_, _) =>
+        {
+            var name = _nameBox.Text.Trim();
+            if (name.Length == 0) { Say("Give the layout a name first."); return; }
+            var existed = _presets.ContainsKey(name);
+            _presets[name] = _mine;
+            _persist();
+            RefreshPresets(name);
+            Say(existed ? $"\"{name}\" updated with the current layout." : $"Saved as \"{name}\".", ok: true);
+        };
+        saveRow.Children.Add(save);
+        panel.Children.Add(saveRow);
+
+        // ---- share as text: the old import/export ---------------------------
+        panel.Children.Add(new TextBlock
+        {
+            Text = "Share as text",
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 4, 0, 4),
+        });
         _box = new TextBox
         {
             Text = mine,
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            Height = 120,
+            Height = 96,
             FontFamily = new System.Windows.Media.FontFamily("Consolas"),
             FontSize = 11,
         };
@@ -56,7 +153,8 @@ public sealed class LayoutShareDialog : Window
             Margin = new Thickness(0, 6, 0, 0),
             TextWrapping = TextWrapping.Wrap,
             Foreground = System.Windows.Media.Brushes.Gray,
-            Text = "The box holds your current layout. Importing replaces it.",
+            Text = "The box holds your current layout. Export copies it; Import applies "
+                 + "whatever string is in the box.",
         };
         panel.Children.Add(_status);
 
@@ -103,7 +201,6 @@ public sealed class LayoutShareDialog : Window
         {
             Content = "Import",
             Width = 84,
-            IsDefault = true,
             Margin = new Thickness(0, 0, 8, 0),
             ToolTip = "Apply the layout string in the box, replacing your current layout",
         };
@@ -125,7 +222,18 @@ public sealed class LayoutShareDialog : Window
         panel.Children.Add(buttons);
 
         Content = panel;
-        Loaded += (_, _) => _box.Focus();
+        RefreshPresets(null);
+    }
+
+    /// <summary>Refill the preset list (sorted, so it reads the same every time) and
+    /// select <paramref name="select"/> when given, else the first entry.</summary>
+    private void RefreshPresets(string? select)
+    {
+        var names = _presets.Keys.OrderBy(n => n, StringComparer.OrdinalIgnoreCase).ToList();
+        _presetList.ItemsSource = names;
+        _presetList.SelectedItem = select is { } s && names.Contains(s) ? s
+            : names.Count > 0 ? names[0] : null;
+        _presetList.IsEnabled = names.Count > 0;
     }
 
     private void Say(string text, bool ok = false)

@@ -416,6 +416,10 @@ internal sealed class FeedHost
         menu.Items.Add(split);
 
         Item("Colours…", () => _owner.EditFeedColors(active));
+        Item(Pane.AlertTags.Count > 0
+                ? $"Alert tags… · {Pane.AlertTags.Count}"
+                : "Alert tags…",
+            () => _owner.EditFeedAlerts(this));
         Item("Reset filters", () => active.ResetFilters());
     }
 

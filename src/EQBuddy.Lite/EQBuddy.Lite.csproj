@@ -4,6 +4,10 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <!-- For the colour dialog's picker only: WPF ships no colour picker of its own.
+         The implicit System.Drawing/System.Windows.Forms usings it brings are removed
+         below — they make Brush/Point/Color ambiguous across every WPF file. -->
+    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- The product is EQdps (renamed pre-launch, v1.53.0): its own exe, installer
@@ -13,6 +17,11 @@
     <!-- Version comes from Directory.Build.props (repo root). -->
     <ApplicationIcon>..\EQBuddy\Assets\EQBuddy.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Using Remove="System.Drawing" />
+    <Using Remove="System.Windows.Forms" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\EQBuddy.Core\EQBuddy.Core.csproj" />
