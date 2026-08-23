@@ -349,6 +349,20 @@ internal sealed class FeedHost
 
         menu.Items.Add(new Separator());
 
+        var split = new MenuItem
+        {
+            Header = "Chat layout (incoming on the right)",
+            IsCheckable = true,
+            IsChecked = active.Pane.SplitSides,
+            ToolTip = "Rows for damage coming at you hug the right edge and everything "
+                + "you and yours do stays left, with a gap wherever the side changes. "
+                + "Needs a window wide enough for the lines to FIT — a line that "
+                + "overflows fills the width and has nowhere to align to. Drag the ◢ "
+                + "grip wider (feeds go to 2400 px).",
+        };
+        split.Click += (_, _) => _owner.SetFeedSplitSides(active, split.IsChecked);
+        menu.Items.Add(split);
+
         var glow = new MenuItem
         {
             Header = "Red outline while in combat",

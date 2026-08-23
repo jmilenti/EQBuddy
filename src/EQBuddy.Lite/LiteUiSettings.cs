@@ -161,6 +161,12 @@ public sealed class FeedPane
     /// <summary>Per-window row colours (see <see cref="FeedColors"/>).</summary>
     public FeedColors Colors { get; set; } = new();
 
+    /// <summary>Lay the feed out like a conversation: rows for damage coming AT you hug
+    /// the right edge, everything you and yours do stays left, and the side changing
+    /// leaves a gap. Off by default — it trades the timestamp column for legibility of
+    /// who did what to whom, which is a taste.</summary>
+    public bool SplitSides { get; set; }
+
     /// <summary>Flicker a red border around the window while a fight is on. Only lights
     /// when this pane is showing YOUR rows — it is a "you are in combat" cue, and a
     /// window filtered to someone else has no business claiming it.</summary>

@@ -100,6 +100,11 @@ internal sealed class FeedView
     /// first real row has to clear.</summary>
     private bool _placeholder;
 
+    /// <summary>Which side the row before this one took, for the chat layout's
+    /// transition gap. Null at the top of a rebuild — the first row starts no
+    /// conversation, so it gets no gap.</summary>
+    private bool? _lastRight;
+
     /// <summary>Rows kept per pane. Deep enough to scroll back through a long fight;
     /// virtualisation means only the visible dozen ever become controls.</summary>
     private const int MaxRows = 2000;
@@ -303,6 +308,9 @@ internal sealed class FeedView
         }
 
         var rebuild = _cursor < 0;
+        // RowOf runs in order and remembers the side as it goes, so a rebuild has to
+        // forget the old tail first or the first fresh row inherits a stale neighbour.
+        if (rebuild) _lastRight = null;
         var fresh = _feed.Snapshot(f, MaxRows, rebuild ? 0 : _cursor, out var cursor)
             .Select(RowOf)
             .ToList();
@@ -385,6 +393,12 @@ internal sealed class FeedView
 
     private FeedRow RowOf(FeedEntry e)
     {
+        // Incoming means "done TO you" — the flag the filters already use for the `in`
+        // pill, so the two never disagree about which side a row is on.
+        var right = Pane.SplitSides && e.Incoming;
+        var gap = Pane.SplitSides && _lastRight is { } previous && previous != right;
+        _lastRight = right;
+
         var spans = new List<FeedSpan>(4)
         {
             new($"{e.Time:HH:mm:ss}  ", _palette.Dim),
@@ -395,7 +409,7 @@ internal sealed class FeedView
         // what the log says.
         var body = e.Raw is { Length: > 0 } raw ? raw : Fallback(e);
         AddAccented(spans, body, e.Ability, BrushFor(e));
-        return new FeedRow(spans);
+        return new FeedRow(spans) { Right = right, Gap = gap };
     }
 
     /// <summary>Add the line, with the ability/spell/item it names picked out in the

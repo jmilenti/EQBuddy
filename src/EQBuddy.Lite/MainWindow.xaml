@@ -132,6 +132,9 @@
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0"/>
             <Setter Property="Focusable" Value="False"/>
+            <!-- Stretch, or the presenter shrink-wraps the text and the row's
+                 TextAlignment has no width to align within (the chat layout). -->
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
@@ -147,6 +150,7 @@
         <DataTemplate x:Key="FeedRowTemplate">
             <TextBlock local:FeedText.Spans="{Binding Spans}"
                        FontFamily="Consolas"
+                       TextAlignment="{Binding Align}" Margin="{Binding Pad}"
                        TextTrimming="CharacterEllipsis"/>
         </DataTemplate>
     </Window.Resources>

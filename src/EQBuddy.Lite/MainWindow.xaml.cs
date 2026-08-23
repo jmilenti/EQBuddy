@@ -1604,6 +1604,15 @@ public partial class MainWindow : Window
         Refit(host.Key);
     }
 
+    /// <summary>Right-click ▸ Chat layout: incoming right, outgoing left.</summary>
+    internal void SetFeedSplitSides(FeedView view, bool on)
+    {
+        view.Pane.SplitSides = on;
+        _ui.Save();
+        view.Invalidate();   // every drawn row has to be re-sided
+        RenderFeeds();
+    }
+
     /// <summary>Right-click ▸ Colours…: per-window row colours.</summary>
     internal void EditFeedColors(FeedView view)
     {
