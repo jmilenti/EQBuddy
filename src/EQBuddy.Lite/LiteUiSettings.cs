@@ -75,12 +75,27 @@ public sealed class LiteUiSettings
     /// above, which keep the one-line heading visible.</summary>
     public List<string> HiddenSections { get; set; } = [];
 
-    /// <summary>Audio cues (the ⚙ dialog): "off", "sound" (a distinct system sound),
-    /// or "voice" (the Windows voice saying "pet break" / "mez break" / "invis
-    /// break"). Voice falls back to the sound on a machine with no voice.</summary>
+    /// <summary>Audio cues (the ⚙ dialog): "off", "sound", or "voice". Voice falls back
+    /// to the cue's sound on a machine with no voice. These three MODE keys shipped in
+    /// 1.73 as plain strings and stay strings — changing their shape would fail to
+    /// deserialize an existing file, and LiteUiSettings.Load answers a parse failure by
+    /// handing back defaults, i.e. silently wiping every other setting too.</summary>
     public string CuePetBreak { get; set; } = "off";
     public string CueMezBreak { get; set; } = "off";
     public string CueInvisBreak { get; set; } = "off";
+
+    /// <summary>Which alert sound each cue plays, from the palette shared with the full
+    /// app (<c>AlertSoundCatalog.Names</c>). A hand-edited path also works.</summary>
+    public string CuePetSound { get; set; } = "Chimes";
+    public string CueMezSound { get; set; } = "Exclamation";
+    public string CueInvisSound { get; set; } = "Notify";
+
+    /// <summary>What the voice SAYS. Editable because the Windows voice reads "mez" as
+    /// "may" — spelling it "mezz" fixes it, and the same trick handles any other word
+    /// the voice mangles. Empty falls back to "alert".</summary>
+    public string CuePetPhrase { get; set; } = "pet break";
+    public string CueMezPhrase { get; set; } = "mezz break";
+    public string CueInvisPhrase { get; set; } = "invis break";
 
     /// <summary>Where in the log your last session reset happened — the log file and the
     /// byte offset reached at that moment. Replayed at the next launch so a restart

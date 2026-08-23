@@ -172,6 +172,7 @@
                 <MenuItem Header="Group sync…" Click="OnGroupSyncMenu"/>
                 <MenuItem Header="Reset session" Click="OnResetSession"/>
                 <MenuItem Header="Reset window layout" Click="OnResetLayout"/>
+                <MenuItem Header="Share layout…" Click="OnShareLayout"/>
                 <Separator/>
                 <MenuItem Header="Exit" Click="OnClose"/>
             </ContextMenu>
