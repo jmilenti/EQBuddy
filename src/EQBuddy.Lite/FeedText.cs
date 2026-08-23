@@ -16,6 +16,19 @@ public sealed record FeedRow(IReadOnlyList<FeedSpan> Spans)
 {
     public FeedRow(string text, Brush color) : this([new FeedSpan(text, color)]) { }
 
+    /// <summary>Hug the right edge — an INCOMING row in the chat layout, where what is
+    /// done to you and what you do read as two sides of a conversation.</summary>
+    public bool Right { get; init; }
+
+    /// <summary>Leave air above this row: the side changed here. Without it the two
+    /// columns run together and the layout stops reading as a back-and-forth.</summary>
+    public bool Gap { get; init; }
+
+    /// <summary>Bound by the row template — Alignment and Margin as WPF wants them.</summary>
+    public TextAlignment Align => Right ? TextAlignment.Right : TextAlignment.Left;
+
+    public Thickness Pad => Gap ? new Thickness(0, 4, 0, 0) : default;
+
     /// <summary>The whole line as plain text — what a UIA client reads off the row, and
     /// what makes the list testable from outside.</summary>
     public string Text { get; } = string.Concat(Spans.Select(s => s.Text));
