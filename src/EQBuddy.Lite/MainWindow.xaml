@@ -205,7 +205,8 @@
         <DataTemplate x:Key="FeedRowTemplate">
             <Border HorizontalAlignment="{Binding HAlign}" Margin="{Binding Pad}"
                     BorderBrush="{Binding Frame}" BorderThickness="{Binding FrameThickness}"
-                    Padding="{Binding FramePad}" CornerRadius="4">
+                    Padding="{Binding FramePad}" CornerRadius="4"
+                    ToolTip="{Binding Tip}" Cursor="{Binding Pointer}">
                 <TextBlock local:FeedText.Spans="{Binding Spans}"
                            TextTrimming="CharacterEllipsis"/>
             </Border>
@@ -278,7 +279,7 @@
                  window) rather than an inline list — a long ability list was pushing
                  every section below it down the screen. -->
             <TextBlock x:Name="DamageHeader" Visibility="Collapsed" Cursor="Hand"
-                       FontSize="9.5" Foreground="#7B8794" Margin="0,4,0,0"
+                       FontSize="11" FontWeight="SemiBold" Foreground="#7B8794" Margin="0,4,0,0"
                        ToolTip="Click for your full damage breakdown (opens beside the panel)"
                        MouseLeftButtonDown="OnBreakdownToggle"/>
             <TextBlock x:Name="PetText" Text="🐾 no pet" FontSize="13"
@@ -286,12 +287,12 @@
             <StackPanel x:Name="MotesSection">
                 <Rectangle x:Name="MotesTopSep" Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
                 <TextBlock x:Name="MotesHeader" Text="MOTES · none yet" Cursor="Hand"
-                           FontSize="9.5" Foreground="#A8985A"
+                           FontSize="11" FontWeight="SemiBold" Foreground="#A8985A"
                            ToolTip="Click to show/hide · drag to pop out"/>
                 <!-- One aligned table, players down and tiers across (RenderMotesTable):
                      the loot race is a comparison, and a comparison wants columns —
                      per-player indented tier lists made everyone count for themselves. -->
-                <Grid x:Name="MotesTable" Margin="2,4,0,0" Visibility="Collapsed"
+                <Grid x:Name="MotesTable" TextElement.FontFamily="Consolas" Margin="2,4,0,0" Visibility="Collapsed"
                       ToolTip="Group rows come over sync — your log never sees anyone else's loot"/>
             </StackPanel>
 
@@ -299,12 +300,12 @@
                 <Rectangle x:Name="LootTopSep" Height="1" Fill="#2AFFFFFF"
                            Margin="0,9,0,0" Visibility="Collapsed"/>
                 <TextBlock x:Name="LootHeader" Visibility="Collapsed" Cursor="Hand"
-                           FontSize="9.5" Foreground="#7B8794" Margin="0,7,0,0"
+                           FontSize="11" FontWeight="SemiBold" Foreground="#7B8794" Margin="0,7,0,0"
                            ToolTip="Click to show/hide · drag to pop out"/>
-                <ItemsControl x:Name="LootList" Margin="4,2,0,0" Visibility="Collapsed">
+                <ItemsControl x:Name="LootList" FontFamily="Consolas" Margin="4,2,0,0" Visibility="Collapsed">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11.5"
+                            <TextBlock Text="{Binding}" FontSize="11.5"
                                        Foreground="#9FB0BE"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -315,9 +316,9 @@
             <Rectangle x:Name="FightsTopSep" Height="1" Fill="#2AFFFFFF"
                        Margin="0,9,0,0" Visibility="Collapsed"/>
             <TextBlock x:Name="FightsHeader" Visibility="Collapsed" Cursor="Hand"
-                       FontSize="9.5" Foreground="#7B8794" Margin="0,7,0,0"
+                       FontSize="11" FontWeight="SemiBold" Foreground="#7B8794" Margin="0,7,0,0"
                        ToolTip="Click to show/hide · drag to pop out · click a fight for its breakdown"/>
-            <ItemsControl x:Name="FightsList" Margin="4,2,0,0" Visibility="Collapsed">
+            <ItemsControl x:Name="FightsList" FontFamily="Consolas" Margin="4,2,0,0" Visibility="Collapsed">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border CornerRadius="6" Padding="7,2" Margin="0,1"
@@ -336,7 +337,7 @@
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
-                            <TextBlock Text="{Binding Text}" FontFamily="Consolas" FontSize="12"
+                            <TextBlock Text="{Binding Text}" FontSize="12"
                                        Foreground="#B9C8D6"/>
                         </Border>
                     </DataTemplate>
@@ -347,13 +348,13 @@
             <StackPanel x:Name="SpawnSection" Visibility="Collapsed">
                 <Rectangle x:Name="SpawnTopSep" Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
-                    <TextBlock x:Name="SpawnHeader" Cursor="Hand" FontSize="9.5"
-                               Foreground="#7B8794"
+                    <TextBlock x:Name="SpawnHeader" Cursor="Hand" FontSize="11"
+                               FontWeight="SemiBold" Foreground="#7B8794"
                                ToolTip="Click to show/hide · drag to pop out · click a timer for details"/>
                     <!-- Spawn timers survive a session reset on purpose (a respawn is
                          real-world time), so clearing a camp gets its own action here. -->
                     <TextBlock x:Name="SpawnClearLink" Text="↺ clear" Cursor="Hand"
-                               FontSize="9.5" Margin="10,0,0,0"
+                               FontSize="10.5" Margin="10,0,0,0"
                                ToolTip="Clear every spawn timer on this server — session reset leaves them running on purpose"
                                MouseLeftButtonDown="OnClearSpawns">
                         <TextBlock.Style>
@@ -368,7 +369,7 @@
                         </TextBlock.Style>
                     </TextBlock>
                 </StackPanel>
-                <ItemsControl x:Name="SpawnList">
+                <ItemsControl x:Name="SpawnList" FontFamily="Consolas">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border CornerRadius="6" Padding="7,3" Margin="0,1"
@@ -389,7 +390,7 @@
                                 </Border.Style>
                                 <DockPanel>
                                     <TextBlock DockPanel.Dock="Right" Text="{Binding Due}"
-                                               FontFamily="Consolas" FontSize="12.5"
+                                               FontSize="12.5"
                                                Foreground="#E8CE9C" Margin="10,0,0,0"/>
                                     <TextBlock Text="{Binding Name}" FontSize="12"
                                                Foreground="#E8CE9C"/>
@@ -403,10 +404,10 @@
             <StackPanel x:Name="GroupSection">
             <Rectangle x:Name="GroupTopSep" Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
 
-            <TextBlock x:Name="GroupLabel" Text="GROUP · from your log, near you" FontSize="9.5"
-                       Foreground="#7B8794" Margin="0,0,0,3" Cursor="Hand"
+            <TextBlock x:Name="GroupLabel" Text="GROUP · from your log, near you" FontSize="11"
+                       FontWeight="SemiBold" Foreground="#7B8794" Margin="0,0,0,3" Cursor="Hand"
                        ToolTip="Click to show/hide · drag to pop out"/>
-            <ItemsControl x:Name="GroupList">
+            <ItemsControl x:Name="GroupList" FontFamily="Consolas">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border CornerRadius="6" Padding="7,3" Margin="0,1"
@@ -425,7 +426,7 @@
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
-                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12.5"
+                            <TextBlock Text="{Binding}" FontSize="12.5"
                                        Foreground="#CFE3F5"/>
                         </Border>
                     </DataTemplate>
@@ -441,10 +442,10 @@
             <StackPanel x:Name="Group2Section">
             <Rectangle x:Name="Group2TopSep" Height="1" Fill="#2AFFFFFF" Margin="0,9,0,7"/>
 
-            <TextBlock x:Name="Group2Label" Text="GROUP · session" FontSize="9.5"
-                       Foreground="#7B8794" Margin="0,0,0,3" Cursor="Hand"
+            <TextBlock x:Name="Group2Label" Text="GROUP · session" FontSize="11"
+                       FontWeight="SemiBold" Foreground="#7B8794" Margin="0,0,0,3" Cursor="Hand"
                        ToolTip="Click to show/hide · drag to pop out"/>
-            <ItemsControl x:Name="Group2List">
+            <ItemsControl x:Name="Group2List" FontFamily="Consolas">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border CornerRadius="6" Padding="7,3" Margin="0,1"
@@ -463,7 +464,7 @@
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
-                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12.5"
+                            <TextBlock Text="{Binding}" FontSize="12.5"
                                        Foreground="#CFE3F5"/>
                         </Border>
                     </DataTemplate>

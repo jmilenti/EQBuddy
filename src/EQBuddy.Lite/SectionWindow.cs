@@ -39,6 +39,20 @@ public sealed class SectionWindow : Window
 
     private const string DockBackTip = "Hook back under the main stack";
 
+    /// <summary>The face list every Font menu offers — all ship with Windows, so a
+    /// shared layout never lands on a machine that lacks its font. Classic EQ is what
+    /// the game's own chat window draws in.</summary>
+    internal static readonly (string Label, string Family)[] FontChoices =
+    [
+        ("Consolas (default)", "Consolas"),
+        ("Classic EQ (Arial)", "Arial"),
+        ("Cascadia Mono", "Cascadia Mono"),
+        ("Segoe UI", "Segoe UI"),
+        ("Verdana", "Verdana"),
+        ("Tahoma", "Tahoma"),
+        ("Georgia", "Georgia"),
+    ];
+
     /// <summary>What this window's ✕ does. Null (the default) re-docks it under the
     /// main stack. Spawned FEED windows set a real close here: re-docking a window the
     /// user asked to close looks exactly like the close silently failing.</summary>
@@ -153,6 +167,35 @@ public sealed class SectionWindow : Window
             Child = _grid,
             LayoutTransform = _scale,
         };
+
+        // Right-click ▸ Font: this section's rows in another face, per WINDOW — the
+        // FEED windows have their own richer menu (FeedHost owns those, and two menus
+        // on one window would race for the click).
+        if (!sectionKey.StartsWith("feed", StringComparison.Ordinal))
+        {
+            var fonts = new MenuItem { Header = "Font" };
+            var menu = new ContextMenu();
+            menu.Items.Add(fonts);
+            ContextMenu = menu;
+            // Rebuilt on every open so the check mark follows the live setting.
+            menu.Opened += (_, _) =>
+            {
+                fonts.Items.Clear();
+                var current = _owner.SectionFontOf(sectionKey);
+                foreach (var (label, family) in FontChoices)
+                {
+                    var pick = family;
+                    var item = new MenuItem
+                    {
+                        Header = label,
+                        IsCheckable = true,
+                        IsChecked = string.Equals(current, pick, StringComparison.OrdinalIgnoreCase),
+                    };
+                    item.Click += (_, _) => _owner.SetSectionFont(sectionKey, pick);
+                    fonts.Items.Add(item);
+                }
+            };
+        }
 
         MouseLeftButtonDown += (_, e) =>
         {

@@ -104,7 +104,7 @@ internal sealed class FeedHost
         _tabStrip = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
         _status = new TextBlock
         {
-            FontSize = 9.5,
+            FontSize = 10,
             Foreground = DimBrush,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(6, 0, 0, 0),
@@ -149,6 +149,7 @@ internal sealed class FeedHost
         var wasActive = _views.Count > 0 ? Active.Key : Pane.Key;
         _views.Clear();
         _views.AddRange(views);
+        foreach (var view in _views) view.StatusFlash = FlashStatus;
         var found = _views.FindIndex(v => v.Key == wasActive);
         _activeIndex = found >= 0 ? found : 0;
         ShowBody();
@@ -215,8 +216,22 @@ internal sealed class FeedHost
         RefreshTabLabels();
     }
 
+    /// <summary>A short-lived status note ("· copied ✓"). The regular status text
+    /// resumes when it expires — SetStatus runs on every render tick anyway, so the
+    /// flash needs no timer of its own.</summary>
+    private string _flash = "";
+    private DateTime _flashUntil;
+
+    public void FlashStatus(string text)
+    {
+        _flash = text;
+        _flashUntil = DateTime.UtcNow.AddSeconds(1.5);
+        SetStatus(text);
+    }
+
     private void SetStatus(string text)
     {
+        if (_flashUntil > DateTime.UtcNow) text = _flash;
         if (_status.Text != text) _status.Text = text;
     }
 
@@ -340,20 +355,8 @@ internal sealed class FeedHost
         }
         menu.Items.Add(fonts);
 
-        // Every face here ships with Windows, so a shared layout never lands on a
-        // machine that lacks its font. Classic EQ first — it is what the game's own
-        // chat window draws in.
         var faces = new MenuItem { Header = "Font" };
-        foreach (var (label, family) in new[]
-                 {
-                     ("Classic EQ (Arial)", "Arial"),
-                     ("Consolas (default)", "Consolas"),
-                     ("Cascadia Mono", "Cascadia Mono"),
-                     ("Segoe UI", "Segoe UI"),
-                     ("Verdana", "Verdana"),
-                     ("Tahoma", "Tahoma"),
-                     ("Georgia", "Georgia"),
-                 })
+        foreach (var (label, family) in SectionWindow.FontChoices)
         {
             var pick = family;
             var item = new MenuItem

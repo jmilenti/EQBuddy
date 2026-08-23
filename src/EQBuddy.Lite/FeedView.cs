@@ -18,6 +18,7 @@ internal sealed class FeedPalette
     public Brush Summary = Frozen("#7FD9E8"), Dim = Frozen("#7B8794");
     public Brush Xp = Frozen("#F2E33D"), Loot = Frozen("#4A8CFF");
     public Brush Money = Frozen("#33CC33"), Attack = Frozen("#4A8CFF");
+    public Brush Faction = Frozen("#E04040");
 
     public FeedPalette(FeedColors c)
     {
@@ -28,7 +29,7 @@ internal sealed class FeedPalette
         Other = Frozen(c.Other, Other); Summary = Frozen(c.Summary, Summary);
         Dim = Frozen(c.Dim, Dim); Xp = Frozen(c.Xp, Xp);
         Loot = Frozen(c.Loot, Loot); Money = Frozen(c.Money, Money);
-        Attack = Frozen(c.Attack, Attack);
+        Attack = Frozen(c.Attack, Attack); Faction = Frozen(c.Faction, Faction);
     }
 
     /// <summary>A hex colour as a frozen brush, or <paramref name="fallback"/> when the
@@ -164,6 +165,19 @@ internal sealed class FeedView
         VirtualizingPanel.SetScrollUnit(_list, ScrollUnit.Item);
         VirtualizingPanel.SetVirtualizationMode(_list, VirtualizationMode.Recycling);
 
+        // Kill summaries copy themselves on click, the way the FIGHTS popup's ⧉ does —
+        // the summary IS the line worth pasting to the group. Preview, because a
+        // ListBoxItem eats plain clicks for selection.
+        _list.PreviewMouseLeftButtonUp += (_, e) =>
+        {
+            if (e.OriginalSource is not DependencyObject at) return;
+            if (ItemsControl.ContainerFromElement(_list, at) is not ListBoxItem item
+                || item.DataContext is not FeedRow { Copy: { Length: > 0 } copy }) return;
+            e.Handled = true;
+            try { Clipboard.SetText(copy); } catch { return; }
+            StatusFlash?.Invoke("· copied ✓");
+        };
+
         // One ROW per category, so "who" never wraps into the middle of "what": each
         // Group() call starts a fresh horizontal line under the previous one.
         _pillRows = new StackPanel();
@@ -274,6 +288,10 @@ internal sealed class FeedView
     /// <summary>The family last pushed onto the list, so a render compares a string
     /// instead of allocating a FontFamily per frame.</summary>
     private string _appliedFamily = "";
+
+    /// <summary>Set by the hosting window: a transient note for its status slot
+    /// ("· copied ✓") — the view has no status line of its own.</summary>
+    internal Action<string>? StatusFlash;
 
     /// <summary>One row's height at the current font — the same +3 leading the original
     /// 11px/14px pairing had. The grip's row-drag and the viewport height both use it.</summary>
@@ -428,7 +446,8 @@ internal sealed class FeedView
         // before 1.68.1): a filtered feed is easier to read when its rows say exactly
         // what the log says.
         var body = e.Raw is { Length: > 0 } raw ? raw : Fallback(e);
-        AddAccented(spans, body, e.Ability, BrushFor(e), bold: e.Kind == FeedKind.Xp);
+        AddAccented(spans, body, e.Ability, BrushFor(e), bold: e.Kind == FeedKind.Xp,
+            accent: e.Kind == FeedKind.Faction ? _palette.Faction : null);
         if (right) spans.Add(new FeedSpan($"  {e.Time:HH:mm:ss}", _palette.Dim));
         return new FeedRow(spans)
         {
@@ -436,16 +455,26 @@ internal sealed class FeedView
             Gap = gap,
             // The frame that sets the kill summaries apart from the stream they sum up.
             Frame = e.Kind == FeedKind.Summary ? _palette.Summary : null,
+            Copy = e.Kind == FeedKind.Summary ? ChatSafe(body) : null,
         };
     }
+
+    /// <summary>A summary row as one flat line for EQ's chat box — the same rules as
+    /// the popup ⧉: single line, typographic glyphs to ASCII (the game's font mangles
+    /// them), and the feed's own ⤷ marker dropped.</summary>
+    internal static string ChatSafe(string text) =>
+        System.Text.RegularExpressions.Regex.Replace(text
+            .Replace("⤷", "").Replace(" · ", " - ").Replace("·", "-")
+            .Replace("×", "x").Replace("—", "-"), " {2,}", " ").Trim();
 
     /// <summary>Add the line, with the ability/spell/item it names picked out in the
     /// accent colour. Matching on the text the log actually printed is what keeps the
     /// highlight honest — no accent is shown when the line does not literally contain the
     /// name (a third-party hit with no skill, say).</summary>
     private void AddAccented(List<FeedSpan> spans, string body, string ability,
-        Brush baseBrush, bool bold = false)
+        Brush baseBrush, bool bold = false, Brush? accent = null)
     {
+        accent ??= _palette.Ability;
         var at = ability.Length >= 3
             ? body.IndexOf(ability, StringComparison.OrdinalIgnoreCase)
             : -1;
@@ -455,7 +484,7 @@ internal sealed class FeedView
             return;
         }
         if (at > 0) spans.Add(new FeedSpan(body[..at], baseBrush, bold));
-        spans.Add(new FeedSpan(body.Substring(at, ability.Length), _palette.Ability, bold));
+        spans.Add(new FeedSpan(body.Substring(at, ability.Length), accent, bold));
         var rest = at + ability.Length;
         if (rest < body.Length) spans.Add(new FeedSpan(body[rest..], baseBrush, bold));
     }
@@ -471,12 +500,14 @@ internal sealed class FeedView
         // The log kinds wear the GAME's chat colours (user screenshot): loot blue,
         // money green, stances blue, xp bold yellow. Zone and chat stay in the dim
         // context colour — the game gives every channel its own and the feed cannot
-        // know which channel a line came from.
+        // know which channel a line came from. Faction rows keep the context colour
+        // too: their red lives on the NAME, painted by the accent in RowOf.
         FeedKind.Attack => _palette.Attack,
         FeedKind.Xp => _palette.Xp,
         FeedKind.Loot => _palette.Loot,
         FeedKind.Money => _palette.Money,
-        FeedKind.Zone or FeedKind.Chat or FeedKind.Other => _palette.Other,
+        FeedKind.Zone or FeedKind.Chat or FeedKind.Other
+            or FeedKind.Faction => _palette.Other,
         FeedKind.Kill => _palette.Kill,
         FeedKind.Heal => _palette.Heal,
         FeedKind.Taken => _palette.Incoming,
@@ -584,7 +615,8 @@ internal sealed class FeedView
         Pill("melee", "Melee hits", () => f.Melee, () => f.Melee = !f.Melee);
         Pill("spell", "Direct spell damage", () => f.Spells, () => f.Spells = !f.Spells);
         Pill("dot", "Damage-over-time ticks", () => f.Dots, () => f.Dots = !f.Dots);
-        Pill("ds", "Damage shields / automatic damage", () => f.DamageShields, () => f.DamageShields = !f.DamageShields);
+        Pill("ds", "Damage shields / automatic damage — yours on them AND theirs on you",
+            () => f.DamageShields, () => f.DamageShields = !f.DamageShields);
         Pill("heal", "Heals, cast and received", () => f.Heals, () => f.Heals = !f.Heals);
         Pill("miss", "Misses, dodges, parries", () => f.Misses, () => f.Misses = !f.Misses);
         Pill("kill", "Killing blows", () => f.Kills, () => f.Kills = !f.Kills);
@@ -597,8 +629,10 @@ internal sealed class FeedView
             () => f.Attack, () => f.Attack = !f.Attack);
         Pill("loot", "Loot, corpse coin, vendor sales, crafting",
             () => f.Loot, () => f.Loot = !f.Loot);
-        Pill("xp", "Experience, AA, levels, skill-ups, faction",
+        Pill("xp", "Experience, AA, levels, skill-ups",
             () => f.Xp, () => f.Xp = !f.Xp);
+        Pill("fact", "Faction standing changes — the faction's name in the game's red",
+            () => f.Faction, () => f.Faction = !f.Faction);
         Pill("zone", "Zone changes and /loc lines", () => f.Zone, () => f.Zone = !f.Zone);
         Pill("chat", "Tells, says, shouts, channel chat, auctions",
             () => f.Chat, () => f.Chat = !f.Chat);
@@ -656,6 +690,7 @@ internal sealed class FeedView
         Cmp(f.Kills, d.Kills); Cmp(f.ResistsFizzles, d.ResistsFizzles);
         Cmp(f.Casts, d.Casts); Cmp(f.Other, d.Other);
         Cmp(f.Attack, d.Attack); Cmp(f.Loot, d.Loot); Cmp(f.Xp, d.Xp);
+        Cmp(f.Faction, d.Faction);
         Cmp(f.Zone, d.Zone); Cmp(f.Chat, d.Chat);
         Cmp(f.SummaryYou, d.SummaryYou); Cmp(f.SummaryPet, d.SummaryPet);
         Cmp(f.SummaryGroup, d.SummaryGroup);

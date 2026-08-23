@@ -20,9 +20,12 @@ internal enum FeedKind
     /// <summary>Corpse coin and splits — same filter pill as Loot, its own colour: the
     /// game draws money green where loot is blue, and the feed matches the game.</summary>
     Money,
-    /// <summary>Progress: experience, AA gains and purchases, levels, skill-ups,
-    /// faction hits.</summary>
+    /// <summary>Progress: experience, AA gains and purchases, levels, skill-ups.</summary>
     Xp,
+    /// <summary>Faction standing changes — split from <see cref="Xp"/> (1.77): the game
+    /// draws them as plain text with the faction NAME in red, not xp yellow, and a
+    /// grind that watches xp does not necessarily want the faction spam.</summary>
+    Faction,
     /// <summary>Zone changes and /loc lines.</summary>
     Zone,
     /// <summary>Player talk: tells, says, shouts, group/guild/channel chat, auctions.</summary>
@@ -144,6 +147,14 @@ internal sealed class DamageFeed
                 "you", d.Target, d.Amount, d.Source, d.Critical, d.Note, Incoming: false),
 
             // Self-damage (HP-cost casting, falls) isn't a fight — same rule Core uses.
+            // The bare non-melee form ("YOU are pierced by thorns for 2 points of
+            // non-melee damage!") is a damage shield burning YOU — the mirror of the
+            // outgoing IsAux rows — so it rides the ds pill like they do (reported:
+            // "ds off but I'm seeing YOU are pierced"). Spells and DoTs aimed at you
+            // name their spell or their line shape and stay Taken.
+            DamageTakenEvent { Self: false, Melee: false, OverTime: false, Ability: "" } t
+                => new FeedEntry(t.Time, FeedWho.You, FeedKind.Aux, t.Attacker, "you",
+                    t.Amount, "", false, null, Incoming: true),
             DamageTakenEvent { Self: false } t => new FeedEntry(t.Time, FeedWho.You,
                 FeedKind.Taken, t.Attacker, "you", t.Amount, t.Ability, false, null, Incoming: true),
 
@@ -264,8 +275,8 @@ internal sealed class DamageFeed
         StanceEvent or InvocationEvent or SkillSubstitutionEvent => FeedKind.Attack,
         MoneyEvent => FeedKind.Money,
         LootEvent or AutoSellEvent or ItemDestroyedEvent or CraftEvent => FeedKind.Loot,
-        XpEvent or AaEvent or AaPurchaseEvent or LevelEvent or SkillUpEvent
-            or FactionEvent => FeedKind.Xp,
+        XpEvent or AaEvent or AaPurchaseEvent or LevelEvent or SkillUpEvent => FeedKind.Xp,
+        FactionEvent => FeedKind.Faction,
         ZoneEvent or LocationEvent => FeedKind.Zone,
         null when LooksLikeCasting(text) => FeedKind.Cast,
         null when text.StartsWith("Auto attack is ", StringComparison.Ordinal) => FeedKind.Attack,
@@ -318,6 +329,17 @@ internal sealed class DamageFeed
         BuffFadeEvent b => b.Label,
         ItemProcEvent p => p.Item,
         LootEvent l => l.Item,
+        // The OTHER loot shapes name their item too (reported: "some items are not
+        // showing up in the pink colour" — only plain looted/stored/create lines were;
+        // auto-sold, destroyed, crafted, and vendor-sale lines parse to different
+        // events, and the accent never saw their items).
+        AutoSellEvent s => s.Item,
+        ItemDestroyedEvent d => d.Item,
+        CraftEvent cr => cr.Item,
+        MoneyEvent { Item: { Length: > 0 } } m => m.Item!,
+        // Not an ability, but the same job: the accent picks the faction NAME out of
+        // the line, red like the game draws it.
+        FactionEvent fa => fa.Faction,
         _ => "",
     };
 
@@ -527,6 +549,7 @@ internal sealed class DamageFeed
             case FeedKind.Attack: return f.Attack;
             case FeedKind.Loot or FeedKind.Money: return f.Loot;
             case FeedKind.Xp: return f.Xp;
+            case FeedKind.Faction: return f.Faction;
             case FeedKind.Zone: return f.Zone;
             case FeedKind.Chat: return f.Chat;
             case FeedKind.Other: return f.Other;
