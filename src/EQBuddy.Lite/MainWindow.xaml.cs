@@ -1020,7 +1020,7 @@ public partial class MainWindow : Window
             MotesTable.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         void Cell(int row, int col, string text, Brush brush, double size = 11.5,
-            bool mono = true, bool right = true, bool bold = false, string? tip = null)
+            bool right = true, bool bold = false, string? tip = null)
         {
             var tb = new TextBlock
             {
@@ -1033,20 +1033,19 @@ public partial class MainWindow : Window
                 Margin = new Thickness(col == 0 ? 0 : 11, row == 0 ? 0 : 2, 0, 0),
                 ToolTip = tip,
             };
-            if (mono) tb.FontFamily = new FontFamily("Consolas");
             Grid.SetRow(tb, row);
             Grid.SetColumn(tb, col);
             MotesTable.Children.Add(tb);
         }
 
         for (var c = 0; c < tiers.Count; c++)
-            Cell(0, c + 1, tiers[c], MoteDim, size: 9, mono: false,
+            Cell(0, c + 1, tiers[c], MoteDim, size: 10.5,
                 // TierShort is invertible, so the header can name the actual item.
                 tip: tiers[c] == "Base" ? "Mote of Potential — the tierless base mote"
                     : $"Mote of {tiers[c]} Potential");
-        Cell(0, tiers.Count + 1, "all", MoteDim, size: 9, mono: false, tip: "Total motes");
-        Cell(0, tiers.Count + 2, "/h", MoteDim, size: 9, mono: false, tip: "Motes per hour");
-        Cell(0, tiers.Count + 3, "time", MoteDim, size: 9, mono: false,
+        Cell(0, tiers.Count + 1, "all", MoteDim, size: 10.5, tip: "Total motes");
+        Cell(0, tiers.Count + 2, "/h", MoteDim, size: 10.5, tip: "Motes per hour");
+        Cell(0, tiers.Count + 3, "time", MoteDim, size: 10.5,
             tip: "How long this player has been collecting — their session length, or "
                  + "time since your reset when the board is rebased");
 
@@ -1054,7 +1053,7 @@ public partial class MainWindow : Window
         {
             var (name, isYou, total, rate, span, byTier) = rows[r];
             Cell(r + 1, 0, name, isYou ? MoteBright : MoteMemberName,
-                size: 12, mono: false, right: false, bold: isYou);
+                size: 12, right: false, bold: isYou);
             for (var c = 0; c < tiers.Count; c++)
                 Cell(r + 1, c + 1,
                     byTier.TryGetValue(tiers[c], out var n) ? n.ToString() : "·",
@@ -1683,6 +1682,45 @@ public partial class MainWindow : Window
         RenderFeeds();
     }
 
+    /// <summary>The elements a section's font override paints — the DATA rows only,
+    /// never the heading: headings are chrome, and staying readable is how a section
+    /// survives a wild font choice.</summary>
+    private FrameworkElement[] SectionFontTargets(string key) => key switch
+    {
+        "motes" => [MotesTable],
+        "loot" => [LootList],
+        "fights" => [FightsList],
+        "spawns" => [SpawnList],
+        "group" => [GroupList, GroupEmptyText],
+        "group2" => [Group2List, Group2EmptyText],
+        _ => [],
+    };
+
+    /// <summary>What a section's rows are drawn in — the override, or Consolas.</summary>
+    internal string SectionFontOf(string key) =>
+        _ui.SectionFonts.TryGetValue(key, out var f) && f.Length > 0 ? f : "Consolas";
+
+    /// <summary>Right-click ▸ Font on a section window — per WINDOW, like the feeds'.
+    /// Picking the default removes the override rather than storing it.</summary>
+    internal void SetSectionFont(string key, string family)
+    {
+        if (family.Length > 0 && !string.Equals(family, "Consolas", StringComparison.OrdinalIgnoreCase))
+            _ui.SectionFonts[key] = family;
+        else
+            _ui.SectionFonts.Remove(key);
+        _ui.Save();
+        ApplySectionFont(key);
+    }
+
+    private void ApplySectionFont(string key)
+    {
+        // TextElement's inherited attached property, not Control.FontFamily: the motes
+        // board is a bare Grid, which has no font of its own to set.
+        var family = new FontFamily(SectionFontOf(key));
+        foreach (var el in SectionFontTargets(key))
+            System.Windows.Documents.TextElement.SetFontFamily(el, family);
+    }
+
     /// <summary>Right-click ▸ Font: the row typeface for one feed WINDOW.</summary>
     internal void SetFeedFont(FeedHost host, string family)
     {
@@ -1949,6 +1987,7 @@ public partial class MainWindow : Window
         foreach (var key in SectionKeys)
         {
             Detach(key, tearOff: false);
+            ApplySectionFont(key);
             if (_ui.SectionWidths.TryGetValue(key, out var w) && w is > 100 and < 2600)
                 ApplySectionWidth(key, w);
             if (_ui.SectionPositions.TryGetValue(key, out var p) && p is [var x, var y]

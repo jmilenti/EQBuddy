@@ -33,6 +33,7 @@ internal static class LayoutShare
         public Dictionary<string, string> SectionDocks { get; set; } = new();
         public Dictionary<string, string> SectionDockSides { get; set; } = new();
         public List<string> HiddenSections { get; set; } = [];
+        public Dictionary<string, string> SectionFonts { get; set; } = new();
 
         /// <summary>Window positions as OFFSETS from the main panel, not absolute screen
         /// coordinates: the sharer's second monitor is not the recipient's, and an
@@ -58,6 +59,7 @@ internal static class LayoutShare
             SectionDocks = ui.SectionDocks,
             SectionDockSides = ui.SectionDockSides,
             HiddenSections = ui.HiddenSections,
+            SectionFonts = ui.SectionFonts,
             ShowMotes = ui.ShowMotes,
             ShowLoot = ui.ShowLoot,
             ShowFights = ui.ShowFights,
@@ -114,6 +116,7 @@ internal static class LayoutShare
         ui.SectionDocks = payload.SectionDocks;
         ui.SectionDockSides = payload.SectionDockSides;
         ui.HiddenSections = payload.HiddenSections;
+        ui.SectionFonts = payload.SectionFonts;
         ui.ShowMotes = payload.ShowMotes;
         ui.ShowLoot = payload.ShowLoot;
         ui.ShowFights = payload.ShowFights;

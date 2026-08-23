@@ -70,6 +70,12 @@ public sealed class LiteUiSettings
     /// drag to FeedRows instead.</summary>
     public Dictionary<string, double> SectionWidths { get; set; } = new();
 
+    /// <summary>Per-section row typeface overrides, keyed by section key ("motes",
+    /// "group", …). Absent = Consolas, the default the number boards were designed
+    /// around (their columns line up by monospace). Feed windows keep their own font
+    /// on the pane (<see cref="FeedPane.FontFamily"/>).</summary>
+    public Dictionary<string, string> SectionFonts { get; set; } = new();
+
     /// <summary>Sections removed from the UI entirely (the ⚙ dialog's tick boxes) —
     /// window hidden, dock chain bridged over it. Different from the collapse toggles
     /// above, which keep the one-line heading visible.</summary>
@@ -251,6 +257,9 @@ public sealed class FeedColors
     /// <summary>Auto attack on/off, stance and invocation changes — the game draws the
     /// stance lines in the same blue family.</summary>
     public string Attack { get; set; } = "#4A8CFF";
+    /// <summary>The faction NAME inside a faction line — the game draws it red. The
+    /// line body stays in the Everything-else colour; only the name lights up.</summary>
+    public string Faction { get; set; } = "#E04040";
     /// <summary>Misses, resists, fizzles — and every row's timestamp.</summary>
     public string Dim { get; set; } = "#7B8794";
 }
@@ -285,8 +294,12 @@ public sealed class FeedFilters
     public bool Attack { get; set; } = true;
     /// <summary>Loot, corpse coin, vendor sales, crafting.</summary>
     public bool Loot { get; set; }
-    /// <summary>Experience, AA, levels, skill-ups, faction.</summary>
+    /// <summary>Experience, AA, levels, skill-ups.</summary>
     public bool Xp { get; set; }
+
+    /// <summary>Faction standing changes — split from Xp (1.77) so a grind can watch
+    /// one without the other.</summary>
+    public bool Faction { get; set; }
     /// <summary>Zone changes and /loc lines.</summary>
     public bool Zone { get; set; }
     /// <summary>Tells, says, shouts, channel chat, auctions.</summary>

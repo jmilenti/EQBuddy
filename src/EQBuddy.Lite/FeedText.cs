@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace EQBuddy.Lite;
@@ -40,6 +41,16 @@ public sealed record FeedRow(IReadOnlyList<FeedSpan> Spans)
     public Thickness FrameThickness => Frame is null ? default : new Thickness(1);
 
     public Thickness FramePad => Frame is null ? default : new Thickness(5, 1, 5, 1);
+
+    /// <summary>One flat chat-safe line to put on the clipboard when the row is
+    /// clicked — only the kill summaries set it. Null = the row is not clickable.</summary>
+    public string? Copy { get; init; }
+
+    /// <summary>Hover hint, only on clickable rows (a null ToolTip simply never shows).</summary>
+    public string? Tip => Copy is null ? null : "Click to copy for game chat";
+
+    /// <summary>Hand over clickable rows; null lets the list's cursor through.</summary>
+    public Cursor? Pointer => Copy is null ? null : Cursors.Hand;
 
     /// <summary>The whole line as plain text — what a UIA client reads off the row, and
     /// what makes the list testable from outside.</summary>
