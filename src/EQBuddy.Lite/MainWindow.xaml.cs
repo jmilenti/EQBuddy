@@ -747,11 +747,13 @@ public partial class MainWindow : Window
     /// row is attributed by, a section becoming attached).</summary>
     private void RenderFeeds()
     {
-        // "In combat" is the attack switch you actually threw: the log states "Auto
-        // attack is on/off." every time it flips, which beats inferring from damage
-        // timing (that lingers after a kill and misses the wind-up before the first
-        // swing). Kept honest by the log replay at startup.
-        var combatOn = _feed.AttackOn;
+        // "In combat" is blows landing: the feed's own damage clock, within a short
+        // window. The attack-switch lines looked better on paper (they name the state
+        // outright) but proved unreliable in the field — the user reports flips the
+        // log never carried — so the outline follows what is indisputably happening
+        // rather than what the game remembered to announce. AttackOn stays tracked for
+        // the atk filter rows; it just no longer drives the glow.
+        var combatOn = DateTime.Now - _feed.LastCombat < TimeSpan.FromSeconds(6);
         foreach (var (key, host) in _feedHosts)
         {
             host.Render();
@@ -1400,7 +1402,7 @@ public partial class MainWindow : Window
             _feedHosts[key] = host;
             SectionKeys.Add(key);
             RootStack.Children.Add(host.Root);
-            WireSection(host.Header, key, () => host.Pane.Show = !host.Pane.Show);
+            WireSection(host.DragBar, key, () => host.Pane.Show = !host.Pane.Show);
             added.Add(key);
         }
 
@@ -1651,6 +1653,15 @@ public partial class MainWindow : Window
         pane.Host = "";
         RebuildFeedSections();
         OpenFeedWindow(pane.Key, near);
+    }
+
+    /// <summary>A tab click on the active tab: the collapse toggle the old heading
+    /// line used to carry.</summary>
+    internal void ToggleFeedShow(FeedHost host)
+    {
+        host.Pane.Show = !host.Pane.Show;
+        host.Render();
+        Tick();
     }
 
     /// <summary>Right-click ▸ Rename (or double-click the tab): what this pane calls

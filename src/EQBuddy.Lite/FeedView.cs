@@ -147,6 +147,11 @@ internal sealed class FeedView
             ItemTemplate = (DataTemplate)owner.FindResource("FeedRowTemplate"),
             ItemsSource = _rows,
         };
+        // The dark slim scrollbar, and air between it and the text — the stock bar
+        // was a bright light-theme control jammed against the rightmost characters.
+        _list.Resources.Add(typeof(System.Windows.Controls.Primitives.ScrollBar),
+            (Style)owner.FindResource("FeedScrollBarStyle"));
+        _list.Padding = new Thickness(0, 0, 8, 0);
         ScrollViewer.SetHorizontalScrollBarVisibility(_list, ScrollBarVisibility.Disabled);
         ScrollViewer.SetVerticalScrollBarVisibility(_list, ScrollBarVisibility.Auto);
         // Item-unit scrolling is what makes "keep the reader where they are" exact: when

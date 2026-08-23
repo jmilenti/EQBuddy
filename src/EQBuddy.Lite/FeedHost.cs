@@ -21,7 +21,14 @@ internal sealed class FeedHost
 
     public string Key => Pane.Key;
     public StackPanel Root { get; }
-    public TextBlock Header { get; }
+
+    /// <summary>The window's one header row: tabs, the unseen-count note, empty space,
+    /// the +. The EMPTY SPACE is the drag/collapse surface MainWindow wires up — the
+    /// old "▾ FEED · live" title line is gone (it repeated what the tabs already say
+    /// and spent a full row saying it), but the row it lived on still has to exist,
+    /// because dragging the window by its top edge is how every section moves.</summary>
+    public FrameworkElement DragBar { get; }
+
     public Rectangle TopSep { get; }
     public IReadOnlyList<FeedView> Views => _views;
 
@@ -34,6 +41,7 @@ internal sealed class FeedHost
     private readonly MainWindow _owner;
     private readonly LiteUiSettings _ui;
     private readonly WrapPanel _tabStrip;
+    private readonly TextBlock _status;
     private readonly Decorator _bodyHost;
     private readonly List<FeedView> _views = [];
     private int _activeIndex;
@@ -69,17 +77,6 @@ internal sealed class FeedHost
             Margin = new Thickness(0, 9, 0, 7),
         };
 
-        Header = new TextBlock
-        {
-            Text = "▸ FEED · live",
-            FontSize = 9.5,
-            Foreground = DimBrush,
-            Cursor = Cursors.Hand,
-            VerticalAlignment = VerticalAlignment.Center,
-            ToolTip = "Click to show/hide · drag to pop out · right-click for tabs, "
-                + "colours, and filter reset",
-        };
-
         // The + is a real Button parked at the RIGHT end of the heading row, away from
         // the heading's own drag/toggle surface. A bare "+" TextBlock only hit-tests over
         // its own strokes, so most of what looks like the button isn't (that is how the
@@ -104,18 +101,39 @@ internal sealed class FeedHost
         System.Windows.Automation.AutomationProperties.SetAutomationId(spawn, "SpawnFeed");
         spawn.Click += (_, _) => { if (_views.Count > 0) _owner.SpawnFeedPane(Active); };
 
-        var headRow = new DockPanel { LastChildFill = true };
+        _tabStrip = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
+        _status = new TextBlock
+        {
+            FontSize = 9.5,
+            Foreground = DimBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(6, 0, 0, 0),
+        };
+        var left = new StackPanel { Orientation = Orientation.Horizontal };
+        left.Children.Add(_tabStrip);
+        left.Children.Add(_status);
+
+        // Transparent, not null: a null background does not hit-test, and this row's
+        // empty stretch IS the drag handle.
+        var headRow = new DockPanel
+        {
+            LastChildFill = true,
+            Background = Brushes.Transparent,
+            MinHeight = 22,
+            Cursor = Cursors.Hand,
+            ToolTip = "Drag to move · click empty space to collapse/expand · "
+                + "right-click for tabs, colours, and filter reset",
+        };
         DockPanel.SetDock(spawn, Dock.Right);
         headRow.Children.Add(spawn);
-        headRow.Children.Add(Header);
+        headRow.Children.Add(left);
+        DragBar = headRow;
 
-        _tabStrip = new WrapPanel { Margin = new Thickness(0, 3, 0, 0) };
         _bodyHost = new Decorator();
 
         Root = new StackPanel();
         Root.Children.Add(TopSep);
         Root.Children.Add(headRow);
-        Root.Children.Add(_tabStrip);
         Root.Children.Add(_bodyHost);
         // Built up front and again on every opening: the submenus list other windows and
         // closed panes, which change. An EMPTY ContextMenu never shows at all, so filling
@@ -182,25 +200,29 @@ internal sealed class FeedHost
             _bodyHost.Visibility = Visibility.Collapsed;
             return;
         }
-        var title = Active.Title;
+        _tabStrip.Visibility = Visibility.Visible;
         if (!Pane.Show)
         {
-            SetHeader($"▸ {title}");
-            _tabStrip.Visibility = Visibility.Collapsed;
+            // Collapsed: the tab row stays (it is the handle back), the body goes.
+            SetStatus("· collapsed");
             _bodyHost.Visibility = Visibility.Collapsed;
+            RefreshTabLabels();
             return;
         }
-        _tabStrip.Visibility = _views.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
         _bodyHost.Visibility = Visibility.Visible;
 
         for (var i = 0; i < _views.Count; i++) _views[i].Render(active: i == _activeIndex);
-        SetHeader($"▾ {title} · {Active.StatusSuffix}");
-        if (_views.Count > 1) RefreshTabLabels();
+        // The old title line said "live" all day; the note now exists only when it has
+        // something to say — how many rows arrived below a reader who scrolled up, or
+        // that the front tab is in raw mode.
+        SetStatus(Active.Unseen > 0 ? $"· {Active.Unseen} new ↓"
+            : Active.Pane.Filters.RawMode ? "· raw" : "");
+        RefreshTabLabels();
     }
 
-    private void SetHeader(string text)
+    private void SetStatus(string text)
     {
-        if (Header.Text != text) Header.Text = text;
+        if (_status.Text != text) _status.Text = text;
     }
 
     // ---- tabs ----
@@ -211,7 +233,8 @@ internal sealed class FeedHost
     {
         _tabStrip.Children.Clear();
         _tabs.Clear();
-        if (_views.Count < 2) return;
+        // Always, even for one pane: the single tab IS the window's title now, and its
+        // click doubles as the collapse toggle the old heading provided.
         foreach (var view in _views)
         {
             var label = new TextBlock
@@ -255,10 +278,16 @@ internal sealed class FeedHost
                 ToolTip = "Click to bring this tab forward · right-click to rename",
             };
             var captured = view;
-            // Select only — rename lives in the right-click menu. Double-click used to
-            // rename, but a fast tab-switcher double-clicks by accident and got a
-            // dialog instead of their tab.
-            chrome.MouseLeftButtonDown += (_, e) => { e.Handled = true; Select(captured); };
+            // An inactive tab selects; the ACTIVE tab collapses/expands the window —
+            // the click the old heading used to take. Rename stays in the right-click
+            // menu (double-click renamed once, and a fast tab-switcher double-clicks
+            // by accident).
+            chrome.MouseLeftButtonDown += (_, e) =>
+            {
+                e.Handled = true;
+                if (ReferenceEquals(captured, Active)) _owner.ToggleFeedShow(this);
+                else Select(captured);
+            };
             _tabStrip.Children.Add(chrome);
             _tabs.Add((view, label, chrome));
         }
@@ -272,7 +301,7 @@ internal sealed class FeedHost
         {
             var on = ReferenceEquals(view, Active);
             var dot = !on && view.Unseen > 0 ? " •" : "";
-            var text = view.Title + dot;
+            var text = (on && !Pane.Show ? "▸ " : "") + view.Title + dot;
             if (label.Text != text) label.Text = text;
             label.Foreground = on ? TabOnFg : dot.Length > 0 ? DotBrush : TabOffFg;
             chrome.Background = on ? TabOnBg : TabOffBg;

@@ -53,7 +53,10 @@ public sealed class SettingsDialog : Window
         ResizeMode = ResizeMode.NoResize;
         ShowInTaskbar = false;
 
-        var panel = new StackPanel { Margin = new Thickness(14), MaxWidth = 360 };
+        // 440, not 360: the audio-cue grid is four columns wide (label, mode, sound,
+        // phrase + preview), and at 360 the StackPanel CLIPPED the ▶ column clean off —
+        // reported as "the play buttons are gone" when they were merely out of frame.
+        var panel = new StackPanel { Margin = new Thickness(14), MaxWidth = 440 };
         panel.Children.Add(new TextBlock
         {
             TextWrapping = TextWrapping.Wrap,
