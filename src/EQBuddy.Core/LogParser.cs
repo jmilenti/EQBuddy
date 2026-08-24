@@ -145,7 +145,11 @@ public static partial class LogParser
     // (Hugzee's log, 2026-08-06 — the only faction phrase observed in Legends so far;
     // the classic-EQ phrase family fills the alternation, anchored by the Legends-only
     // "(Lvl: N)" tail so a chat line can't satisfy it.)
-    [GeneratedRegex(@"^(?<name>.+?) (?:scowls at you|regards you|glares at you|glowers at you|judges you|kindly considers you|looks upon you|looks your way).*\(Lvl: (?<level>\d+)\)$")]
+    // The level tail's L is a character class, not a literal: a field report of the
+    // "judges you" variant (2026-08-24) quoted it as "(lvl: 25)". Widening costs nothing
+    // — it accepts one more capitalisation and can't loosen the anchor — and a consider
+    // the regex misses is a sighting the spawn tracker and target board never see.
+    [GeneratedRegex(@"^(?<name>.+?) (?:scowls at you|regards you|glares at you|glowers at you|judges you|kindly considers you|looks upon you|looks your way).*\([Ll]vl: (?<level>\d+)\)$")]
     private static partial Regex ConsiderRx();
 
     // You gain a rune for 8 points of absorption. — a berserker/rune buff building its

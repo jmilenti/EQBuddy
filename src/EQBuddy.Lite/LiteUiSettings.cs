@@ -215,12 +215,21 @@ public sealed class FeedPane
     /// the "Classic EQ" choice). Any installed family name works if hand-edited.</summary>
     public string FontFamily { get; set; } = "Consolas";
 
-    /// <summary>Watch words for the WINDOW this pane names (window-level, like Rows):
-    /// a fresh line containing one plays <see cref="AlertSound"/> and wears the Alert
-    /// frame, click-to-copy. Matching is case-insensitive Contains.</summary>
+    /// <summary>This TAB's alerts (1.80) — several, each with its own watch words and
+    /// its own sound. Per PANE, not per window: a tab is a lens on the log, and the
+    /// lines worth a noise are a property of what you are watching, not of which frame
+    /// the window manager drew around it. An alert only fires on a line this tab's
+    /// filters actually let through, so an alert can never ring for something its own
+    /// tab would not show you.</summary>
+    public List<FeedAlertRule> Alerts { get; set; } = [];
+
+    /// <summary>LEGACY (pre-1.80): one tag list and one sound for the whole WINDOW.
+    /// Migrated into <see cref="Alerts"/> once at startup and then left empty — kept as
+    /// a property so an older settings file still deserialises rather than having its
+    /// tags silently dropped on the first save.</summary>
     public List<string> AlertTags { get; set; } = [];
 
-    /// <summary>The <c>AlertSoundCatalog</c> name the alert tags play.</summary>
+    /// <summary>LEGACY, see <see cref="AlertTags"/>.</summary>
     public string AlertSound { get; set; } = "Exclamation";
 
     /// <summary>Everything a brand-new pane starts with — one place, so the + button and
@@ -228,6 +237,43 @@ public sealed class FeedPane
     public static FeedFilters DefaultFilters() => new();
 
     public static FeedColors DefaultColors() => new();
+}
+
+/// <summary>One watch rule on one feed tab: some words, a sound, an on/off switch. A
+/// fresh line that this tab is showing and that contains any of the words plays the
+/// sound and wears the Alert frame (click-to-copy).
+///
+/// Several of these per tab is the point (1.80): "my name in chat" and "the rare is
+/// up" are different events that deserve different noises, and one shared tag list with
+/// one shared sound could not tell you which had happened without looking.</summary>
+public sealed class FeedAlertRule
+{
+    /// <summary>What to call this rule in the dialog. Empty derives a label from the
+    /// tags, so a rule is never nameless in the list.</summary>
+    public string Name { get; set; } = "";
+
+    /// <summary>The watch words. Case-insensitive Contains, any one of them matches.
+    /// Single-character tags are ignored at match time — "a" would frame every row.</summary>
+    public List<string> Tags { get; set; } = [];
+
+    /// <summary>The <c>AlertSoundCatalog</c> name this rule plays.</summary>
+    public string Sound { get; set; } = "Exclamation";
+
+    /// <summary>Off keeps the rule and its words but stops it firing or framing —
+    /// a camp-specific alert you want back next week without retyping it.</summary>
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>A stable identity for the cooldown key, so two rules on one tab never
+    /// mute each other and reordering the list does not reset their timers. Falls back
+    /// through name, then first tag, then "" for an empty rule.</summary>
+    public string CooldownKey =>
+        Name is { Length: > 0 } n ? n : Tags.Count > 0 ? Tags[0] : "";
+
+    /// <summary>The label the dialog and the menu count show.</summary>
+    public string Label =>
+        Name is { Length: > 0 } n ? n
+        : Tags.Count > 0 ? string.Join(", ", Tags.Take(3)) + (Tags.Count > 3 ? "…" : "")
+        : "(empty)";
 }
 
 /// <summary>Row colours for one feed window, as #RRGGBB strings so the file stays
@@ -256,8 +302,13 @@ public sealed class FeedColors
     public string Ability { get; set; } = "#FF8FC7";
     /// <summary>Casting chatter: begin casting, interrupted, concentration, buffs fading.</summary>
     public string Cast { get; set; } = "#9FB6D0";
-    /// <summary>Mez landings and breaks — the purple the full app's alerts call mez.</summary>
+    /// <summary>Mez LANDINGS — the purple the full app's alerts call mez.</summary>
     public string Mez { get; set; } = "#B48CDE";
+    /// <summary>Mez BREAKS, their own colour since 1.80: a landing is good news and a
+    /// break is the one that needs you now, so they must not read alike.</summary>
+    public string MezBreak { get; set; } = "#D9587E";
+    /// <summary>NPC consider lines, with the NPC's name picked out by the accent.</summary>
+    public string Consider { get; set; } = "#E0925A";
     /// <summary>Everything else the log wrote — chat, loot, xp, zone lines.</summary>
     public string Other { get; set; } = "#78838F";
     /// <summary>The feed's own per-kill damage summaries.</summary>
@@ -322,6 +373,10 @@ public sealed class FeedFilters
     /// <summary>Faction standing changes — split from Xp (1.77) so a grind can watch
     /// one without the other.</summary>
     public bool Faction { get; set; }
+    /// <summary>NPC consider lines ("… judges you amiable … (Lvl: 25)"). Off by default,
+    /// which is exactly where they were before 1.80 — they lived in the default-off
+    /// Other bucket, so nothing appears that was not appearing already.</summary>
+    public bool Consider { get; set; }
     /// <summary>Zone changes and /loc lines.</summary>
     public bool Zone { get; set; }
     /// <summary>Tells, says, shouts, channel chat, auctions.</summary>
