@@ -17,12 +17,12 @@ internal enum FeedKind
     /// without the casting chatter.</summary>
     Mez,
     /// <summary>A mez BREAK — "X has been awakened by Y." Its own kind purely so it can
-    /// carry its own colour (1.79.1): a landing is good news and a break is the one that
+    /// carry its own colour (1.80): a landing is good news and a break is the one that
     /// needs you NOW, and they read alike in one colour. Rides the same <c>mez</c> pill.
     /// Before 1.79 it had no bucket at all and fell to Other.</summary>
     MezBreak,
     /// <summary>NPC consider lines — "Lekab judges you amiable -- he appears to be quite
-    /// formidable. (Lvl: 25)". Their own kind (1.79.1) rather than the Other catch-all:
+    /// formidable. (Lvl: 25)". Their own kind (1.80) rather than the Other catch-all:
     /// conning a camp is a deliberate activity, and its lines are worth a pill of their
     /// own instead of arriving mixed with every emote in the zone.</summary>
     Consider,

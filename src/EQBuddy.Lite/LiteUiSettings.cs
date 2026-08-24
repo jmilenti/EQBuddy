@@ -215,7 +215,7 @@ public sealed class FeedPane
     /// the "Classic EQ" choice). Any installed family name works if hand-edited.</summary>
     public string FontFamily { get; set; } = "Consolas";
 
-    /// <summary>This TAB's alerts (1.79.1) — several, each with its own watch words and
+    /// <summary>This TAB's alerts (1.80) — several, each with its own watch words and
     /// its own sound. Per PANE, not per window: a tab is a lens on the log, and the
     /// lines worth a noise are a property of what you are watching, not of which frame
     /// the window manager drew around it. An alert only fires on a line this tab's
@@ -223,7 +223,7 @@ public sealed class FeedPane
     /// tab would not show you.</summary>
     public List<FeedAlertRule> Alerts { get; set; } = [];
 
-    /// <summary>LEGACY (pre-1.79.1): one tag list and one sound for the whole WINDOW.
+    /// <summary>LEGACY (pre-1.80): one tag list and one sound for the whole WINDOW.
     /// Migrated into <see cref="Alerts"/> once at startup and then left empty — kept as
     /// a property so an older settings file still deserialises rather than having its
     /// tags silently dropped on the first save.</summary>
@@ -243,7 +243,7 @@ public sealed class FeedPane
 /// fresh line that this tab is showing and that contains any of the words plays the
 /// sound and wears the Alert frame (click-to-copy).
 ///
-/// Several of these per tab is the point (1.79.1): "my name in chat" and "the rare is
+/// Several of these per tab is the point (1.80): "my name in chat" and "the rare is
 /// up" are different events that deserve different noises, and one shared tag list with
 /// one shared sound could not tell you which had happened without looking.</summary>
 public sealed class FeedAlertRule
@@ -304,7 +304,7 @@ public sealed class FeedColors
     public string Cast { get; set; } = "#9FB6D0";
     /// <summary>Mez LANDINGS — the purple the full app's alerts call mez.</summary>
     public string Mez { get; set; } = "#B48CDE";
-    /// <summary>Mez BREAKS, their own colour since 1.79.1: a landing is good news and a
+    /// <summary>Mez BREAKS, their own colour since 1.80: a landing is good news and a
     /// break is the one that needs you now, so they must not read alike.</summary>
     public string MezBreak { get; set; } = "#D9587E";
     /// <summary>NPC consider lines, with the NPC's name picked out by the accent.</summary>
@@ -374,7 +374,7 @@ public sealed class FeedFilters
     /// one without the other.</summary>
     public bool Faction { get; set; }
     /// <summary>NPC consider lines ("… judges you amiable … (Lvl: 25)"). Off by default,
-    /// which is exactly where they were before 1.79.1 — they lived in the default-off
+    /// which is exactly where they were before 1.80 — they lived in the default-off
     /// Other bucket, so nothing appears that was not appearing already.</summary>
     public bool Consider { get; set; }
     /// <summary>Zone changes and /loc lines.</summary>

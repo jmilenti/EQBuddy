@@ -199,7 +199,7 @@ public partial class MainWindow : Window
         // no feed at all, or there is no + to press and no menu to reopen from.
         if (_ui.FeedPanes.Count > 0 && _ui.FeedPanes.TrueForAll(pane => pane.Closed))
             _ui.FeedPanes[0].Closed = false;
-        // Pre-1.79.1 alert tags were one list and one sound per WINDOW, stored on the
+        // Pre-1.80 alert tags were one list and one sound per WINDOW, stored on the
         // host pane. Seed them as a single rule on the pane that holds them — which is
         // the tab the user configured them from — and empty the legacy keys so this runs
         // once. Deliberately NOT copied to the window's other tabs: they would each ring

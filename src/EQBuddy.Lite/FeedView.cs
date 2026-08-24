@@ -474,7 +474,7 @@ internal sealed class FeedView
     }
 
     /// <summary>The first of THIS TAB's enabled rules whose words appear in the line, or
-    /// null. Per pane, not per host: each tab carries its own alerts (1.79.1). Single-char
+    /// null. Per pane, not per host: each tab carries its own alerts (1.80). Single-char
     /// tags are ignored — "a" would frame the entire feed.</summary>
     private FeedAlertRule? AlertHit(string body)
     {

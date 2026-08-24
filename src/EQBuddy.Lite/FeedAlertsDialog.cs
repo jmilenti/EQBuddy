@@ -10,7 +10,7 @@ namespace EQBuddy.Lite;
 ///
 /// One row per rule, added and removed live; code-built like the other small dialogs.
 /// Tags are comma-separated so a rule stays one line tall and several rules fit on
-/// screen at once — the pre-1.79.1 dialog gave the single tag list a multi-line box,
+/// screen at once — the pre-1.80 dialog gave the single tag list a multi-line box,
 /// which does not stack.</summary>
 public sealed class FeedAlertsDialog : Window
 {

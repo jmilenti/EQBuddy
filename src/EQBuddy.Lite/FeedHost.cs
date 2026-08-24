@@ -416,7 +416,7 @@ internal sealed class FeedHost
         menu.Items.Add(split);
 
         Item("Colours…", () => _owner.EditFeedColors(active));
-        // This TAB's alerts, not the window's (1.79.1) — the count is the active pane's,
+        // This TAB's alerts, not the window's (1.80) — the count is the active pane's,
         // and it changes as you click between tabs, which is the point.
         Item(active.Pane.Alerts.Count > 0
                 ? $"Alert tags… · {active.Pane.Alerts.Count}"
