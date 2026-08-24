@@ -12,6 +12,11 @@ internal enum FeedKind
     /// <summary>Casting lifecycle: begin casting, interrupted, "You regain your
     /// concentration", a buff wearing off, someone else's cast landing.</summary>
     Cast,
+    /// <summary>Crowd control: mez landings ("X has been mesmerized." and every other
+    /// verb the spells use) and mez breaks ("X has been awakened by Y."). Split from
+    /// <see cref="Cast"/> (1.79) so a mezzer can watch their locks without the casting
+    /// chatter — and the break line never had a bucket at all, it fell to Other.</summary>
+    Mez,
     /// <summary>Combat state you declared: "Auto attack is on/off.", stance and
     /// invocation changes, "You will now use X while auto attacking."</summary>
     Attack,
@@ -268,7 +273,8 @@ internal sealed class DamageFeed
     private static FeedKind KindOf(GameEvent? evt, string text) => evt switch
     {
         SpellCastEvent or SpellInterruptedEvent or SpellWornOffEvent or BuffFadeEvent
-            or OtherCastEvent or ItemProcEvent or MezzedEvent or CharmedEvent => FeedKind.Cast,
+            or OtherCastEvent or ItemProcEvent or CharmedEvent => FeedKind.Cast,
+        MezzedEvent => FeedKind.Mez,
         DeathEvent => FeedKind.Kill,
         RegenTickEvent => FeedKind.Heal,
         RuneBlockEvent or ThirdMissEvent => FeedKind.Miss,
@@ -278,6 +284,9 @@ internal sealed class DamageFeed
         XpEvent or AaEvent or AaPurchaseEvent or LevelEvent or SkillUpEvent => FeedKind.Xp,
         FactionEvent => FeedKind.Faction,
         ZoneEvent or LocationEvent => FeedKind.Zone,
+        // The break line makes no parser event (AudioCues reads it off RawTap the same
+        // way). Ordinal Contains, like the chat shapes — the phrase is the game's own.
+        null when text.Contains("has been awakened by", StringComparison.Ordinal) => FeedKind.Mez,
         null when LooksLikeCasting(text) => FeedKind.Cast,
         null when text.StartsWith("Auto attack is ", StringComparison.Ordinal) => FeedKind.Attack,
         null when LooksLikeChat(text) => FeedKind.Chat,
@@ -546,6 +555,7 @@ internal sealed class DamageFeed
         switch (e.Kind)
         {
             case FeedKind.Cast: return f.Casts;
+            case FeedKind.Mez: return f.Mez;
             case FeedKind.Attack: return f.Attack;
             case FeedKind.Loot or FeedKind.Money: return f.Loot;
             case FeedKind.Xp: return f.Xp;

@@ -256,6 +256,8 @@ public sealed class FeedColors
     public string Ability { get; set; } = "#FF8FC7";
     /// <summary>Casting chatter: begin casting, interrupted, concentration, buffs fading.</summary>
     public string Cast { get; set; } = "#9FB6D0";
+    /// <summary>Mez landings and breaks — the purple the full app's alerts call mez.</summary>
+    public string Mez { get; set; } = "#B48CDE";
     /// <summary>Everything else the log wrote — chat, loot, xp, zone lines.</summary>
     public string Other { get; set; } = "#78838F";
     /// <summary>The feed's own per-kill damage summaries.</summary>
@@ -305,6 +307,10 @@ public sealed class FeedFilters
     /// concentration", buffs wearing off. On by default: these are lines about what YOU
     /// are doing, and before 1.70 the combat view could not show them at all.</summary>
     public bool Casts { get; set; } = true;
+    /// <summary>Mez landings ("has been mesmerized" and every other verb the spells
+    /// use) and breaks ("has been awakened by"). On by default — these rows lived
+    /// under Casts before 1.79, which is also on by default, so nothing vanishes.</summary>
+    public bool Mez { get; set; } = true;
     /// <summary>"Auto attack is on/off.", stance and invocation changes. On by default —
     /// two short lines per pull that say what state you flipped into.</summary>
     public bool Attack { get; set; } = true;

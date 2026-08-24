@@ -111,6 +111,7 @@ public sealed class FeedColorsDialog : Window
         Row("Spell / DoT / proc", nameof(FeedColors.Spell), current.Spell, c => c.Spell);
         Row("Ability name", nameof(FeedColors.Ability), current.Ability, c => c.Ability);
         Row("Casting messages", nameof(FeedColors.Cast), current.Cast, c => c.Cast);
+        Row("Mez landings / breaks", nameof(FeedColors.Mez), current.Mez, c => c.Mez);
         Row("Everything else", nameof(FeedColors.Other), current.Other, c => c.Other);
         Row("Kill summaries", nameof(FeedColors.Summary), current.Summary, c => c.Summary);
         Row("XP / levels", nameof(FeedColors.Xp), current.Xp, c => c.Xp);
