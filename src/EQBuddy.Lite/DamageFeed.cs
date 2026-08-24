@@ -12,11 +12,20 @@ internal enum FeedKind
     /// <summary>Casting lifecycle: begin casting, interrupted, "You regain your
     /// concentration", a buff wearing off, someone else's cast landing.</summary>
     Cast,
-    /// <summary>Crowd control: mez landings ("X has been mesmerized." and every other
-    /// verb the spells use) and mez breaks ("X has been awakened by Y."). Split from
-    /// <see cref="Cast"/> (1.79) so a mezzer can watch their locks without the casting
-    /// chatter — and the break line never had a bucket at all, it fell to Other.</summary>
+    /// <summary>A mez LANDING — "X has been mesmerized." and every other verb the spells
+    /// use. Split from <see cref="Cast"/> (1.79) so a mezzer can watch their locks
+    /// without the casting chatter.</summary>
     Mez,
+    /// <summary>A mez BREAK — "X has been awakened by Y." Its own kind purely so it can
+    /// carry its own colour (1.79.1): a landing is good news and a break is the one that
+    /// needs you NOW, and they read alike in one colour. Rides the same <c>mez</c> pill.
+    /// Before 1.79 it had no bucket at all and fell to Other.</summary>
+    MezBreak,
+    /// <summary>NPC consider lines — "Lekab judges you amiable -- he appears to be quite
+    /// formidable. (Lvl: 25)". Their own kind (1.79.1) rather than the Other catch-all:
+    /// conning a camp is a deliberate activity, and its lines are worth a pill of their
+    /// own instead of arriving mixed with every emote in the zone.</summary>
+    Consider,
     /// <summary>Combat state you declared: "Auto attack is on/off.", stance and
     /// invocation changes, "You will now use X while auto attacking."</summary>
     Attack,
@@ -275,6 +284,7 @@ internal sealed class DamageFeed
         SpellCastEvent or SpellInterruptedEvent or SpellWornOffEvent or BuffFadeEvent
             or OtherCastEvent or ItemProcEvent or CharmedEvent => FeedKind.Cast,
         MezzedEvent => FeedKind.Mez,
+        ConsiderEvent => FeedKind.Consider,
         DeathEvent => FeedKind.Kill,
         RegenTickEvent => FeedKind.Heal,
         RuneBlockEvent or ThirdMissEvent => FeedKind.Miss,
@@ -286,7 +296,8 @@ internal sealed class DamageFeed
         ZoneEvent or LocationEvent => FeedKind.Zone,
         // The break line makes no parser event (AudioCues reads it off RawTap the same
         // way). Ordinal Contains, like the chat shapes — the phrase is the game's own.
-        null when text.Contains("has been awakened by", StringComparison.Ordinal) => FeedKind.Mez,
+        null when text.Contains("has been awakened by", StringComparison.Ordinal) => FeedKind.MezBreak,
+        null when LooksLikeConsider(text) => FeedKind.Consider,
         null when LooksLikeCasting(text) => FeedKind.Cast,
         null when text.StartsWith("Auto attack is ", StringComparison.Ordinal) => FeedKind.Attack,
         null when LooksLikeChat(text) => FeedKind.Chat,
@@ -309,6 +320,22 @@ internal sealed class DamageFeed
         text.StartsWith("You tell ", StringComparison.Ordinal) ||
         text.StartsWith("You shout", StringComparison.Ordinal) ||
         text.StartsWith("You auction", StringComparison.Ordinal);
+
+    /// <summary>An NPC consider line the parser made no event of. Core's ConsiderRx wants
+    /// the verb list it has observed AND an exact "(Lvl: N)" tail, so a shape it misses —
+    /// another faction phrase, a differently-cased tail — would land in Other with no way
+    /// to filter it. BOTH halves must hold here: the verb phrases alone would catch chat
+    /// quoting them, and "lvl:" alone would catch anyone typing a level in a tell.</summary>
+    private static bool LooksLikeConsider(string text) =>
+        text.Contains("lvl:", StringComparison.OrdinalIgnoreCase) &&
+        (text.Contains(" scowls at you", StringComparison.OrdinalIgnoreCase) ||
+         text.Contains(" regards you", StringComparison.OrdinalIgnoreCase) ||
+         text.Contains(" glares at you", StringComparison.OrdinalIgnoreCase) ||
+         text.Contains(" glowers at you", StringComparison.OrdinalIgnoreCase) ||
+         text.Contains(" judges you", StringComparison.OrdinalIgnoreCase) ||
+         text.Contains(" kindly considers you", StringComparison.OrdinalIgnoreCase) ||
+         text.Contains(" looks upon you", StringComparison.OrdinalIgnoreCase) ||
+         text.Contains(" looks your way", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Casting messages the parser makes no event of — the interruption and
     /// recovery chatter that belongs beside "You begin casting" rather than in with the
@@ -349,6 +376,10 @@ internal sealed class DamageFeed
         // Not an ability, but the same job: the accent picks the faction NAME out of
         // the line, red like the game draws it.
         FactionEvent fa => fa.Faction,
+        // Likewise the NPC's name in a consider line — the word you are actually
+        // scanning for. Normalize drops the leading article, so the name still occurs
+        // inside the line the game wrote ("an orc pawn scowls…" contains "orc pawn").
+        ConsiderEvent c => c.Name,
         _ => "",
     };
 
@@ -555,7 +586,8 @@ internal sealed class DamageFeed
         switch (e.Kind)
         {
             case FeedKind.Cast: return f.Casts;
-            case FeedKind.Mez: return f.Mez;
+            case FeedKind.Mez or FeedKind.MezBreak: return f.Mez;
+            case FeedKind.Consider: return f.Consider;
             case FeedKind.Attack: return f.Attack;
             case FeedKind.Loot or FeedKind.Money: return f.Loot;
             case FeedKind.Xp: return f.Xp;

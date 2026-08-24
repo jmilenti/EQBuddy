@@ -461,6 +461,11 @@ public class LogParserTests
     [Theory]
     [InlineData("Orc pawn scowls at you, ready to attack -- looks like a reasonably safe opponent. (Lvl: 3)", "Orc pawn", 3)]
     [InlineData("Orc centurion scowls at you, ready to attack -- looks like a reasonably safe opponent. (Lvl: 1)", "Orc centurion", 1)]
+    // The "judges you" faction phrase, and a LOWERCASE level tail — both from a field
+    // report (2026-08-24). The tail's capitalisation must not decide whether a consider
+    // is seen at all.
+    [InlineData("Lekab judges you amiable -- he appears to be quite formidable. (lvl: 25)", "Lekab", 25)]
+    [InlineData("Lekab judges you amiable -- he appears to be quite formidable. (Lvl: 25)", "Lekab", 25)]
     public void ConsiderLinesNameTheTargetAndLevel(string line, string name, int level)
     {
         var e = Parse<ConsiderEvent>(line);

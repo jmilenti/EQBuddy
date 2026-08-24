@@ -199,6 +199,22 @@ public partial class MainWindow : Window
         // no feed at all, or there is no + to press and no menu to reopen from.
         if (_ui.FeedPanes.Count > 0 && _ui.FeedPanes.TrueForAll(pane => pane.Closed))
             _ui.FeedPanes[0].Closed = false;
+        // Pre-1.79.1 alert tags were one list and one sound per WINDOW, stored on the
+        // host pane. Seed them as a single rule on the pane that holds them — which is
+        // the tab the user configured them from — and empty the legacy keys so this runs
+        // once. Deliberately NOT copied to the window's other tabs: they would each ring
+        // for the same line, and one alert firing three times is worse than the change.
+        foreach (var pane in _ui.FeedPanes)
+        {
+            if (pane.AlertTags is not { Count: > 0 } tags) continue;
+            if (pane.Alerts.Count == 0)
+                pane.Alerts.Add(new FeedAlertRule
+                {
+                    Tags = tags,
+                    Sound = pane.AlertSound is { Length: > 0 } s ? s : "Exclamation",
+                });
+            pane.AlertTags = [];
+        }
         RebuildFeedSections();
         Loaded += (_, _) => SetupSectionWindows();
         LocationChanged += (_, _) => { RepositionFollowers(this); RefreshPopupPosition(); };
@@ -1774,27 +1790,28 @@ public partial class MainWindow : Window
         Refit(host.Key);
     }
 
-    /// <summary>Right-click ▸ Colours…: per-window row colours.</summary>
-    /// <summary>A feed window's watch-tag matched a fresh line. Replay is silent: the
-    /// startup ingest re-reads the whole log, and history must not ring the bell.</summary>
-    internal void FeedAlert(FeedPane pane)
+    /// <summary>One of a tab's watch rules matched a fresh line. Replay is silent: the
+    /// startup ingest re-reads the whole log, and history must not ring the bell. The
+    /// cooldown key carries the rule as well as the tab, so two rules on one tab never
+    /// mute each other.</summary>
+    internal void FeedAlert(FeedPane pane, FeedAlertRule rule)
     {
         if (!_watcher.InitialIngestDone) return;
-        _cues.FeedAlert(pane.Key, pane.AlertSound);
+        _cues.FeedAlert($"{pane.Key}:{rule.CooldownKey}", rule.Sound);
     }
 
-    /// <summary>Right-click ▸ Alert tags…: per-window watch words and their sound.</summary>
-    internal void EditFeedAlerts(FeedHost host)
+    /// <summary>Right-click ▸ Alert tags…: THIS TAB's watch rules, each with its own
+    /// words and sound. Per view, not per window — the rules belong to the lens on the
+    /// log, and only that lens's filters decide whether one can fire.</summary>
+    internal void EditFeedAlerts(FeedView view)
     {
-        var dlg = new FeedAlertsDialog(FeedHost.FeedTitle(host.Pane),
-            host.Pane.AlertTags, host.Pane.AlertSound) { Owner = this };
+        var dlg = new FeedAlertsDialog(view.Title, view.Pane.Alerts) { Owner = this };
         if (dlg.ShowDialog() != true) return;
-        host.Pane.AlertTags = dlg.Tags;
-        host.Pane.AlertSound = dlg.Sound;
+        view.Pane.Alerts = dlg.Alerts;
         _ui.Save();
         // Frames are judged at row-build time, so what is drawn must be re-judged.
-        foreach (var view in host.Views) view.Invalidate();
-        host.Render();
+        view.Invalidate();
+        RenderFeeds();
     }
 
     internal void EditFeedColors(FeedView view)

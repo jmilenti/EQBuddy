@@ -15,6 +15,7 @@ internal sealed class FeedPalette
     public Brush Incoming = Frozen("#E89C9C"), Heal = Frozen("#8BE28B"), Crit = Frozen("#E8CE9C");
     public Brush Kill = Frozen("#D9C46B"), Spell = Frozen("#E8B24A"), Ability = Frozen("#FF8FC7");
     public Brush Cast = Frozen("#9FB6D0"), Mez = Frozen("#B48CDE"), Other = Frozen("#78838F");
+    public Brush MezBreak = Frozen("#D9587E"), Consider = Frozen("#E0925A");
     public Brush Summary = Frozen("#7FD9E8"), Dim = Frozen("#7B8794");
     public Brush Xp = Frozen("#F2E33D"), Loot = Frozen("#4A8CFF");
     public Brush Money = Frozen("#33CC33"), Attack = Frozen("#4A8CFF");
@@ -26,7 +27,8 @@ internal sealed class FeedPalette
         Incoming = Frozen(c.Incoming, Incoming); Heal = Frozen(c.Heal, Heal);
         Crit = Frozen(c.Crit, Crit); Kill = Frozen(c.Kill, Kill); Spell = Frozen(c.Spell, Spell);
         Ability = Frozen(c.Ability, Ability); Cast = Frozen(c.Cast, Cast);
-        Mez = Frozen(c.Mez, Mez);
+        Mez = Frozen(c.Mez, Mez); MezBreak = Frozen(c.MezBreak, MezBreak);
+        Consider = Frozen(c.Consider, Consider);
         Other = Frozen(c.Other, Other); Summary = Frozen(c.Summary, Summary);
         Dim = Frozen(c.Dim, Dim); Xp = Frozen(c.Xp, Xp);
         Loot = Frozen(c.Loot, Loot); Money = Frozen(c.Money, Money);
@@ -458,7 +460,7 @@ internal sealed class FeedView
             accent: e.Kind == FeedKind.Faction ? _palette.Faction : null);
         if (right) spans.Add(new FeedSpan($"  {e.Time:HH:mm:ss}", _palette.Dim));
         var summary = e.Kind == FeedKind.Summary;
-        var alerted = !summary && AlertHit(body);
+        var alerted = !summary && AlertHit(body) is not null;
         return new FeedRow(spans)
         {
             Right = right,
@@ -471,28 +473,44 @@ internal sealed class FeedView
         };
     }
 
-    /// <summary>Does a line contain one of this WINDOW's watch words? Single-char tags
-    /// are ignored — "a" would frame the entire feed.</summary>
-    private bool AlertHit(string body)
+    /// <summary>The first of THIS TAB's enabled rules whose words appear in the line, or
+    /// null. Per pane, not per host: each tab carries its own alerts (1.79.1). Single-char
+    /// tags are ignored — "a" would frame the entire feed.</summary>
+    private FeedAlertRule? AlertHit(string body)
     {
-        if (HostPane.AlertTags is not { Count: > 0 } tags) return false;
-        foreach (var tag in tags)
-            if (tag.Length > 1 && body.Contains(tag, StringComparison.OrdinalIgnoreCase))
-                return true;
-        return false;
+        if (Pane.Alerts is not { Count: > 0 } rules) return null;
+        foreach (var rule in rules)
+        {
+            if (!rule.Enabled) continue;
+            foreach (var tag in rule.Tags)
+                if (tag.Length > 1 && body.Contains(tag, StringComparison.OrdinalIgnoreCase))
+                    return rule;
+        }
+        return null;
     }
 
-    /// <summary>Ring the window's alert for fresh arrivals that match a watch-tag.
-    /// The cooldown lives in AudioCues, keyed per window, so a burst is one sound.</summary>
+    /// <summary>Ring this tab's alerts for fresh arrivals that match one.
+    ///
+    /// The entries handed in have ALREADY passed this pane's filters — they come out of
+    /// <see cref="DamageFeed.Snapshot"/>, which applies them — so an alert can only fire
+    /// on a line the tab is actually showing. That is the whole reason the rules moved
+    /// onto the pane: window-level tags were matched against each tab's own filtered
+    /// stream, so which tab happened to be in front decided whether you heard anything.
+    ///
+    /// Each rule fires at most once per batch and carries its own sound; the cooldown
+    /// lives in AudioCues, keyed per tab AND per rule, so two rules never mute each
+    /// other and a burst on one of them is still one sound.</summary>
     private void MaybeAlert(List<FeedEntry> entries)
     {
-        if (HostPane.AlertTags is not { Count: > 0 }) return;
+        if (Pane.Alerts is not { Count: > 0 }) return;
+        HashSet<FeedAlertRule>? fired = null;
         foreach (var e in entries)
-            if (e.Kind != FeedKind.Summary && e.Raw is { Length: > 0 } raw && AlertHit(raw))
-            {
-                _owner.FeedAlert(HostPane);
-                return;
-            }
+        {
+            if (e.Kind == FeedKind.Summary || e.Raw is not { Length: > 0 } raw) continue;
+            if (AlertHit(raw) is not { } rule) continue;
+            fired ??= [];
+            if (fired.Add(rule)) _owner.FeedAlert(Pane, rule);
+        }
     }
 
     /// <summary>A summary row as one flat line for EQ's chat box — the same rules as
@@ -534,6 +552,8 @@ internal sealed class FeedView
         FeedKind.Summary => _palette.Summary,
         FeedKind.Cast => _palette.Cast,
         FeedKind.Mez => _palette.Mez,
+        FeedKind.MezBreak => _palette.MezBreak,
+        FeedKind.Consider => _palette.Consider,
         // The log kinds wear the GAME's chat colours (user screenshot): loot blue,
         // money green, stances blue, xp bold yellow. Zone and chat stay in the dim
         // context colour — the game gives every channel its own and the feed cannot
@@ -672,6 +692,8 @@ internal sealed class FeedView
             () => f.Xp, () => f.Xp = !f.Xp);
         Pill("fact", "Faction standing changes — the faction's name in the game's red",
             () => f.Faction, () => f.Faction = !f.Faction);
+        Pill("con", "NPC consider lines — \"… judges you amiable … (Lvl: 25)\", "
+            + "with the NPC's name picked out", () => f.Consider, () => f.Consider = !f.Consider);
         Pill("zone", "Zone changes and /loc lines", () => f.Zone, () => f.Zone = !f.Zone);
         Pill("chat", "Tells, says, shouts, channel chat, auctions",
             () => f.Chat, () => f.Chat = !f.Chat);
@@ -729,7 +751,7 @@ internal sealed class FeedView
         Cmp(f.Kills, d.Kills); Cmp(f.ResistsFizzles, d.ResistsFizzles);
         Cmp(f.Casts, d.Casts); Cmp(f.Mez, d.Mez); Cmp(f.Other, d.Other);
         Cmp(f.Attack, d.Attack); Cmp(f.Loot, d.Loot); Cmp(f.Xp, d.Xp);
-        Cmp(f.Faction, d.Faction);
+        Cmp(f.Faction, d.Faction); Cmp(f.Consider, d.Consider);
         Cmp(f.Zone, d.Zone); Cmp(f.Chat, d.Chat);
         Cmp(f.SummaryYou, d.SummaryYou); Cmp(f.SummaryPet, d.SummaryPet);
         Cmp(f.SummaryGroup, d.SummaryGroup);
