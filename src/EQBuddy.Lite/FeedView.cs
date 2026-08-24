@@ -14,7 +14,7 @@ internal sealed class FeedPalette
     public Brush You = Frozen("#CFE3F5"), Pet = Frozen("#8FD4C8"), Group = Frozen("#B9A7E8");
     public Brush Incoming = Frozen("#E89C9C"), Heal = Frozen("#8BE28B"), Crit = Frozen("#E8CE9C");
     public Brush Kill = Frozen("#D9C46B"), Spell = Frozen("#E8B24A"), Ability = Frozen("#FF8FC7");
-    public Brush Cast = Frozen("#9FB6D0"), Other = Frozen("#78838F");
+    public Brush Cast = Frozen("#9FB6D0"), Mez = Frozen("#B48CDE"), Other = Frozen("#78838F");
     public Brush Summary = Frozen("#7FD9E8"), Dim = Frozen("#7B8794");
     public Brush Xp = Frozen("#F2E33D"), Loot = Frozen("#4A8CFF");
     public Brush Money = Frozen("#33CC33"), Attack = Frozen("#4A8CFF");
@@ -26,6 +26,7 @@ internal sealed class FeedPalette
         Incoming = Frozen(c.Incoming, Incoming); Heal = Frozen(c.Heal, Heal);
         Crit = Frozen(c.Crit, Crit); Kill = Frozen(c.Kill, Kill); Spell = Frozen(c.Spell, Spell);
         Ability = Frozen(c.Ability, Ability); Cast = Frozen(c.Cast, Cast);
+        Mez = Frozen(c.Mez, Mez);
         Other = Frozen(c.Other, Other); Summary = Frozen(c.Summary, Summary);
         Dim = Frozen(c.Dim, Dim); Xp = Frozen(c.Xp, Xp);
         Loot = Frozen(c.Loot, Loot); Money = Frozen(c.Money, Money);
@@ -532,6 +533,7 @@ internal sealed class FeedView
     {
         FeedKind.Summary => _palette.Summary,
         FeedKind.Cast => _palette.Cast,
+        FeedKind.Mez => _palette.Mez,
         // The log kinds wear the GAME's chat colours (user screenshot): loot blue,
         // money green, stances blue, xp bold yellow. Zone and chat stay in the dim
         // context colour — the game gives every channel its own and the feed cannot
@@ -658,6 +660,8 @@ internal sealed class FeedView
         Pill("r/f", "Resists and fizzles", () => f.ResistsFizzles, () => f.ResistsFizzles = !f.ResistsFizzles);
         Pill("cast", "Casting: begin casting, interrupts, regaining concentration, "
             + "buffs wearing off", () => f.Casts, () => f.Casts = !f.Casts);
+        Pill("mez", "Mez landings (\"has been mesmerized\") and breaks "
+            + "(\"has been awakened by\")", () => f.Mez, () => f.Mez = !f.Mez);
 
         Group("log");
         Pill("atk", "Auto attack is on/off, stance and invocation changes",
@@ -723,7 +727,7 @@ internal sealed class FeedView
         Cmp(f.Melee, d.Melee); Cmp(f.Spells, d.Spells); Cmp(f.Dots, d.Dots);
         Cmp(f.DamageShields, d.DamageShields); Cmp(f.Heals, d.Heals); Cmp(f.Misses, d.Misses);
         Cmp(f.Kills, d.Kills); Cmp(f.ResistsFizzles, d.ResistsFizzles);
-        Cmp(f.Casts, d.Casts); Cmp(f.Other, d.Other);
+        Cmp(f.Casts, d.Casts); Cmp(f.Mez, d.Mez); Cmp(f.Other, d.Other);
         Cmp(f.Attack, d.Attack); Cmp(f.Loot, d.Loot); Cmp(f.Xp, d.Xp);
         Cmp(f.Faction, d.Faction);
         Cmp(f.Zone, d.Zone); Cmp(f.Chat, d.Chat);

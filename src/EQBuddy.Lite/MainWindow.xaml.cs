@@ -78,9 +78,35 @@ public partial class MainWindow : Window
     /// It costs what an idle frame costs — each view asks its buffer for "anything after
     /// sequence N", gets nothing, and returns. Normal priority, not the DispatcherTimer
     /// default of Background: a background timer this short is starved by the layout work
-    /// the panel tick kicks off, which is exactly when the feed is busiest.</summary>
+    /// the panel tick kicks off, which is exactly when the feed is busiest.
+    ///
+    /// Since 1.79 this timer is the FALLBACK, not the fast path: an arriving line pokes a
+    /// render directly (see <see cref="PokeFeedRender"/>), so the timer's job is the
+    /// housekeeping a quiet frame does anyway — clearing "N new below" when the reader
+    /// scrolls back to the bottom.</summary>
     private readonly DispatcherTimer _feedTimer =
         new(DispatcherPriority.Normal) { Interval = TimeSpan.FromMilliseconds(100) };
+
+    /// <summary>Coalesces line-arrival render pokes: many lines land per log flush (and
+    /// the watcher thread outruns the dispatcher), one queued render serves all.</summary>
+    private int _feedRenderPending;
+
+    /// <summary>Render the feeds NOW rather than on the next 100 ms tick. Called from the
+    /// watcher thread for every fresh line, so a row draws one dispatcher hop after the
+    /// filesystem notification instead of averaging half a render interval behind it.
+    /// Gated on the initial replay — those thousands of lines are history, and the timer
+    /// is already running; the flag clears BEFORE the render so a line landing mid-render
+    /// queues the next one rather than being missed.</summary>
+    private void PokeFeedRender()
+    {
+        if (!_watcher.InitialIngestDone) return;
+        if (Interlocked.Exchange(ref _feedRenderPending, 1) != 0) return;
+        Dispatcher.BeginInvoke(() =>
+        {
+            Interlocked.Exchange(ref _feedRenderPending, 0);
+            RenderFeeds();
+        }, DispatcherPriority.Normal);
+    }
 
     private DateTime _lastCharScan = DateTime.MinValue;
     private DateTime _lastJanitor = DateTime.MinValue;
@@ -137,7 +163,7 @@ public partial class MainWindow : Window
         _watcher = new LogWatcher(_stats)
         {
             Tap = e => { _group.Apply(e); _ledger.Apply(e); _feed.Apply(e); },
-            RawTap = line => { _feed.ApplyRaw(line); _cues.OnLine(line); },
+            RawTap = line => { _feed.ApplyRaw(line); _cues.OnLine(line); PokeFeedRender(); },
             Spawns = _spawnTimers,
         };
         FollowCharacter(force: true);
