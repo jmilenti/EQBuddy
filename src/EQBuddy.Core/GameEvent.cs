@@ -23,7 +23,7 @@ public record DamageDealtEvent(DateTime Time, string Target, int Amount, DamageK
 /// read as "the attacker is awake" (issue #32: chips vanishing mid-mez).</param>
 public record DamageTakenEvent(DateTime Time, string Attacker, int Amount, bool Melee, bool Self = false, string Ability = "", bool OverTime = false) : GameEvent(Time);
 public record MissEvent(DateTime Time, bool Outgoing) : GameEvent(Time);
-public record HealEvent(DateTime Time, string Target, int Amount, string Spell, bool Outgoing, string Healer = "", bool OverTime = false) : GameEvent(Time);
+public record HealEvent(DateTime Time, string Target, int Amount, string Spell, bool Outgoing, string Healer = "", bool OverTime = false, bool Critical = false) : GameEvent(Time);
 /// <summary>"X tries to hit YOU, but YOUR magical skin absorbs the blow!" — an incoming
 /// melee attack fully absorbed by the player's own rune (not the generic dodge/parry
 /// text a plain <see cref="MissEvent"/> carries, and not a mob's OWN rune blocking the

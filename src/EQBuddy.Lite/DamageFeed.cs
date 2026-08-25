@@ -174,7 +174,7 @@ internal sealed class DamageFeed
 
             HealEvent h => new FeedEntry(h.Time, FeedWho.You, FeedKind.Heal,
                 h.Outgoing ? "you" : (h.Healer.Length > 0 ? h.Healer : "?"),
-                h.Outgoing ? h.Target : "you", h.Amount, h.Spell, false, null, Incoming: !h.Outgoing),
+                h.Outgoing ? h.Target : "you", h.Amount, h.Spell, h.Critical, null, Incoming: !h.Outgoing),
 
             MissEvent m => new FeedEntry(m.Time, FeedWho.You, FeedKind.Miss,
                 m.Outgoing ? "you" : "?", m.Outgoing ? "?" : "you", 0, "", false, null,

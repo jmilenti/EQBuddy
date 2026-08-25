@@ -258,6 +258,32 @@ public class LogParserTests
         Assert.True(e.OverTime);
     }
 
+    /// <summary>Critical heals carry the same trailing "(Critical)" note as critical
+    /// hits (eqlog_Xastazi, 2026-08-24, both verbatim). The heal regexes used to end at
+    /// the period, so the note failed the whole match — the BIGGEST heals were exactly
+    /// the ones that made no event: invisible in the feed, missing from healing stats.
+    /// The partial-heal "(attempted)" parens and the note can appear together.</summary>
+    [Theory]
+    [InlineData("You healed Xastazi for 969 hit points by Greater Healing. (Critical)", 969, "Greater Healing")]
+    [InlineData("You healed Xastazi for 285 (874) hit points by Greater Healing. (Critical)", 285, "Greater Healing")]
+    public void CriticalHealCast(string line, int amount, string spell)
+    {
+        var e = Parse<HealEvent>(line);
+        Assert.Equal((amount, spell, true, true), (e.Amount, e.Spell, e.Outgoing, e.Critical));
+    }
+
+    [Fact]
+    public void CriticalHealReceived()
+    {
+        var e = Parse<HealEvent>("Zehtara healed you for 1784 hit points by Superior Healing. (Critical)");
+        Assert.Equal((1784, "Superior Healing", false, "Zehtara", true),
+            (e.Amount, e.Spell, e.Outgoing, e.Healer, e.Critical));
+    }
+
+    [Fact]
+    public void OrdinaryHealIsNotCritical() =>
+        Assert.False(Parse<HealEvent>("You healed Douglas for 66 hit points by Light Healing.").Critical);
+
     [Fact]
     public void RegenTickHasNoAmount() =>
         Parse<RegenTickEvent>("Your wounds begin to heal.");
