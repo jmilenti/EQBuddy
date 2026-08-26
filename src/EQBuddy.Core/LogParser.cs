@@ -102,11 +102,15 @@ public static partial class LogParser
     // You healed Kaybek for 10 hit points by Lifespike. / You healed Kaybek for 7 (10) hit points by Lifespike.
     // Heal-over-time ticks say "healed X over time for N" (eqlog_Hugzee: "Xephira healed
     // Spamwagon over time for 11 hit points by Budding Heal.") — same event, one extra phrase.
-    [GeneratedRegex(@"^You healed (?<target>.+?)(?<hot> over time)? for (?<amount>\d+)(?: \((?<attempted>\d+)\))? hit points(?: by (?<spell>.+?))?\.$")]
+    // Critical heals carry the same trailing note as critical hits — "You healed Xastazi
+    // for 969 hit points by Greater Healing. (Critical)" (eqlog_Xastazi, 2026-08-24).
+    // Without the optional note group the anchored $ rejected the whole line, so the
+    // BIGGEST heals were the ones that vanished: no event, no feed row, no healing stat.
+    [GeneratedRegex(@"^You healed (?<target>.+?)(?<hot> over time)? for (?<amount>\d+)(?: \((?<attempted>\d+)\))? hit points(?: by (?<spell>.+?))?\.(?: \((?<note>[^)]+)\))?$")]
     private static partial Regex HealOutRx();
 
     // You have been healed for 30 hit points. / Someone healed you...
-    [GeneratedRegex(@"^You have been healed for (?<amount>\d+) (?:hit )?points?(?: of damage)?\.?$")]
+    [GeneratedRegex(@"^You have been healed for (?<amount>\d+) (?:hit )?points?(?: of damage)?\.?(?: \((?<note>[^)]+)\))?$")]
     private static partial Regex HealInRx();
 
     // --You have looted a Mote of Infinitesimal Potential from orc centurion's corpse.--
@@ -131,7 +135,7 @@ public static partial class LogParser
     // Aamilea healed you for 56 hit points by Light Healing.
     // HoT ticks: "Aenari healed you over time for 8 hit points by Echoing Light." — 223
     // such lines in one week of eqlog_Hugzee were invisible, undercounting healing received.
-    [GeneratedRegex(@"^(?<healer>.+?) healed you(?<hot> over time)? for (?<amount>\d+)(?: \((?<attempted>\d+)\))? hit points(?: by (?<spell>.+?))?\.$")]
+    [GeneratedRegex(@"^(?<healer>.+?) healed you(?<hot> over time)? for (?<amount>\d+)(?: \((?<attempted>\d+)\))? hit points(?: by (?<spell>.+?))?\.(?: \((?<note>[^)]+)\))?$")]
     private static partial Regex HealInByRx();
 
     // A willowisp resisted your Denon's Disruptive Discord!
@@ -520,10 +524,11 @@ public static partial class LogParser
             return new HealEvent(ts, r.Groups["target"].Value,
                 int.Parse(r.Groups["amount"].Value),
                 r.Groups["spell"].Success ? r.Groups["spell"].Value : "Unknown", Outgoing: true,
-                OverTime: r.Groups["hot"].Success);
+                OverTime: r.Groups["hot"].Success, Critical: IsCritNote(r), Note: NoteOf(r));
 
         if ((r = HealInRx().Match(msg)).Success)
-            return new HealEvent(ts, "You", int.Parse(r.Groups["amount"].Value), "Unknown", Outgoing: false);
+            return new HealEvent(ts, "You", int.Parse(r.Groups["amount"].Value), "Unknown",
+                Outgoing: false, Critical: IsCritNote(r), Note: NoteOf(r));
 
         if (RegenTickRx().IsMatch(msg))
             return new RegenTickEvent(ts);
@@ -536,7 +541,7 @@ public static partial class LogParser
             return new HealEvent(ts, "You", int.Parse(r.Groups["amount"].Value),
                 r.Groups["spell"].Success ? r.Groups["spell"].Value : "Unknown",
                 Outgoing: false, Healer: r.Groups["healer"].Value,
-                OverTime: r.Groups["hot"].Success);
+                OverTime: r.Groups["hot"].Success, Critical: IsCritNote(r), Note: NoteOf(r));
 
         if ((r = AutoStoreRx().Match(msg)).Success)
             return new LootEvent(ts, r.Groups["item"].Value, Normalize(r.Groups["source"].Value),

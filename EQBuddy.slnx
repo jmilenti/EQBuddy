@@ -2,6 +2,13 @@
   <Folder Name="/src/">
     <Project Path="src/EQBuddy.Avalonia/EQBuddy.Avalonia.csproj" />
     <Project Path="src/EQBuddy.Core/EQBuddy.Core.csproj" />
+    <!-- The SHIPPED app (EQdps.exe). It was missing here until 2026-08-26, so CI — which
+         builds this solution — never compiled the one project the product is made of: a
+         Lite-only compile error passed every PR check and first appeared in the release
+         workflow's publish step. Safe to include since CI went Windows-only in 1.70;
+         before that, a net10.0-windows project would have broken the Linux leg, which is
+         the likeliest reason it was ever left out. -->
+    <Project Path="src/EQBuddy.Lite/EQBuddy.Lite.csproj" />
     <Project Path="src/EQBuddy.UI.Shared/EQBuddy.UI.Shared.csproj" />
     <Project Path="src/EQBuddy/EQBuddy.csproj" />
   </Folder>

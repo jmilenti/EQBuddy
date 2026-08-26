@@ -1045,29 +1045,27 @@ public partial class MainWindow : Window
                 m.Tiers.ToDictionary(t => TierShort(t.Name), t => t.Count)));
         }
 
-        // The WHOLE ladder shows as fixed columns in its decreed order (user request,
-        // 2026-08-24) — a stable grid to read across sessions, not columns popping in
-        // as tiers drop. Any tier the ladder has never heard of still appends after.
+        // Only tiers somebody on the board has actually collected get a column (user
+        // request, 2026-08-24 — ten fixed columns made the window long when a session
+        // sees three of them). They still show in the ladder's decreed order, so the
+        // grid reads the same way every session; a fresh tier's column appears with its
+        // first drop, and a tier the ladder has never heard of appends after.
         var seen = rows.SelectMany(r => r.ByTier.Keys)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var tiers = rows.Count == 0
-            ? []
-            : Motes.LadderTiers
-                .Concat(seen.Where(k => Motes.LadderRank(k) >= Motes.LadderTiers.Count)
-                    .OrderBy(k => k, StringComparer.OrdinalIgnoreCase))
-                .ToList();
+        var tiers = Motes.LadderTiers.Where(seen.Contains)
+            .Concat(seen.Where(k => Motes.LadderRank(k) >= Motes.LadderTiers.Count)
+                .OrderBy(k => k, StringComparer.OrdinalIgnoreCase))
+            .ToList();
 
-        // Headers: "Infinitesimal" is wider than any count it heads, and the ranks past
-        // Superior are unconfirmed — they wear "tier 8/9/10" until a drop names them.
-        string HeaderOf(int i, string tier) =>
+        // "Infinitesimal" is wider than any count it heads. (The old "tier 8/9/10"
+        // placeholder headers went with the fixed ladder: a column only exists now
+        // because a drop was seen, and a seen tier wears its real name.)
+        string HeaderOf(string tier) =>
             tier.Equals("Infinitesimal", StringComparison.OrdinalIgnoreCase) ? "Inftesmal"
-            : i > 6 && i < Motes.LadderTiers.Count && !seen.Contains(tier) ? $"tier {i + 1}"
             : tier;
-        string TipOf(int i, string tier) =>
+        string TipOf(string tier) =>
             tier.Equals("Normal", StringComparison.OrdinalIgnoreCase)
                 ? "Mote of Potential — the tierless \"Normal\" mote"
-            : i > 6 && i < Motes.LadderTiers.Count && !seen.Contains(tier)
-                ? "A tier above Superior — its name is unconfirmed until one drops"
             : $"Mote of {tier} Potential";
 
         MotesTable.Children.Clear();
@@ -1098,8 +1096,8 @@ public partial class MainWindow : Window
         }
 
         for (var c = 0; c < tiers.Count; c++)
-            Cell(0, c + 1, HeaderOf(c, tiers[c]), MoteDim, size: 10.5,
-                tip: TipOf(c, tiers[c]));
+            Cell(0, c + 1, HeaderOf(tiers[c]), MoteDim, size: 10.5,
+                tip: TipOf(tiers[c]));
         Cell(0, tiers.Count + 1, "all", MoteDim, size: 10.5, tip: "Total motes");
         Cell(0, tiers.Count + 2, "/h", MoteDim, size: 10.5, tip: "Motes per hour");
         Cell(0, tiers.Count + 3, "time", MoteDim, size: 10.5,

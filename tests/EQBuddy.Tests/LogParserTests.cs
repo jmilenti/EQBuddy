@@ -258,6 +258,64 @@ public class LogParserTests
         Assert.True(e.OverTime);
     }
 
+    /// <summary>Critical heals carry the same trailing "(Critical)" note as critical
+    /// hits (eqlog_Xastazi, 2026-08-24, both verbatim). The heal regexes used to end at
+    /// the period, so the note failed the whole match — the BIGGEST heals were exactly
+    /// the ones that made no event: invisible in the feed, missing from healing stats.
+    /// The partial-heal "(attempted)" parens and the note can appear together.</summary>
+    [Theory]
+    [InlineData("You healed Xastazi for 969 hit points by Greater Healing. (Critical)", 969, "Greater Healing")]
+    [InlineData("You healed Xastazi for 285 (874) hit points by Greater Healing. (Critical)", 285, "Greater Healing")]
+    [InlineData("You healed Zehtara for 1784 hit points by Superior Healing. (Critical)", 1784, "Superior Healing")]
+    [InlineData("You healed Zehtara for 484 (1900) hit points by Superior Healing. (Critical)", 484, "Superior Healing")]
+    public void CriticalHealCast(string line, int amount, string spell)
+    {
+        var e = Parse<HealEvent>(line);
+        Assert.Equal((amount, spell, true, true), (e.Amount, e.Spell, e.Outgoing, e.Critical));
+        // The SPELL assertion above is the one that catches a lazy (?<spell>.+?) group
+        // over-running its period and swallowing "Superior Healing. (Critical".
+        Assert.Equal("Critical", e.Note);
+    }
+
+    [Theory]
+    [InlineData("Zehtara healed you for 1784 hit points by Superior Healing. (Critical)", "Zehtara", 1784, "Superior Healing", false)]
+    [InlineData("Bannan healed you for 288 hit points by Echoing Light. (Critical)", "Bannan", 288, "Echoing Light", false)]
+    // A critical heal-over-time tick: both optional groups in play at once.
+    [InlineData("Bannan healed you over time for 114 hit points by Celestial Remedy. (Critical)", "Bannan", 114, "Celestial Remedy", true)]
+    public void CriticalHealReceived(string line, string healer, int amount, string spell, bool hot)
+    {
+        var e = Parse<HealEvent>(line);
+        Assert.Equal((amount, spell, false, healer, true, hot),
+            (e.Amount, e.Spell, e.Outgoing, e.Healer, e.Critical, e.OverTime));
+    }
+
+    /// <summary>The uncritical forms must still parse, and must NOT claim a crit — the
+    /// note group is optional, not assumed.</summary>
+    [Theory]
+    [InlineData("You healed Douglas for 66 hit points by Light Healing.")]
+    [InlineData("You healed Zehtara for 52 hit points by Blood Siphon Strike.")]
+    [InlineData("You healed Kaybek for 7 (10) hit points by Lifespike.")]
+    [InlineData("You healed Spamwagon over time for 11 hit points by Budding Heal.")]
+    [InlineData("Aamilea healed you for 56 hit points by Light Healing.")]
+    public void OrdinaryHealIsNotCritical(string line)
+    {
+        var e = Parse<HealEvent>(line);
+        Assert.False(e.Critical);
+        Assert.Null(e.Note);
+    }
+
+    /// <summary>A heal that is neither BY you nor ON you belongs to neither regex — a
+    /// third party healing itself, or one player healing another. Widening the tail for
+    /// the crit note must not widen the subject. (Third-party heals are simply not
+    /// modelled: there is no ThirdHealEvent, so these produce no heal at all — which is
+    /// also why a group-mate's healing never appears in healing stats.)</summary>
+    [Theory]
+    [InlineData("Maestro of Rancor healed himself for 401 hit points by Superior Healing.")]
+    [InlineData("Zehtara healed himself for 1855 (2050) hit points by Superior Healing. (Critical)")]
+    [InlineData("Xephira healed Spamwagon over time for 11 hit points by Budding Heal.")]
+    public void HealBetweenOtherPlayersIsNotYours(string line) =>
+        Assert.IsNotType<HealEvent>(LogParser.Parse($"[Mon Aug 24 14:18:55 2026] {line}"));
+
     [Fact]
     public void RegenTickHasNoAmount() =>
         Parse<RegenTickEvent>("Your wounds begin to heal.");
