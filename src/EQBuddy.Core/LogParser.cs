@@ -524,11 +524,11 @@ public static partial class LogParser
             return new HealEvent(ts, r.Groups["target"].Value,
                 int.Parse(r.Groups["amount"].Value),
                 r.Groups["spell"].Success ? r.Groups["spell"].Value : "Unknown", Outgoing: true,
-                OverTime: r.Groups["hot"].Success, Critical: IsCritNote(r));
+                OverTime: r.Groups["hot"].Success, Critical: IsCritNote(r), Note: NoteOf(r));
 
         if ((r = HealInRx().Match(msg)).Success)
             return new HealEvent(ts, "You", int.Parse(r.Groups["amount"].Value), "Unknown",
-                Outgoing: false, Critical: IsCritNote(r));
+                Outgoing: false, Critical: IsCritNote(r), Note: NoteOf(r));
 
         if (RegenTickRx().IsMatch(msg))
             return new RegenTickEvent(ts);
@@ -541,7 +541,7 @@ public static partial class LogParser
             return new HealEvent(ts, "You", int.Parse(r.Groups["amount"].Value),
                 r.Groups["spell"].Success ? r.Groups["spell"].Value : "Unknown",
                 Outgoing: false, Healer: r.Groups["healer"].Value,
-                OverTime: r.Groups["hot"].Success, Critical: IsCritNote(r));
+                OverTime: r.Groups["hot"].Success, Critical: IsCritNote(r), Note: NoteOf(r));
 
         if ((r = AutoStoreRx().Match(msg)).Success)
             return new LootEvent(ts, r.Groups["item"].Value, Normalize(r.Groups["source"].Value),
