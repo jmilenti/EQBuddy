@@ -1,8 +1,14 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace EQBuddy.Core;
 
 public sealed record MoteTierCount(string Item, int Count);
+
+/// <summary>One mote actually dropping: which mote, off which corpse, when. The loot
+/// line already names the corpse, so this is the same derivation the summary does — but
+/// kept per-drop instead of tallied, which is the only form that can answer "which mobs
+/// drop these?" and "when did that Greater land?".</summary>
+public sealed record MoteDrop(DateTime Time, string Item, string Source, int Count);
 
 public sealed record MotesSummary(int Total, double PerHour, IReadOnlyList<MoteTierCount> Tiers)
 {
@@ -41,6 +47,18 @@ public static partial class Motes
     public static IReadOnlyList<string> LadderTiers => Ladder;
 
     public static bool IsMote(string itemName) => MotePattern().IsMatch(itemName.Trim());
+
+    /// <summary>The SHORT tier name for a full item name — "Mote of Greater Potential"
+    /// is "Greater", and the bare "Mote of Potential" is "Normal" (its rank has a
+    /// display name even though the item has no tier word). Empty for a non-mote, so
+    /// callers can use it as the test as well as the answer.</summary>
+    public static string TierOf(string itemName)
+    {
+        var m = MotePattern().Match(itemName.Trim());
+        if (!m.Success) return "";
+        var tier = m.Groups["tier"].Value;
+        return tier.Length == 0 ? "Normal" : tier;
+    }
 
     /// <summary>Ladder position for a SHORT tier name ("Greater", "Major"); the bare
     /// mote ("Normal", or its pre-1.78 short name "Base") sits at the Normal slot and

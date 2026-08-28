@@ -595,6 +595,14 @@ public partial class MainWindow : Window
         if (_popup is not { } popup) return;
         RefreshPopupPosition();
 
+        // The itemised mote ledger (keyed "motes:"), tabbed by tier. Yours only — the
+        // drop list is built from your own loot lines.
+        if (popup.MemberName == "motes:")
+        {
+            RenderMoteDropsPopup(popup);
+            return;
+        }
+
         // Your own breakdown (keyed "own:"): every source, not a top-N. Which scopes
         // it shows follows where it was opened — the fight board's popup is fight
         // only, the session board's session only, the main panel's both stacked.
@@ -1110,6 +1118,39 @@ public partial class MainWindow : Window
             MotesTable.Children.Add(tb);
         }
 
+        // A clickable cell. A Button, not a TextBlock with a mouse handler: a bare
+        // TextBlock hit-tests only over its rendered strokes, so most of what looks
+        // clickable isn't, and it exposes no UIA pattern for a test to drive.
+        void MoteButton(int row, int col, string text, Brush brush, string? tier,
+            bool left = false, bool bold = false, double size = 11.5)
+        {
+            var b = new Button
+            {
+                Content = text,
+                FontSize = size,
+                Foreground = brush,
+                FontWeight = bold ? FontWeights.SemiBold : FontWeights.Normal,
+                Background = Brushes.Transparent,
+                BorderBrush = Brushes.Transparent,
+                Cursor = Cursors.Hand,
+                Focusable = false,
+                HorizontalAlignment = left ? HorizontalAlignment.Left : HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                Margin = new Thickness(col == 0 ? 0 : 11, row == 0 ? 0 : 2, 0, 0),
+                Padding = new Thickness(0),
+                Template = (ControlTemplate)FindResource("FlatButtonTemplate"),
+                ToolTip = tier is null
+                    ? "Every mote you've looted this session — which mob dropped it and when"
+                    : $"Your {tier} motes — which mob dropped each one and when",
+            };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(
+                b, tier is null ? "MotesDetail" : "MotesDetail_" + tier);
+            b.Click += (_, _) => ShowMoteDrops(tier);
+            Grid.SetRow(b, row);
+            Grid.SetColumn(b, col);
+            MotesTable.Children.Add(b);
+        }
+
         for (var c = 0; c < tiers.Count; c++)
             Cell(0, c + 1, HeaderOf(tiers[c]), MoteDim, size: 10.5,
                 tip: TipOf(tiers[c]));
@@ -1122,12 +1163,27 @@ public partial class MainWindow : Window
         for (var r = 0; r < rows.Count; r++)
         {
             var (name, isYou, total, rate, span, byTier) = rows[r];
-            Cell(r + 1, 0, name, isYou ? MoteBright : MoteMemberName,
-                size: 12, right: false, bold: isYou);
+            // Only YOUR row opens the itemised view: the drop ledger comes from your own
+            // log, and sync carries a member's TOTALS only — their corpses were never in
+            // your log to record. A member's row says so on hover rather than offering a
+            // click that leads nowhere.
+            if (isYou)
+                MoteButton(r + 1, 0, name, MoteBright, null, left: true, bold: true, size: 12);
+            else
+                Cell(r + 1, 0, name, MoteMemberName, size: 12, right: false,
+                    tip: "Itemised drops are yours only — sync shares each member's "
+                       + "totals, and their loot lines were never in your log.");
             for (var c = 0; c < tiers.Count; c++)
-                Cell(r + 1, c + 1,
-                    byTier.TryGetValue(tiers[c], out var n) ? n.ToString() : "·",
-                    byTier.ContainsKey(tiers[c]) ? MoteGold : MoteFaint);
+            {
+                var has = byTier.TryGetValue(tiers[c], out var n);
+                var text = has ? n.ToString() : "·";
+                // A count in your row opens the popup already on that tier — the tab you
+                // wanted is the cell you clicked.
+                if (isYou && has)
+                    MoteButton(r + 1, c + 1, text, MoteGold, tiers[c]);
+                else
+                    Cell(r + 1, c + 1, text, has ? MoteGold : MoteFaint);
+            }
             Cell(r + 1, tiers.Count + 1, total.ToString(), MoteBright, bold: true);
             Cell(r + 1, tiers.Count + 2, $"{rate:0.#}", MoteDim, size: 10.5);
             Cell(r + 1, tiers.Count + 3,
@@ -2418,6 +2474,111 @@ public partial class MainWindow : Window
 
     /// <summary>One satellite popup at a time — a fight's or a member's. Clicking the
     /// same thing again closes it; clicking something else switches to it.</summary>
+    /// <summary>The itemised mote list: a tab strip of the tiers actually collected,
+    /// then one line per drop — newest first, because the one you just saw land is the
+    /// one you are looking for. Under it, a tally of which corpses have been paying out,
+    /// which is the pattern a per-drop list alone makes you count by eye.</summary>
+    private void RenderMoteDropsPopup(BreakdownPopup popup)
+    {
+        var drops = _snap?.MoteDrops ?? [];
+        if (drops.Count == 0)
+        {
+            popup.SetTabs([], "", _ => { });
+            popup.CopyText = null;
+            popup.Update("Motes", "(no motes this session)");
+            return;
+        }
+
+        // Tabs: All, then every tier seen, in ladder order — the same order the board's
+        // columns use, so the strip reads like the row it was opened from.
+        var seen = drops.Select(d => Motes.TierOf(d.Item))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(Motes.LadderRank).ThenBy(t => t, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var tabs = new List<string> { AllTab };
+        tabs.AddRange(seen);
+        // A tier whose drops have aged out of the ledger would leave the strip with no
+        // active tab and nothing to show; fall back to All rather than looking broken.
+        var active = _motesTier is { } t && seen.Contains(t, StringComparer.OrdinalIgnoreCase)
+            ? seen.First(x => x.Equals(t, StringComparison.OrdinalIgnoreCase))
+            : AllTab;
+        popup.SetTabs(tabs, active, pick =>
+        {
+            _motesTier = pick == AllTab ? null : pick;
+            RefreshPopup();
+        });
+
+        var shown = active == AllTab
+            ? drops
+            : drops.Where(d => Motes.TierOf(d.Item).Equals(active, StringComparison.OrdinalIgnoreCase))
+                   .ToList();
+        var count = shown.Sum(d => d.Count);
+
+        var lines = new List<string>();
+        // Newest first. The tier column only earns its width on the All tab — on a tier
+        // tab every row would repeat the tab's own name.
+        foreach (var d in shown.AsEnumerable().Reverse().Take(MoteDropsShown))
+            lines.Add(active == AllTab
+                ? $"{d.Time:HH:mm:ss} {Pad(Motes.TierOf(d.Item), 12)} {Trim(d.Source, 22)}"
+                : $"{d.Time:HH:mm:ss}  {Trim(d.Source, 30)}");
+        if (shown.Count > MoteDropsShown)
+            lines.Add($"… {shown.Count - MoteDropsShown} older not shown");
+
+        // Which mobs actually pay out — the half of the question a flat list answers
+        // only if you tally it yourself.
+        var bySource = shown
+            .GroupBy(d => d.Source, StringComparer.OrdinalIgnoreCase)
+            .Select(g => (Name: g.Key, Count: g.Sum(d => d.Count)))
+            .OrderByDescending(x => x.Count).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (bySource.Count > 0)
+        {
+            lines.Add("");
+            lines.Add($"— dropped by · {bySource.Count} mob{(bySource.Count == 1 ? "" : "s")} —");
+            lines.AddRange(bySource.Take(MoteSourcesShown)
+                .Select(x => $"{Pad(Trim(x.Name, 24), 25)} {x.Count,3}"));
+            if (bySource.Count > MoteSourcesShown)
+                lines.Add($"… {bySource.Count - MoteSourcesShown} more");
+        }
+
+        popup.CopyText = $"motes{(active == AllTab ? "" : " " + active)} ({count}): "
+            + string.Join(", ", bySource.Take(MoteSourcesShown).Select(x => $"{x.Name} {x.Count}"));
+        popup.Update($"Motes · {(active == AllTab ? "all" : active)} · {count}",
+            string.Join("\n", lines));
+    }
+
+    /// <summary>The "everything" tab's label. A constant because it is both a label and
+    /// the sentinel that means "no tier filter".</summary>
+    private const string AllTab = "all";
+
+    /// <summary>How much of the ledger a popup shows. Deep enough to scroll a night's
+    /// camp, short enough that the window stays a window.</summary>
+    private const int MoteDropsShown = 40;
+    private const int MoteSourcesShown = 8;
+
+    /// <summary>Clip a name to fit the popup's fixed-width column, with an ellipsis so a
+    /// truncation is visible as one.</summary>
+    private static string Trim(string s, int width) =>
+        s.Length <= width ? s : s[..(width - 1)] + "…";
+
+    /// <summary>Which tier the MOTES popup is showing, or null for all of them. Held
+    /// here rather than in the popup key so switching tabs re-renders in place instead
+    /// of closing and reopening the window under the reader's cursor.</summary>
+    private string? _motesTier;
+
+    /// <summary>Open (or retarget) the itemised mote list. Clicking the same thing again
+    /// closes it, like every other popup; clicking a DIFFERENT tier while it is open
+    /// switches tabs rather than closing, which is what a tab click means.</summary>
+    internal void ShowMoteDrops(string? tier)
+    {
+        var already = _popup?.MemberName == "motes:";
+        if (already && _motesTier == tier) { _popup?.Close(); _popup = null; return; }
+        _motesTier = tier;
+        _popupSource = "motes";
+        if (already) { RefreshPopup(); return; }
+        TogglePopup("motes:");
+    }
+
     private void TogglePopup(string key)
     {
         if (_popup is { } open &&

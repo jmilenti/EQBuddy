@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -15,6 +15,12 @@ public sealed class BreakdownPopup : Window
 
     private readonly TextBlock _header;
     private readonly TextBlock _rows;
+    private readonly WrapPanel _tabs;
+
+    /// <summary>What the tab strip currently shows, so a per-tick refresh can skip
+    /// rebuilding it. Popups refresh every second; rebuilding a dozen buttons each time
+    /// would churn for nothing and drop the pressed state mid-click.</summary>
+    private string _tabSignature = "";
 
     /// <summary>When set, ⧉ copies this instead of a flattening of the visible text.
     /// The fight popup uses it: what's worth pasting to the group is the per-player
@@ -109,8 +115,16 @@ public sealed class BreakdownPopup : Window
             Margin = new Thickness(0, 6, 0, 0),
         };
 
+        // Hidden until something calls SetTabs — every other popup is a single view.
+        _tabs = new WrapPanel
+        {
+            Margin = new Thickness(0, 6, 0, 0),
+            Visibility = Visibility.Collapsed,
+        };
+
         var stack = new StackPanel { MinWidth = 170 };
         stack.Children.Add(head);
+        stack.Children.Add(_tabs);
         stack.Children.Add(_rows);
 
         Content = new Border
@@ -128,5 +142,48 @@ public sealed class BreakdownPopup : Window
     {
         _header.Text = header;
         _rows.Text = rows;
+    }
+
+    /// <summary>Give this popup a tab strip. Only the MOTES popup uses one: its content
+    /// is a long itemised list that divides naturally by tier, and a strip is how you
+    /// read one tier without losing the others. Passing an empty list hides it again.
+    ///
+    /// Buttons, not TextBlocks — a bare glyph hit-tests only over its own strokes and
+    /// exposes no UIA pattern, which is how earlier controls here shipped un-clickable
+    /// and untestable.</summary>
+    public void SetTabs(IReadOnlyList<string> labels, string active, Action<string> onPick)
+    {
+        var signature = string.Join("\u001f", labels) + "\u001e" + active;
+        if (signature == _tabSignature) return;
+        _tabSignature = signature;
+
+        _tabs.Children.Clear();
+        _tabs.Visibility = labels.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        foreach (var label in labels)
+        {
+            var on = label == active;
+            var b = new Button
+            {
+                Content = label,
+                FontSize = 10.5,
+                Cursor = Cursors.Hand,
+                Focusable = false,
+                Margin = new Thickness(0, 0, 4, 4),
+                Padding = new Thickness(6, 1, 6, 2),
+                Foreground = on
+                    ? new SolidColorBrush(Color.FromRgb(0xD9, 0xC4, 0x6B))
+                    : new SolidColorBrush(Color.FromRgb(0x6E, 0x7A, 0x87)),
+                Background = new SolidColorBrush(
+                    Color.FromArgb(on ? (byte)0x2E : (byte)0x0C, 0xFF, 0xFF, 0xFF)),
+                BorderBrush = new SolidColorBrush(
+                    Color.FromArgb(on ? (byte)0x55 : (byte)0x1A, 0xFF, 0xFF, 0xFF)),
+                BorderThickness = new Thickness(1),
+                Template = (ControlTemplate)((MainWindow)Owner).FindResource("FlatButtonTemplate"),
+            };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(b, "MoteTab_" + label);
+            var picked = label;
+            b.Click += (_, _) => onPick(picked);
+            _tabs.Children.Add(b);
+        }
     }
 }

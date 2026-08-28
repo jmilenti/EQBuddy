@@ -148,6 +148,13 @@ public sealed class SessionStats
     }
 
     private readonly Dictionary<string, (int Count, string LastSource)> _loot = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Every mote drop of the session, in the order they landed — the tallies
+    /// in <see cref="Motes.Summarize"/> can say how many, only this can say off WHAT and
+    /// WHEN. Bounded because it is per-drop: a marathon session that somehow passed the
+    /// cap loses its oldest entries, not its counts (the summary is tallied separately).</summary>
+    private readonly List<MoteDrop> _moteDrops = [];
+    private const int MaxMoteDrops = 5000;
     private int _lootCount;
     private readonly Dictionary<string, int> _crafted = new(StringComparer.OrdinalIgnoreCase);
 
@@ -836,6 +843,13 @@ public sealed class SessionStats
                     var cur = _loot.TryGetValue(l.Item, out var lv) ? lv : (0, l.Source);
                     _loot[l.Item] = (cur.Item1 + l.Count, l.Source);
                     _lootCount += l.Count;
+                    // Motes get a per-drop ledger as well as the tally: the MOTES board's
+                    // itemised view answers "which mob dropped this, and when".
+                    if (Motes.IsMote(l.Item))
+                    {
+                        _moteDrops.Add(new MoteDrop(l.Time, l.Item, l.Source, l.Count));
+                        if (_moteDrops.Count > MaxMoteDrops) _moteDrops.RemoveRange(0, 500);
+                    }
                     // Loot lines name the corpse — explicit creature correlation (CORRELATE-005).
                     Bump(Mob(l.Source).Loot, l.Item);
                     Mob(l.Source).LootLast[l.Item] = l.Time;
@@ -1447,7 +1461,7 @@ public sealed class SessionStats
         _lastLoc = null; _locTrail.Clear(); _trackedMemo = null;
         _runeGainCount = 0; _runeGainPoints = 0;
         _runeBlockStreak = 0; _runeBlockStreakMax = 0; _runeBlockCount = 0;
-        _loot.Clear(); _lootCount = 0; _crafted.Clear();
+        _loot.Clear(); _lootCount = 0; _crafted.Clear(); _moteDrops.Clear();
         _copper = 0; _coinDrops = 0; _biggestDrop = 0;
         _vendorCopper = 0; _salesCount = 0; _soldItems.Clear();
         _xpPercent = 0; _xpTicks = 0; _xpSinceLevel = 0; _levels.Clear();
@@ -1713,6 +1727,7 @@ public sealed class SessionStats
                 LootTotal = _lootCount,
                 Loot = _loot.OrderByDescending(kv => kv.Value.Count)
                     .Select(kv => new LootDetail(kv.Key, kv.Value.Count, kv.Value.LastSource)).ToList(),
+                MoteDrops = _moteDrops.ToList(),
                 Crafted = _crafted.OrderByDescending(kv => kv.Value)
                     .Select(kv => new NameCount(kv.Key, kv.Value)).ToList(),
                 CraftedTotal = _crafted.Values.Sum(),
@@ -1920,6 +1935,10 @@ public sealed class StatsSnapshot
     public int RuneBlockStreakMax { get; init; }
     public int LootTotal { get; init; }
     public List<LootDetail> Loot { get; init; } = [];
+
+    /// <summary>Every mote drop this session, oldest first: what dropped, off which
+    /// corpse, at what time. The MOTES board's itemised view.</summary>
+    public List<MoteDrop> MoteDrops { get; init; } = [];
     public List<NameCount> Crafted { get; init; } = [];
     public int CraftedTotal { get; init; }
     public long Copper { get; init; }
