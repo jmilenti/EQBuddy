@@ -1,4 +1,4 @@
-using EQBuddy.Core;
+﻿using EQBuddy.Core;
 
 namespace EQBuddy.Tests;
 
@@ -17,6 +17,46 @@ public class EncounterTests
             if (evt is not null) stats.Apply(evt);
         }
         return stats;
+    }
+
+    /// <summary>Slay Undead is a different attack, not an annotation: the paladin proc
+    /// multiplies the swing hard enough that folding it into the plain skill hides both
+    /// numbers — the base rate reads too high and the slay's share is invisible. So
+    /// "Punch" and "Punch (Slay)" are separate breakdown rows, in the session list and
+    /// in the fight's own. Notes COMBINE in real logs ("Riposte Slay Undead" appears),
+    /// so the split is by substring, and modifier-only notes must NOT split.</summary>
+    [Fact]
+    public void SlayUndeadGetsItsOwnBreakdownRow()
+    {
+        var s = Replay(
+            At(0, 0, "You punch a ghoul for 10 points of damage."),
+            At(0, 1, "You punch a ghoul for 900 points of damage. (Slay Undead)"),
+            At(0, 2, "You punch a ghoul for 12 points of damage."),
+            // Compound note: still a slay, and still one row with the plain slay above.
+            At(0, 3, "You punch a ghoul for 800 points of damage. (Riposte Slay Undead)"),
+            // Modifier-only notes annotate the SAME attack and must not split it off.
+            At(0, 4, "You punch a ghoul for 30 points of damage. (Critical)"),
+            At(0, 5, "You punch a ghoul for 11 points of damage. (Riposte)")).Snapshot();
+
+        var plain = Assert.Single(s.DamageBySource, d => d.Name == "Punch");
+        var slay = Assert.Single(s.DamageBySource, d => d.Name == "Punch (Slay)");
+        Assert.Equal((4, 63L), (plain.Hits, plain.Total));    // 10 + 12 + 30 + 11
+        Assert.Equal((2, 1700L), (slay.Hits, slay.Total));    // 900 + 800
+    }
+
+    /// <summary>The same split reaches the per-fight breakdown, which is a separate
+    /// dictionary filled from the same label.</summary>
+    [Fact]
+    public void SlayUndeadSplitsInsideTheFightBreakdown()
+    {
+        var s = Replay(
+            At(0, 0, "You punch a ghoul for 10 points of damage."),
+            At(0, 1, "You punch a ghoul for 900 points of damage. (Slay Undead)"),
+            At(0, 2, "You have slain a ghoul!")).Snapshot();
+
+        var fight = Assert.Single(s.RecentEncounters);
+        Assert.Contains(fight.ByAbility, a => a.Name == "Punch (Slay)" && a.Total == 900);
+        Assert.Contains(fight.ByAbility, a => a.Name == "Punch" && a.Total == 10);
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -168,6 +168,14 @@ internal sealed class FeedView
         // rows removed, which is only meaningful if an offset counts rows.
         VirtualizingPanel.SetScrollUnit(_list, ScrollUnit.Item);
         VirtualizingPanel.SetVirtualizationMode(_list, VirtualizationMode.Recycling);
+        // Whether this pane FOLLOWS the newest row is decided here and nowhere else.
+        // Sampling the offset just before appending (what this used to do) reads the
+        // scroll state mid-flight: ScrollToBottom sets the offset but layout applies it
+        // later, so during the startup replay one early frame could see "extent grew,
+        // offset stale" = not at bottom, and that answer LATCHED — the feed sat halfway
+        // up the log forever after, showing "N new below" nobody had asked for.
+        _list.AddHandler(ScrollViewer.ScrollChangedEvent,
+            new ScrollChangedEventHandler(OnScrollChanged));
 
         // Kill summaries copy themselves on click, the way the FIGHTS popup's ⧉ does —
         // the summary IS the line worth pasting to the group. Preview, because a
@@ -364,14 +372,15 @@ internal sealed class FeedView
         _cursor = cursor;
         if (!rebuild && fresh.Count == 0)
         {
-            // Still worth asking where the reader is: scrolling back to the bottom clears
-            // the "new below" count even on a quiet frame.
-            if (AtBottom()) Unseen = 0;
+            // Scrolling back down clears the "new below" count even on a quiet frame.
+            // (The latch is already maintained by OnScrollChanged; this is just the
+            // frame that notices, since the heading is only rebuilt on render.)
+            if (_follow) Unseen = 0;
             return;
         }
 
         var scroller = Scroller();
-        var atBottom = AtBottom();
+        var atBottom = _follow;
 
         // A rebuild starts empty; so does a list showing only the placeholder, which is
         // not a row anyone wants pushed up the page.
@@ -380,6 +389,7 @@ internal sealed class FeedView
             _rows.Clear();
             _placeholder = false;
             atBottom = true;   // a fresh list belongs at its newest end
+            _follow = true;
         }
         foreach (var row in fresh) _rows.Add(row);
 
@@ -414,6 +424,36 @@ internal sealed class FeedView
     /// <summary>A scroll-to-bottom that could not happen yet because the list had not
     /// been templated. Retried on the next frame, so it costs at most 100 ms.</summary>
     private bool _pendingBottom = true;
+
+    /// <summary>Is this pane parked at the newest row, and therefore following new ones?
+    /// PER PANE — one window scrolled up to read never stops another from following.
+    /// Starts true so a fresh feed opens at its newest end, and only a genuine scroll
+    /// changes it (see <see cref="OnScrollChanged"/>).</summary>
+    private bool _follow = true;
+
+    /// <summary>Only a real SCROLL re-decides whether we follow. A content change moves
+    /// the extent without moving the reader, and its numbers are mid-flight — judging
+    /// "are we at the bottom?" from one is how the follow state used to get stuck off.
+    /// WPF distinguishes them for us: ExtentHeightChange is non-zero only when the
+    /// content grew or shrank.</summary>
+    private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (e.ExtentHeightChange != 0) return;
+        _follow = AtBottom();
+        if (_follow) Unseen = 0;
+    }
+
+    /// <summary>Park at the newest row and resume following. Called once when the
+    /// startup replay finishes: the whole log lands in one burst, and where that burst
+    /// leaves the viewport is not where a reader wants to start — the newest line is.
+    /// A pane the user has already scrolled up in is left alone.</summary>
+    public void SnapToBottom()
+    {
+        if (!_follow) return;
+        if (Scroller() is { } sv) sv.ScrollToBottom();
+        else _pendingBottom = true;
+        Unseen = 0;
+    }
 
     /// <summary>Where a background tab's score-keeping got to. MaxValue means "start from
     /// the newest" — a tab that has just been put to sleep should count what happens

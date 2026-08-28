@@ -1,4 +1,4 @@
-namespace EQBuddy.Core;
+﻿namespace EQBuddy.Core;
 
 /// <summary>
 /// Thread-safe aggregator for one play session. A "play session" is a contiguous
@@ -65,6 +65,21 @@ public sealed class SessionStats
     /// or the skill itself.</summary>
     private string SkillName(string skill) =>
         _skillAliases.TryGetValue(skill, out var ability) ? ability : skill;
+
+    /// <summary>A trailing note that makes the hit a DIFFERENT attack rather than the
+    /// same attack annotated, so its damage deserves its own breakdown row: a paladin's
+    /// Slay Undead multiplies a swing so hard that averaging it into the plain skill
+    /// hides both numbers — the base rate reads too high and the slay's contribution is
+    /// invisible. "Punch" and "Punch (Slay)" are two things worth knowing separately.
+    ///
+    /// Notes COMBINE ("Riposte Slay Undead" is real, so is "Critical Double Bow Shot"),
+    /// which is why this is a substring test and not equality. Modifier-only notes
+    /// (Critical, Riposte, Strikethrough) deliberately do NOT split — they annotate the
+    /// same attack, are already counted elsewhere, and splitting on them would shatter
+    /// every skill into a dozen rows. Add a line here to split another one.</summary>
+    private static string AttackSuffix(string? note) =>
+        note is not null && note.Contains("Slay Undead", StringComparison.OrdinalIgnoreCase)
+            ? " (Slay)" : "";
 
     private readonly Dictionary<string, AbilityAgg> _damageBySource = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>What the pet is doing, split out of its single "Pet (Name)" damage row.
@@ -667,7 +682,8 @@ public sealed class SessionStats
                     // Melee hits are filed under the ability that took the skill over, when
                     // the game has told us about one — "You kick …" is Round Kick from the
                     // moment it says so, and the log never mentions it again.
-                    var source = dd.Kind == DamageKind.Melee ? SkillName(dd.Source) : dd.Source;
+                    var source = (dd.Kind == DamageKind.Melee ? SkillName(dd.Source) : dd.Source)
+                        + AttackSuffix(dd.Note);
                     if (dd.Amount > _maxHit) { _maxHit = dd.Amount; _maxHitDesc = $"{source} on {dd.Target}"; }
                     Ability(_damageBySource, source).Add(dd.Time, dd.Amount, dd.Critical);
                     TrackCombat(dd.Time, dd.Amount);
