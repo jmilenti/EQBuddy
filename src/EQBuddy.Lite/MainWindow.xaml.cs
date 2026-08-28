@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -790,7 +790,22 @@ public partial class MainWindow : Window
     private void RenderFeeds()
     {
         foreach (var host in _feedHosts.Values) host.Render();
+        // The startup replay lands the whole log in one burst. Wherever that burst
+        // leaves each viewport is not where a reader wants to start — the newest line
+        // is — so every pane is parked at its newest row once, on the first render
+        // after the ingest finishes. Panes the user has already scrolled up in are
+        // left where they are, and this never fires again.
+        if (_feedSnapPending && _watcher.InitialIngestDone)
+        {
+            _feedSnapPending = false;
+            foreach (var host in _feedHosts.Values)
+                foreach (var view in host.Views) view.SnapToBottom();
+        }
     }
+
+    /// <summary>The one-shot "park at the newest row" owed to every pane once the
+    /// startup replay is in. Set at construction, cleared the first time it fires.</summary>
+    private bool _feedSnapPending = true;
 
     private static SolidColorBrush Frozen(byte r, byte g, byte b)
     {
