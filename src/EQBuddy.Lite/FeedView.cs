@@ -185,7 +185,7 @@ internal sealed class FeedView
         {
             // Scrolling UP is unambiguous — stop following NOW, before the next render
             // can pull them back down. Everything else is settled by ReviewFollow.
-            if (e.Delta > 0) _follow = false;
+            if (e.Delta > 0 && _follow) SetFollow(false);
             ReviewFollow();
         };
         // A press inside the list is a gesture in progress: dragging the scrollbar thumb
@@ -410,20 +410,8 @@ internal sealed class FeedView
             _placeholder = false;
             atBottom = true;   // a fresh list belongs at its newest end
             _follow = true;
+            _anchor = null;
         }
-        // The row the reader is parked on, captured BEFORE the list is mutated. With
-        // ScrollUnit.Item the offset IS the index of the top visible row, so this is the
-        // exact row to put back under them afterwards. Subtracting the number of dropped
-        // rows arithmetically looked equivalent and wasn't: the panel does its own
-        // adjusting when items leave a virtualised list, so the two corrections fought
-        // and the view crept a row at a time even though it was no longer following.
-        FeedRow? anchor = null;
-        if (!atBottom && scroller is not null)
-        {
-            var top = (int)Math.Round(scroller.VerticalOffset);
-            if (top >= 0 && top < _rows.Count) anchor = _rows[top];
-        }
-
         foreach (var row in fresh) _rows.Add(row);
 
         while (_rows.Count > MaxRows) _rows.RemoveAt(0);
@@ -436,16 +424,18 @@ internal sealed class FeedView
         }
         else
         {
-            // The reader is somewhere above, so the view must not move under them.
-            // Appending below leaves the offset alone; rows falling off the TOP shift
-            // every index, so the anchor row is scrolled back to where it was. If it
-            // fell off the top itself it is genuinely gone, and the offset stands.
-            if (anchor is not null && scroller is not null)
-            {
-                var now = _rows.IndexOf(anchor);
-                if (now >= 0 && Math.Abs(now - scroller.VerticalOffset) >= 0.5)
-                    scroller.ScrollToVerticalOffset(now);
-            }
+            // The reader is parked, so the view must not move under them. Appending
+            // below leaves the offset alone; rows falling off the TOP shift every index,
+            // so the anchor row is put back where it was — every frame, unconditionally,
+            // and again after the layout pass.
+            //
+            // Correcting once per render was not enough and drifted a row at a time:
+            // the offset read DURING a render is the pre-layout value, so an adjustment
+            // the virtualising panel makes while laying out is invisible at the moment
+            // we decide, and the error accumulates instead of being noticed. Re-asserting
+            // after layout closes that loop — any disagreement is fixed on the same
+            // frame it appears rather than being inherited by the next one.
+            if (!_gesture) ReassertAnchor();
             Unseen += fresh.Count;
         }
 
@@ -480,8 +470,54 @@ internal sealed class FeedView
     private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
     {
         if (e.ExtentHeightChange != 0) return;
-        _follow = AtBottom();
-        if (_follow) Unseen = 0;
+        SetFollow(AtBottom());
+    }
+
+    /// <summary>The row the reader is parked on while not following — held for as long
+    /// as they stay parked, so every frame restores the SAME row rather than re-deriving
+    /// one from an offset that may be mid-flight. Null while following.</summary>
+    private FeedRow? _anchor;
+
+    /// <summary>Move the latch, and take (or drop) the anchor with it. Parking captures
+    /// the row currently at the top of the viewport; that row is the promise being kept
+    /// until the reader scrolls back to the bottom.</summary>
+    private void SetFollow(bool follow)
+    {
+        _follow = follow;
+        if (follow) { _anchor = null; Unseen = 0; return; }
+        if (Scroller() is not { } sv) return;
+        var top = (int)Math.Round(sv.VerticalOffset);
+        _anchor = top >= 0 && top < _rows.Count ? _rows[top] : null;
+    }
+
+    /// <summary>Where the anchor sits now. By REFERENCE: <c>FeedRow</c> is a record, and
+    /// though its span list makes value-equality behave like identity today, a list that
+    /// ever compared by value would silently match a repeated combat line somewhere else
+    /// in the buffer and teleport the reader there.</summary>
+    private int IndexOfAnchor()
+    {
+        for (var i = 0; i < _rows.Count; i++)
+            if (ReferenceEquals(_rows[i], _anchor)) return i;
+        return -1;
+    }
+
+    /// <summary>Put the anchor row back under the reader, now and again once the layout
+    /// pass has run (Loaded fires after it). An anchor that has fallen off the top of the
+    /// buffer is genuinely gone — the offset stands and the reader keeps whatever is in
+    /// front of them.</summary>
+    private void ReassertAnchor()
+    {
+        if (_anchor is null || Scroller() is not { } sv) return;
+        var now = IndexOfAnchor();
+        if (now < 0) { _anchor = null; return; }
+        if (Math.Abs(sv.VerticalOffset - now) >= 0.5) sv.ScrollToVerticalOffset(now);
+        _list.Dispatcher.BeginInvoke(() =>
+        {
+            if (_follow || _gesture || _anchor is null || Scroller() is not { } late) return;
+            var settled = IndexOfAnchor();
+            if (settled >= 0 && Math.Abs(late.VerticalOffset - settled) >= 0.5)
+                late.ScrollToVerticalOffset(settled);
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
     /// <summary>Re-read where the reader ended up, AFTER the input has been applied to
@@ -490,11 +526,8 @@ internal sealed class FeedView
     /// one mid-flight. Following resumes only at the very bottom — which is the whole
     /// contract: scrolled up stays put until you come all the way back down.</summary>
     private void ReviewFollow() =>
-        _list.Dispatcher.BeginInvoke(() =>
-        {
-            _follow = AtBottom();
-            if (_follow) Unseen = 0;
-        }, System.Windows.Threading.DispatcherPriority.Input);
+        _list.Dispatcher.BeginInvoke(() => SetFollow(AtBottom()),
+            System.Windows.Threading.DispatcherPriority.Input);
 
     /// <summary>Park at the newest row and resume following. Called once when the
     /// startup replay finishes: the whole log lands in one burst, and where that burst
