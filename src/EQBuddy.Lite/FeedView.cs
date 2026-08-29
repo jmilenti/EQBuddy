@@ -192,7 +192,18 @@ internal sealed class FeedView
         // produces a stream of scrolls, and the feed must not fight the drag.
         _list.PreviewMouseDown += (_, _) => _gesture = true;
         _list.PreviewMouseUp += (_, _) => { _gesture = false; ReviewFollow(); };
-        _list.PreviewKeyUp += (_, _) => ReviewFollow();
+        // Only keys that actually SCROLL re-judge the latch. Any key-up used to, which
+        // put a re-measure of the scroll geometry behind unrelated keystrokes — and the
+        // reader alt-tabbing is exactly when a re-measure is most likely to answer
+        // "not at the bottom" for an instant.
+        _list.PreviewKeyUp += (_, e) =>
+        {
+            if (e.Key is System.Windows.Input.Key.PageUp
+                or System.Windows.Input.Key.PageDown
+                or System.Windows.Input.Key.Home or System.Windows.Input.Key.End
+                or System.Windows.Input.Key.Up or System.Windows.Input.Key.Down)
+                ReviewFollow();
+        };
 
         // Kill summaries copy themselves on click, the way the FIGHTS popup's ⧉ does —
         // the summary IS the line worth pasting to the group. Preview, because a
@@ -458,6 +469,11 @@ internal sealed class FeedView
     /// changes it (see <see cref="OnScrollChanged"/>).</summary>
     private bool _follow = true;
 
+    /// <summary>How far from the bottom, in rows, counts as the reader having genuinely
+    /// scrolled away rather than the viewport re-measuring under them. Well past the
+    /// row-or-two a wrapped line shifts it by, well short of any deliberate scroll.</summary>
+    private const double DetachRows = 3.5;
+
     /// <summary>The reader is holding the mouse down inside the list — dragging the
     /// scrollbar, or just clicking a row. Auto-scroll stands off until they let go.</summary>
     private bool _gesture;
@@ -470,7 +486,21 @@ internal sealed class FeedView
     private void OnScrollChanged(object sender, ScrollChangedEventArgs e)
     {
         if (e.ExtentHeightChange != 0) return;
-        SetFollow(AtBottom());
+        if (Scroller() is not { } sv) return;
+        var fromBottom = sv.ScrollableHeight - sv.VerticalOffset;
+        // Resume the moment the reader is back on the newest row.
+        if (!_follow && fromBottom <= 0.5) { SetFollow(true); return; }
+        // But only DETACH when they are clearly away from it. ScrollableHeight is the
+        // extent minus a viewport measured in ITEMS, and rows word-wrap: one long line
+        // entering the view means fewer rows fit, so the bottom shifts a row or two
+        // under a reader who has not touched anything. Once the buffer is full the
+        // extent stops changing (N added, N trimmed), so this handler re-judges on
+        // essentially every render — and a single transient answer used to stick. That
+        // was the feed "detaching from the bottom by itself", which alt-tabbing made
+        // likelier by forcing exactly such a re-measure on activation. A deliberate
+        // scroll travels far further than that flutter ever does, and every real input
+        // path (wheel, drag, scroll keys) also has its own immediate handler.
+        if (_follow && fromBottom > DetachRows) SetFollow(false);
     }
 
     /// <summary>The row the reader is parked on while not following — held for as long
