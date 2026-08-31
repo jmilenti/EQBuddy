@@ -22,7 +22,7 @@
 | duration = Permanent
 | target_type = Self
 | spell_type = Beneficial
-| resist = Magic?
+| resist = Unresistable
 
 | msg_cast_on_you = The Call of Sky fills your weapons with power..
 | msg_cast_on_other = Someone 's weapons gleam.
@@ -31,7 +31,6 @@
 | where_to_obtain = 
 
 <ul>
-<li>[[Druid#Spell Vendors|Druid Spell Vendors]]</li>
 <li>[[Ranger#Spell Vendors|Ranger Spell Vendors]]</li>
 </ul>
 }}

@@ -4882,6 +4882,218 @@
   "cc_families": []
  },
  {
+  "name": "Benefit Awareness I",
+  "page_title": "Benefit Awareness I (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Benefit Awareness I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of beneficial spells by up to 5 percent.  This bonus will decay on spells over level 20.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 20 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Type: Beneficial"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of beneficial awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Benefit Awareness II",
+  "page_title": "Benefit Awareness II (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Benefit Awareness II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of beneficial spells by up to 5 percent.  This bonus will decay on spells over level 44.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 44 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Type: Beneficial"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of beneficial awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Benefit Awareness III",
+  "page_title": "Benefit Awareness III (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Benefit Awareness III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of beneficial spells by up to 5 percent.  This bonus will decay on spells over level 60.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 60 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Type: Beneficial"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of beneficial awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Benefit Awareness IV",
+  "page_title": "Benefit Awareness IV (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Benefit Awareness IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of beneficial spells by up to 5 percent.  This bonus will decay on spells over level 65.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 65 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Type: Beneficial"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of beneficial awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
   "name": "Benevolence",
   "page_title": "Benevolence",
   "template": "Spellpage",
@@ -7708,6 +7920,40 @@
   "cc_families": []
  },
  {
+  "name": "Brass Resonance 14",
+  "page_title": "Brass Resonance 15",
+  "template": "Spellpagesmart",
+  "classes": [],
+  "classes_raw": "BRD",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": null,
+  "beneficial": null,
+  "mana": null,
+  "mana_raw": null,
+  "cast_time_seconds": null,
+  "casting_time_raw": "Instant",
+  "recast_seconds": null,
+  "recast_time_raw": null,
+  "duration_raw": "2:27:00",
+  "duration_seconds": null,
+  "resist_raw": null,
+  "resist": null,
+  "range_raw": "100",
+  "description": "Increases the power of brass instrument based bard songs by up to 140%.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increases the power of brass instrument based bard songs by up to 150%"
+   }
+  ],
+  "msg_cast_on_you": null,
+  "msg_cast_on_other": null,
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
   "name": "Bravery",
   "page_title": "Bravery",
   "template": "Spellpage",
@@ -9982,8 +10228,11 @@
   "recast_time_raw": "6.00",
   "duration_raw": "Permanent",
   "duration_seconds": null,
-  "resist_raw": "Magic?",
-  "resist": null,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
   "range_raw": null,
   "description": "Imparts your weapons with the power of sky, allowing them a chance to strike with the fury of the storm. Adds {{SpellHoverLink|Call of Sky Strike}} (melee proc).",
   "slot_effects": [
@@ -10004,11 +10253,11 @@
   "classes": [
    {
     "class": "Ranger",
-    "level": 39,
+    "level": 36,
     "note": null
    }
   ],
-  "classes_raw": "* [[Ranger]] - Level 39",
+  "classes_raw": "* [[Ranger]] - Level 36",
   "school": null,
   "school_raw": null,
   "target_type": "Single",
@@ -14779,6 +15028,218 @@
   "cc_families": []
  },
  {
+  "name": "Cold Awareness I",
+  "page_title": "Cold Awareness I (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Cold Awareness I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of cold-based spells by up to 5 percent.  This bonus will decay on spells over level 20.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 20 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Cold"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of cold awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Cold Awareness II",
+  "page_title": "Cold Awareness II (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Cold Awareness II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of cold-based spells by up to 5 percent.  This bonus will decay on spells over level 44.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 44 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Cold"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of cold awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Cold Awareness III",
+  "page_title": "Cold Awareness III (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Cold Awareness III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of cold-based spells by up to 5 percent.  This bonus will decay on spells over level 60.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 60 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Cold"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of cold awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Cold Awareness IV",
+  "page_title": "Cold Awareness IV (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Cold Awareness IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of cold-based spells by up to 5 percent.  This bonus will decay on spells over level 65.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 65 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Cold"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of cold awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
   "name": "Coldlight",
   "page_title": "Coldlight",
   "template": "Spellpagesmart",
@@ -19071,6 +19532,218 @@
   "cc_families": []
  },
  {
+  "name": "Disease Awareness I",
+  "page_title": "Disease Awareness I (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Disease Awareness I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of disease-based spells by up to 5 percent.  This bonus will decay on spells over level 20.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 20 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Disease"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of disease awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Disease Awareness II",
+  "page_title": "Disease Awareness II (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Disease Awareness II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of disease-based spells by up to 5 percent.  This bonus will decay on spells over level 44.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 44 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Disease"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of disease awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Disease Awareness III",
+  "page_title": "Disease Awareness III (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Disease Awareness III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of disease-based spells by up to 5 percent.  This bonus will decay on spells over level 60.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 60 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Disease"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of disease awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Disease Awareness IV",
+  "page_title": "Disease Awareness IV (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Disease Awareness IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of disease-based spells by up to 5 percent.  This bonus will decay on spells over level 65.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 65 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Disease"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of disease awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
   "name": "Disease Cloud",
   "page_title": "Disease Cloud",
   "template": "Spellpagesmart",
@@ -19563,6 +20236,43 @@
   "msg_cast_on_you": "You are surrounded by a divine barrier.",
   "msg_cast_on_other": "Someone  is surrounded by a divine barrier.",
   "msg_wears_off": "The barrier fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Divine Endurance",
+  "page_title": "Divine Endurance",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Elixir of Divine Endurance]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "20 minutes",
+  "duration_seconds": 1200.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Causes you to become more resistant, increasing all resists for up to 20 minutes.",
+  "slot_effects": [
+   {
+    "slot": 3,
+    "effect": "Increase All Resists by 10"
+   }
+  ],
+  "msg_cast_on_you": "You feel resistant.",
+  "msg_cast_on_other": "Someone  is resistant.",
+  "msg_wears_off": "Your resistance fades.",
   "cc_families": []
  },
  {
@@ -20340,6 +21050,47 @@
   "cc_families": [
    "charm"
   ]
+ },
+ {
+  "name": "Donlo's Dementia",
+  "page_title": "Donlo's Dementia",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Army Ant Potion]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Group",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 50.0,
+  "mana_raw": "50",
+  "cast_time_seconds": 4.0,
+  "casting_time_raw": "4.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "200",
+  "description": "Shrinks your group, allowing them greater mobility in tight quarters.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Player Size by 34%"
+   },
+   {
+    "slot": 2,
+    "effect": "Decrease Pet Size by 34%"
+   }
+  ],
+  "msg_cast_on_you": "You feel almost as short as a halfling.",
+  "msg_cast_on_other": "Someone  shrinks.",
+  "msg_wears_off": "You return to normal height.",
+  "cc_families": []
  },
  {
   "name": "Dooming Darkness",
@@ -22386,6 +23137,1144 @@
   "msg_cast_on_you": null,
   "msg_cast_on_other": null,
   "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Clarity I",
+  "page_title": "Elixir of Clarity I",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Clarity I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "200",
+  "description": "Restores 1 mana every 6 seconds for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 2,
+    "effect": "Increase Current Mana by 1 per tick"
+   }
+  ],
+  "msg_cast_on_you": "Your mind begins to clear.",
+  "msg_cast_on_other": "Someone  drinks an elixir of clarity.",
+  "msg_wears_off": "The clarity of mind fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Clarity II",
+  "page_title": "Elixir of Clarity II",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Clarity II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "200",
+  "description": "Restores 2 mana every 6 seconds for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 2,
+    "effect": "Increase Current Mana by 2 per tick"
+   }
+  ],
+  "msg_cast_on_you": "Your mind begins to clear.",
+  "msg_cast_on_other": "Someone  drinks an elixir of clarity.",
+  "msg_wears_off": "The clarity of mind fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Clarity III",
+  "page_title": "Elixir of Clarity III",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Clarity III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "200",
+  "description": "Restores 3 mana every 6 seconds for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 2,
+    "effect": "Increase Current Mana by 3 per tick"
+   }
+  ],
+  "msg_cast_on_you": "Your mind begins to clear.",
+  "msg_cast_on_other": "Someone  drinks an elixir of clarity.",
+  "msg_wears_off": "The clarity of mind fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Clarity IV",
+  "page_title": "Elixir of Clarity IV",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Clarity IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "200",
+  "description": "Calms your thoughts, allowing you to regenerate mana more quickly for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 2,
+    "effect": "Increase Mana by 4 per tick"
+   }
+  ],
+  "msg_cast_on_you": "Your mind begins to clear.",
+  "msg_cast_on_other": "Someone  drinks an elixir of clarity.",
+  "msg_wears_off": "The clarity of mind fades.",
+  "cc_families": [
+   "lull"
+  ]
+ },
+ {
+  "name": "Elixir of Clarity IX",
+  "page_title": "Elixir of Clarity IX",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Clarity IX]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "200",
+  "description": "Restores 12 mana every 6 seconds for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 2,
+    "effect": "Increase Current Mana by 12 per tick"
+   }
+  ],
+  "msg_cast_on_you": "Your mind begins to clear.",
+  "msg_cast_on_other": "Someone  drinks an elixir of clarity.",
+  "msg_wears_off": "The clarity of mind fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Clarity VI",
+  "page_title": "Elixir of Clarity VI",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Clarity VI]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "200",
+  "description": "Calms your thoughts, allowing you to regenerate mana more quickly for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 2,
+    "effect": "Increase Mana by 6 per tick"
+   }
+  ],
+  "msg_cast_on_you": "Your mind begins to clear.",
+  "msg_cast_on_other": "Someone  drinks an elixir of clarity.",
+  "msg_wears_off": "The clarity of mind fades.",
+  "cc_families": [
+   "lull"
+  ]
+ },
+ {
+  "name": "Elixir of Healing I",
+  "page_title": "Elixir of Healing I",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Celestial Healing I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 seconds",
+  "duration_seconds": 30.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals between 5 and 6 hit points every 6 seconds for up to 30 seconds.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 5 per tick  (Random: 5 to 6)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds begin to heal.",
+  "msg_cast_on_other": "Someone  drinks an elixir of healing.",
+  "msg_wears_off": "The elixir's effect fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Healing II",
+  "page_title": "Elixir of Healing II",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Celestial Healing II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 seconds",
+  "duration_seconds": 30.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals between 11 and 14 hit points every 6 seconds for up to 30 seconds.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 12 per tick  (Random: 11 to 14)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds begin to heal.",
+  "msg_cast_on_other": "Someone  drinks an elixir of healing.",
+  "msg_wears_off": "The elixir's effect fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Healing III",
+  "page_title": "Elixir of Healing III",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Celestial Healing III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 seconds",
+  "duration_seconds": 30.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals between 26 and 34 hit points every 6 seconds for up to 30 seconds.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 30 per tick  (Random: 26 to 34)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds begin to heal.",
+  "msg_cast_on_other": "Someone  drinks an elixir of healing.",
+  "msg_wears_off": "The elixir's effect fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Healing IV",
+  "page_title": "Elixir of Healing IV",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Celestial Healing IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 seconds",
+  "duration_seconds": 30.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals between 49 and 62 hit points every 6 seconds for up to 30 seconds.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 55 per tick  (Random: 49 to 62)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds begin to heal.",
+  "msg_cast_on_other": "Someone  drinks an elixir of healing.",
+  "msg_wears_off": "The elixir's effect fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Healing IX",
+  "page_title": "Elixir of Healing IX",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Celestial Healing IX]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 seconds",
+  "duration_seconds": 30.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals between 270 and 328 hit points every 6 seconds for up to 30 seconds.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 299 per tick  (Random: 270 to 328)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds begin to heal.",
+  "msg_cast_on_other": "Someone  drinks an elixir of healing.",
+  "msg_wears_off": "The elixir's effect fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Healing VI",
+  "page_title": "Elixir of Healing VI",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Celestial Healing VI]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 seconds",
+  "duration_seconds": 30.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals between 106 and 132 hit points every 6 seconds for up to 30 seconds.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 119 per tick  (Random: 106 to 132)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds begin to heal.",
+  "msg_cast_on_other": "Someone  drinks an elixir of healing.",
+  "msg_wears_off": "The elixir's effect fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Replenishment I",
+  "page_title": "Elixir of Replenishment I",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Replenishment I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 100.0,
+  "mana_raw": "100",
+  "cast_time_seconds": 6.0,
+  "casting_time_raw": "6.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Hastens your natural healing, allowing you to recover hit points faster.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 1 per tick"
+   }
+  ],
+  "msg_cast_on_you": "You begin to regenerate.",
+  "msg_cast_on_other": "Someone  begins to regenerate.",
+  "msg_wears_off": "You have stopped regenerating.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Replenishment II",
+  "page_title": "Elixir of Replenishment II",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Replenishment II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 100.0,
+  "mana_raw": "100",
+  "cast_time_seconds": 6.0,
+  "casting_time_raw": "6.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Hastens your natural healing, allowing you to recover hit points faster.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 2 per tick"
+   }
+  ],
+  "msg_cast_on_you": "You begin to regenerate.",
+  "msg_cast_on_other": "Someone  begins to regenerate.",
+  "msg_wears_off": "You have stopped regenerating.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Replenishment III",
+  "page_title": "Elixir of Replenishment III",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Replenishment III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 100.0,
+  "mana_raw": "100",
+  "cast_time_seconds": 6.0,
+  "casting_time_raw": "6.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Hastens your natural healing, allowing you to recover hit points faster.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 3 per tick"
+   }
+  ],
+  "msg_cast_on_you": "You begin to regenerate.",
+  "msg_cast_on_other": "Someone  begins to regenerate.",
+  "msg_wears_off": "You have stopped regenerating.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Replenishment IV",
+  "page_title": "Elixir of Replenishment IV",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Replenishment IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 100.0,
+  "mana_raw": "100",
+  "cast_time_seconds": 6.0,
+  "casting_time_raw": "6.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Hastens your natural healing, allowing you to recover hit points faster.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 4 per tick"
+   }
+  ],
+  "msg_cast_on_you": "You begin to regenerate.",
+  "msg_cast_on_other": "Someone  begins to regenerate.",
+  "msg_wears_off": "You have stopped regenerating.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Replenishment IX",
+  "page_title": "Elixir of Replenishment IX",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Replenishment IX]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 100.0,
+  "mana_raw": "100",
+  "cast_time_seconds": 6.0,
+  "casting_time_raw": "6.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Hastens your natural healing, allowing you to recover hit points faster.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 30 per tick"
+   }
+  ],
+  "msg_cast_on_you": "You begin to regenerate.",
+  "msg_cast_on_other": "Someone  begins to regenerate.",
+  "msg_wears_off": "You have stopped regenerating.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Replenishment VI",
+  "page_title": "Elixir of Replenishment VI",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Replenishment VI]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 100.0,
+  "mana_raw": "100",
+  "cast_time_seconds": 6.0,
+  "casting_time_raw": "6.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Hastens your natural healing, allowing you to recover hit points faster.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 8 per tick"
+   }
+  ],
+  "msg_cast_on_you": "You begin to regenerate.",
+  "msg_cast_on_other": "Someone  begins to regenerate.",
+  "msg_wears_off": "You have stopped regenerating.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Speed I",
+  "page_title": "Elixir of Speed I",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Alacrity I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Increases your attack speed by 5 percent for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Attack Speed by 5%"
+   }
+  ],
+  "msg_cast_on_you": "You feel very fast.",
+  "msg_cast_on_other": "Someone  drinks an elixir of speed.",
+  "msg_wears_off": "The speed fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Speed II",
+  "page_title": "Elixir of Speed II",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Alacrity II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Increases your attack speed by 10 percent for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Attack Speed by 10%"
+   }
+  ],
+  "msg_cast_on_you": "You feel very fast.",
+  "msg_cast_on_other": "Someone  drinks an elixir of speed.",
+  "msg_wears_off": "The speed fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Speed III",
+  "page_title": "Elixir of Speed III",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Alacrity III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Increases your attack speed by 15 percent for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Attack Speed by 15%"
+   }
+  ],
+  "msg_cast_on_you": "You feel very fast.",
+  "msg_cast_on_other": "Someone  drinks an elixir of speed.",
+  "msg_wears_off": "The speed fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Speed IV",
+  "page_title": "Elixir of Speed IV",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Alacrity IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Fills your body with energy, increasing your attack speed for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Attack Speed by 20%"
+   }
+  ],
+  "msg_cast_on_you": "You feel very fast.",
+  "msg_cast_on_other": "Someone  drinks an elixir of speed.",
+  "msg_wears_off": "The speed fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Speed IX",
+  "page_title": "Elixir of Speed IX",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Alacrity IX]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Increases your attack speed by 45 percent for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Attack Speed by 45%"
+   }
+  ],
+  "msg_cast_on_you": "You feel very fast.",
+  "msg_cast_on_other": "Someone  drinks an elixir of speed.",
+  "msg_wears_off": "The speed fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Speed VI",
+  "page_title": "Elixir of Speed VI",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Alacrity VI]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Fills your body with energy, increasing your attack speed for up to 30 minutes.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Attack Speed by 30%"
+   }
+  ],
+  "msg_cast_on_you": "You feel very fast.",
+  "msg_cast_on_other": "Someone  drinks an elixir of speed.",
+  "msg_wears_off": "The speed fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Spiritualism I",
+  "page_title": "Elixir of Spiritualism I",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Spirituality I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 200.0,
+  "mana_raw": "200",
+  "cast_time_seconds": 5.0,
+  "casting_time_raw": "5.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Envelops you in an aura of spiritual light, increasing your mana and hit point regeneration.",
+  "slot_effects": [
+   {
+    "slot": 5,
+    "effect": "Increase Current Mana by 0 per tick"
+   },
+   {
+    "slot": 8,
+    "effect": "Increase Current HP by 1 per tick"
+   }
+  ],
+  "msg_cast_on_you": "An aura of spiritualism envelops you.",
+  "msg_cast_on_other": "Someone  is enveloped by an aura of spiritualism.",
+  "msg_wears_off": "The aura of spiritualism fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Spiritualism II",
+  "page_title": "Elixir of Spiritualism II",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Spirituality II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 200.0,
+  "mana_raw": "200",
+  "cast_time_seconds": 5.0,
+  "casting_time_raw": "5.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Envelops you in an aura of spiritual light, increasing your mana and hit point regeneration.",
+  "slot_effects": [
+   {
+    "slot": 5,
+    "effect": "Increase Current Mana by 1 per tick"
+   },
+   {
+    "slot": 8,
+    "effect": "Increase Current HP by 1 per tick"
+   }
+  ],
+  "msg_cast_on_you": "An aura of spiritualism envelops you.",
+  "msg_cast_on_other": "Someone  is enveloped by an aura of spiritualism.",
+  "msg_wears_off": "The aura of spiritualism fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Spiritualism III",
+  "page_title": "Elixir of Spiritualism III",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Spirituality III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 200.0,
+  "mana_raw": "200",
+  "cast_time_seconds": 5.0,
+  "casting_time_raw": "5.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Envelops you in an aura of spiritual light, increasing your mana and hit point regeneration.",
+  "slot_effects": [
+   {
+    "slot": 5,
+    "effect": "Increase Current Mana by 1 per tick"
+   },
+   {
+    "slot": 8,
+    "effect": "Increase Current HP by 2 per tick"
+   }
+  ],
+  "msg_cast_on_you": "An aura of spiritualism envelops you.",
+  "msg_cast_on_other": "Someone  is enveloped by an aura of spiritualism.",
+  "msg_wears_off": "The aura of spiritualism fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Spiritualism IV",
+  "page_title": "Elixir of Spiritualism IV",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Spirituality IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 200.0,
+  "mana_raw": "200",
+  "cast_time_seconds": 5.0,
+  "casting_time_raw": "5.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Envelops you in an aura of spiritual light, increasing your mana and hit point regeneration.",
+  "slot_effects": [
+   {
+    "slot": 5,
+    "effect": "Increase Current Mana by 2 per tick"
+   },
+   {
+    "slot": 8,
+    "effect": "Increase Current HP by 2 per tick"
+   }
+  ],
+  "msg_cast_on_you": "An aura of spiritualism envelops you.",
+  "msg_cast_on_other": "Someone  is enveloped by an aura of spiritualism.",
+  "msg_wears_off": "The aura of spiritualism fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Spiritualism IX",
+  "page_title": "Elixir of Spiritualism IX",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Spirituality IX]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 200.0,
+  "mana_raw": "200",
+  "cast_time_seconds": 5.0,
+  "casting_time_raw": "5.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Envelops you in an aura of spiritual light, increasing your mana and hit point regeneration.",
+  "slot_effects": [
+   {
+    "slot": 5,
+    "effect": "Increase Current Mana by 6 per tick"
+   },
+   {
+    "slot": 8,
+    "effect": "Increase Current HP by 6 per tick"
+   }
+  ],
+  "msg_cast_on_you": "An aura of spiritualism envelops you.",
+  "msg_cast_on_other": "Someone  is enveloped by an aura of spiritualism.",
+  "msg_wears_off": "The aura of spiritualism fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Elixir of Spiritualism VI",
+  "page_title": "Elixir of Spiritualism VI",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Spirituality VI]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 200.0,
+  "mana_raw": "200",
+  "cast_time_seconds": 5.0,
+  "casting_time_raw": "5.00",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "30 minutes",
+  "duration_seconds": 1800.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Envelops you in an aura of spiritual light, increasing your mana and hit point regeneration.",
+  "slot_effects": [
+   {
+    "slot": 5,
+    "effect": "Increase Current Mana by 3 per tick"
+   },
+   {
+    "slot": 8,
+    "effect": "Increase Current HP by 3 per tick"
+   }
+  ],
+  "msg_cast_on_you": "An aura of spiritualism envelops you.",
+  "msg_cast_on_other": "Someone  is enveloped by an aura of spiritualism.",
+  "msg_wears_off": "The aura of spiritualism fades.",
   "cc_families": []
  },
  {
@@ -27820,6 +29709,43 @@
   "cc_families": []
  },
  {
+  "name": "Firestrike (Effect)",
+  "page_title": "Firestrike (Effect)",
+  "template": "Spellpagesmart",
+  "classes": [],
+  "classes_raw": "* None; this spell is found on weapons.",
+  "school": "Evocation",
+  "school_raw": "[[Skill Evocation | Evocation]]",
+  "target_type": "Single",
+  "spell_type_raw": "Detrimental",
+  "beneficial": false,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.0",
+  "recast_seconds": 1.5,
+  "recast_time_raw": "1.50",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Fire (0)",
+  "resist": {
+   "type": "Fire",
+   "modifier": 0
+  },
+  "range_raw": "200",
+  "description": "Ignites your target's skin, doing 302 damage.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Hitpoints by 302"
+   }
+  ],
+  "msg_cast_on_you": "You feel your skin ignite.",
+  "msg_cast_on_other": "Someone 's skin ignites.",
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
   "name": "Fist of Air",
   "page_title": "Fist of Air",
   "template": "Spellpage",
@@ -30276,7 +32202,7 @@
    {
     "class": "Shaman",
     "level": 16,
-    "note": null
+    "note": "Autogranted"
    },
    {
     "class": "Beastlord",
@@ -30284,7 +32210,7 @@
     "note": null
    }
   ],
-  "classes_raw": "* [[Shaman]] - Level 16\n* [[Beastlord]] - Level 47",
+  "classes_raw": "* [[Shaman]] - Level 16 (Autogranted)\n* [[Beastlord]] - Level 47",
   "school": "Abjuration",
   "school_raw": "[[Skill Abjuration | Abjuration]]",
   "target_type": "Self",
@@ -33430,6 +35356,43 @@
   "cc_families": []
  },
  {
+  "name": "Greater Mystical Infusion",
+  "page_title": "Greater Mystical Infusion (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Greater Mystical Infusion]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Single",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "20 minutes",
+  "duration_seconds": 1200.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Expands your target's mind, granting them an increased mana pool for up to 20 minutes.",
+  "slot_effects": [
+   {
+    "slot": 4,
+    "effect": "Increase Max Mana by 100"
+   }
+  ],
+  "msg_cast_on_you": "Your mind expands.",
+  "msg_cast_on_other": "Someone's mind expands.",
+  "msg_wears_off": "Your mind returns to normal.",
+  "cc_families": []
+ },
+ {
   "name": "Greater Shielding",
   "page_title": "Greater Shielding",
   "template": "Spellpage",
@@ -35221,6 +37184,43 @@
   "cc_families": []
  },
  {
+  "name": "Hawk's Eye Tonic",
+  "page_title": "Hawk's Eye Tonic",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Hawks Eye Tonic]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "20 minutes",
+  "duration_seconds": 1200.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Improves your aim, allowing you to become more skillful at archery for up to 20 minutes.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Chance to Hit by 10% with Archery"
+   }
+  ],
+  "msg_cast_on_you": "Your aim improves.",
+  "msg_cast_on_other": "Someone's eyes sharpen.",
+  "msg_wears_off": "Your aim returns to normal.",
+  "cc_families": []
+ },
+ {
   "name": "Haze",
   "page_title": "Haze",
   "template": "Spellpage",
@@ -35332,6 +37332,43 @@
   "cc_families": []
  },
  {
+  "name": "Healing",
+  "page_title": "Full Heal",
+  "template": "Spellpagesmart",
+  "classes": [],
+  "classes_raw": "* None",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Single Friendly (or Self)",
+  "spell_type_raw": "Heal",
+  "beneficial": null,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "120",
+  "description": "This spell is used by the [[Test Dummy]] in the Arena to heal you while sparring.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Hitpoints by 100%"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds are gone.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
   "name": "Healing Light",
   "page_title": "Healing Light",
   "template": "Spellpagesmart",
@@ -35371,6 +37408,228 @@
   ],
   "msg_cast_on_you": "Your wounds heal.",
   "msg_cast_on_other": "'s wounds heal.",
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Healing Potion I",
+  "page_title": "Healing Potion I",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Divine Healing I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals you for between 9 and 12 hit points.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 10 (Random: 9 to 12)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds heal.",
+  "msg_cast_on_other": "Someone  drinks a healing potion.",
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Healing Potion II",
+  "page_title": "Healing Potion II",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Divine Healing II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals you for between 31 and 36 hit points.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 33 (Random: 31 to 36)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds heal.",
+  "msg_cast_on_other": "Someone  drinks a healing potion.",
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Healing Potion III",
+  "page_title": "Healing Potion III",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Divine Healing III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals you for between 83 and 95 hit points.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 89 (Random: 83 to 95)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds heal.",
+  "msg_cast_on_other": "Someone  drinks a healing potion.",
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Healing Potion IV",
+  "page_title": "Healing Potion IV",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Divine Healing IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals you for between 164 and 190 hit points.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 177 (Random: 164 to 190)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds heal.",
+  "msg_cast_on_other": "Someone  drinks a healing potion.",
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Healing Potion IX",
+  "page_title": "Healing Potion IX",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Divine Healing IX]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals you for between 1294 and 1471 hit points.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 1382 (Random: 1294 to 1471)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds heal.",
+  "msg_cast_on_other": "Someone  drinks a healing potion.",
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Healing Potion VI",
+  "page_title": "Healing Potion VI",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Distillate of Divine Healing VI]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Heals you for between 423 and 484 hit points.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 453 (Random: 423 to 484)"
+   }
+  ],
+  "msg_cast_on_you": "Your wounds heal.",
+  "msg_cast_on_other": "Someone  drinks a healing potion.",
   "msg_wears_off": null,
   "cc_families": []
  },
@@ -35471,6 +37730,218 @@
   "msg_cast_on_you": "Your heartbeat becomes irregular.",
   "msg_cast_on_other": "Someone  clutches their chest.",
   "msg_wears_off": "Your heartbeat steadies.",
+  "cc_families": []
+ },
+ {
+  "name": "Heat Awareness I",
+  "page_title": "Heat Awareness I (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Heat Awareness I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of fire-based spells by up to 5 percent.  This bonus will decay on spells over level 20.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 20 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Fire"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of heat awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Heat Awareness II",
+  "page_title": "Heat Awareness II (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Heat Awareness II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of fire-based spells by up to 5 percent.  This bonus will decay on spells over level 44.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 44 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Fire"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of heat awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Heat Awareness III",
+  "page_title": "Heat Awareness III (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Heat Awareness III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of fire-based spells by up to 5 percent.  This bonus will decay on spells over level 60.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 60 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Fire"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of heat awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Heat Awareness IV",
+  "page_title": "Heat Awareness IV (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Heat Awareness IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of fire-based spells by up to 5 percent.  This bonus will decay on spells over level 65.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 65 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Fire"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of heat awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
   "cc_families": []
  },
  {
@@ -35616,6 +38087,52 @@
   ],
   "msg_cast_on_you": null,
   "msg_cast_on_other": "Someone feels much better.",
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Heritage of Mistmoore",
+  "page_title": "Heritage of Mistmoore",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": null,
+  "school": "Abjuration",
+  "school_raw": "[[Skill Abjuration|Abjuration]]",
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": null,
+  "mana_raw": null,
+  "cast_time_seconds": null,
+  "casting_time_raw": "Instant",
+  "recast_seconds": null,
+  "recast_time_raw": null,
+  "duration_raw": "10:00",
+  "duration_seconds": null,
+  "resist_raw": null,
+  "resist": null,
+  "range_raw": null,
+  "description": "Increases your health and mana regeneration while also decreasing your resistances to magic and fire.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase HP regen by 1"
+   },
+   {
+    "slot": 2,
+    "effect": "Increase MP regen by 1"
+   },
+   {
+    "slot": 3,
+    "effect": "Decrease Magic resist by 10"
+   },
+   {
+    "slot": 4,
+    "effect": "Decrease Fire resist by 15"
+   }
+  ],
+  "msg_cast_on_you": null,
+  "msg_cast_on_other": null,
   "msg_wears_off": null,
   "cc_families": []
  },
@@ -35943,6 +38460,47 @@
   "cc_families": [
    "stun"
   ]
+ },
+ {
+  "name": "Hp to Mana",
+  "page_title": "Hp to Mana",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Potion of Vampiric Spirit]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Converts the power of your body into mental energy.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Current HP by 180"
+   },
+   {
+    "slot": 2,
+    "effect": "Increase Current Mana by 60"
+   }
+  ],
+  "msg_cast_on_you": "Your body aches as your mind clears.",
+  "msg_cast_on_other": "Someone  winces.",
+  "msg_wears_off": null,
+  "cc_families": []
  },
  {
   "name": "Hsagra's Wrath",
@@ -37288,6 +39846,43 @@
   "cc_families": []
  },
  {
+  "name": "Illusion: Froglok",
+  "page_title": "Illusion: Froglok",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Essence of Froglok]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 10.0,
+  "mana_raw": "10",
+  "cast_time_seconds": 3.0,
+  "casting_time_raw": "3.00",
+  "recast_seconds": 6.0,
+  "recast_time_raw": "6.00",
+  "duration_raw": "36 minutes",
+  "duration_seconds": 2160.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Cloaks you in a shimmering illusion that makes you appear to be a Froglok.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Illusion: Froglok Ghoul"
+   }
+  ],
+  "msg_cast_on_you": "You have a sudden desire to Froak.",
+  "msg_cast_on_other": "Someone's image shimmers.",
+  "msg_wears_off": "Your illusion fades.",
+  "cc_families": []
+ },
+ {
   "name": "Illusion: Gnome",
   "page_title": "Illusion: Gnome",
   "template": "Spellpage",
@@ -37328,6 +39923,43 @@
   "msg_cast_on_you": "You feel different.",
   "msg_cast_on_other": "Someone 's image shimmers.",
   "msg_wears_off": "Your illusion fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Illusion: Guktan",
+  "page_title": "Illusion: Guktan",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Essence of Gukta (Wormwood)]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 10.0,
+  "mana_raw": "10",
+  "cast_time_seconds": 3.0,
+  "casting_time_raw": "3.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "36 minutes",
+  "duration_seconds": 2160.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Cloaks you in a shimmering illusion that makes you appear to be a Guktan Froglok.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Illusion: Froglok"
+   }
+  ],
+  "msg_cast_on_you": "You feel very amphibious.",
+  "msg_cast_on_other": "Someone  turns into a Froglok.",
+  "msg_wears_off": "You no longer feel amphibious.",
   "cc_families": []
  },
  {
@@ -39599,6 +42231,64 @@
   "cc_families": []
  },
  {
+  "name": "Improved Vampirism II",
+  "page_title": "Improved Vampirism II",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": null,
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": null,
+  "mana_raw": null,
+  "cast_time_seconds": null,
+  "casting_time_raw": "Instant",
+  "recast_seconds": null,
+  "recast_time_raw": null,
+  "duration_raw": "1:33:00",
+  "duration_seconds": null,
+  "resist_raw": null,
+  "resist": null,
+  "range_raw": "100",
+  "description": "Increases the damage of lifetaps by up to 25%.  This bonus will decay on spells over level 44.",
+  "slot_effects": [],
+  "msg_cast_on_you": null,
+  "msg_cast_on_other": null,
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Improved Vampirism III",
+  "page_title": "Improved Vampirism III",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": null,
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": null,
+  "mana_raw": null,
+  "cast_time_seconds": null,
+  "casting_time_raw": "Instant",
+  "recast_seconds": null,
+  "recast_time_raw": null,
+  "duration_raw": "1:33:00",
+  "duration_seconds": null,
+  "resist_raw": null,
+  "resist": null,
+  "range_raw": "100",
+  "description": "Increases the damage of lifetaps by up to 25%.  This bonus will decay on spells over level 55.",
+  "slot_effects": [],
+  "msg_cast_on_you": null,
+  "msg_cast_on_other": null,
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
   "name": "Incapacitate",
   "page_title": "Incapacitate",
   "template": "Spellpagesmart",
@@ -39925,7 +42615,7 @@
    "modifier": 0
   },
   "range_raw": "200",
-  "description": "Surrounds your target in an inferno, causing between 550 and 600 damage.",
+  "description": "Surrounds your target in an inferno, causing between 430 and 600 damage.",
   "slot_effects": [
    {
     "slot": 1,
@@ -41315,69 +44005,6 @@
   "cc_families": []
  },
  {
-  "name": "Invisibility versus Undead",
-  "page_title": "Invisibility versus Undead",
-  "template": "Spellpagesmart",
-  "classes": [
-   {
-    "class": "Necromancer",
-    "level": 1,
-    "note": null
-   },
-   {
-    "class": "Shadowknight",
-    "level": 4,
-    "note": "Autogranted"
-   },
-   {
-    "class": "Cleric",
-    "level": 11,
-    "note": null
-   },
-   {
-    "class": "Enchanter",
-    "level": 14,
-    "note": null
-   },
-   {
-    "class": "Paladin",
-    "level": 17,
-    "note": null
-   }
-  ],
-  "classes_raw": "* [[Necromancer]] - Level 1\n* [[Shadowknight]] - Level 4 (Autogranted)\n* [[Cleric]] - Level 11\n* [[Enchanter]] - Level 14\n* [[Paladin]] - Level 17",
-  "school": "Divination",
-  "school_raw": "[[Skill Divination | Divination]]",
-  "target_type": "Single Friendly (or Self)",
-  "spell_type_raw": "Beneficial",
-  "beneficial": true,
-  "mana": 40.0,
-  "mana_raw": "40",
-  "cast_time_seconds": 4.0,
-  "casting_time_raw": "4.00",
-  "recast_seconds": 4.0,
-  "recast_time_raw": "4.00",
-  "duration_raw": "27 Min",
-  "duration_seconds": 1620.0,
-  "resist_raw": "Unresistable",
-  "resist": {
-   "type": "Unresistable",
-   "modifier": null
-  },
-  "range_raw": "100",
-  "description": "Cloaks your target in a light aura, rendering them invisible to most undead creatures for up to 27 min.",
-  "slot_effects": [
-   {
-    "slot": 1,
-    "effect": "Invisibility versus Undead"
-   }
-  ],
-  "msg_cast_on_you": "You feel your skin tingle.",
-  "msg_cast_on_other": "Someone  fades a little.",
-  "msg_wears_off": "Your skin stops tingling.",
-  "cc_families": []
- },
- {
   "name": "Invisibility Versus Undead",
   "page_title": "Invisibility Versus Undead",
   "template": "Spellpagesmart",
@@ -41438,6 +44065,69 @@
   "msg_cast_on_you": "You feel your skin tingle.",
   "msg_cast_on_other": "Someone fades a little.",
   "msg_wears_off": "Your skin stops tingling.\n\n\n<!--",
+  "cc_families": []
+ },
+ {
+  "name": "Invisibility vs. Undead",
+  "page_title": "Invisibility versus Undead",
+  "template": "Spellpagesmart",
+  "classes": [
+   {
+    "class": "Necromancer",
+    "level": 1,
+    "note": null
+   },
+   {
+    "class": "Shadowknight",
+    "level": 4,
+    "note": "Autogranted"
+   },
+   {
+    "class": "Cleric",
+    "level": 11,
+    "note": null
+   },
+   {
+    "class": "Enchanter",
+    "level": 14,
+    "note": null
+   },
+   {
+    "class": "Paladin",
+    "level": 17,
+    "note": null
+   }
+  ],
+  "classes_raw": "* [[Necromancer]] - Level 1\n* [[Shadowknight]] - Level 4 (Autogranted)\n* [[Cleric]] - Level 11\n* [[Enchanter]] - Level 14\n* [[Paladin]] - Level 17",
+  "school": "Divination",
+  "school_raw": "[[Skill Divination | Divination]]",
+  "target_type": "Single Friendly (or Self)",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 40.0,
+  "mana_raw": "40",
+  "cast_time_seconds": 4.0,
+  "casting_time_raw": "4.00",
+  "recast_seconds": 4.0,
+  "recast_time_raw": "4.00",
+  "duration_raw": "27 Min",
+  "duration_seconds": 1620.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Cloaks your target in a light aura, rendering them invisible to most undead creatures for up to 27 min.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Invisibility versus Undead"
+   }
+  ],
+  "msg_cast_on_you": "You feel your skin tingle.",
+  "msg_cast_on_other": "Someone  fades a little.",
+  "msg_wears_off": "Your skin stops tingling.",
   "cc_families": []
  },
  {
@@ -42216,7 +44906,7 @@
   "slot_effects": [
    {
     "slot": 1,
-    "effect": "Increase Melee Haste by 3%"
+    "effect": "Increase Attack Speed by 48% (L45) to 50% (L47)"
    },
    {
     "slot": 2,
@@ -44429,6 +47119,43 @@
   "cc_families": []
  },
  {
+  "name": "Levity",
+  "page_title": "Levity",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Potion of Gulon's Impunity]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Single",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 60.0,
+  "mana_raw": "60",
+  "cast_time_seconds": 3.0,
+  "casting_time_raw": "3.00",
+  "recast_seconds": 5.0,
+  "recast_time_raw": "5.00",
+  "duration_raw": "20 minutes 30 seconds",
+  "duration_seconds": 1230.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Your feet leave the ground, allowing you to levitate for 20 minutes 30 seconds.",
+  "slot_effects": [
+   {
+    "slot": 3,
+    "effect": "Levitate"
+   }
+  ],
+  "msg_cast_on_you": "Your feet leave the ground.",
+  "msg_cast_on_other": "Someone  floats into the air.",
+  "msg_wears_off": "You can no longer levitate.",
+  "cc_families": []
+ },
+ {
   "name": "Lich",
   "page_title": "Lich",
   "template": "Spellpage",
@@ -44523,6 +47250,55 @@
   ],
   "msg_cast_on_you": "You feel your life force drain away.",
   "msg_cast_on_other": "Someone  looks pale.",
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Lifebite",
+  "page_title": "Lifebite",
+  "template": "Spellpage",
+  "classes": [
+   {
+    "class": "Necromancer",
+    "level": 8,
+    "note": "Autogranted"
+   },
+   {
+    "class": "Shadow Knight",
+    "level": 10,
+    "note": "Autogranted"
+   }
+  ],
+  "classes_raw": "* [[Necromancer]] - Level 8 (Autogranted)\n* [[Shadow Knight]] - Level 10 (Autogranted)",
+  "school": "Alteration",
+  "school_raw": "[[Skill Alteration|Alteration]]",
+  "target_type": "Lifetap",
+  "spell_type_raw": "Detrimental",
+  "beneficial": false,
+  "mana": 35.0,
+  "mana_raw": "35",
+  "cast_time_seconds": null,
+  "casting_time_raw": "1.75 sec",
+  "recast_seconds": null,
+  "recast_time_raw": "1 sec",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Magic: (-200)",
+  "resist": null,
+  "range_raw": "200",
+  "description": "Drains your target of life energy, siphoning between 42 and 42 hit points.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Hitpoints by 42 to 42"
+   },
+   {
+    "slot": 2,
+    "effect": "Increase Hitpoints by 42 to 42 (Self)"
+   }
+  ],
+  "msg_cast_on_you": "You feel your life force drain away.",
+  "msg_cast_on_other": "Someone staggers.",
   "msg_wears_off": null,
   "cc_families": []
  },
@@ -46111,6 +48887,218 @@
   "cc_families": []
  },
  {
+  "name": "Magic Awareness I",
+  "page_title": "Magic Awareness I (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Magic Awareness I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of magic-based spells by up to 5 percent.  This bonus will decay on spells over level 20.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 20 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Magic"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of magical awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Magic Awareness II",
+  "page_title": "Magic Awareness II (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Magic Awareness II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of magic-based spells by up to 5 percent.  This bonus will decay on spells over level 44.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 44 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Magic"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of magical awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Magic Awareness III",
+  "page_title": "Magic Awareness III (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Magic Awareness III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of magic-based spells by up to 5 percent.  This bonus will decay on spells over level 60.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 60 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Magic"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of magical awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Magic Awareness IV",
+  "page_title": "Magic Awareness IV (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Magic Awareness IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of magic-based spells by up to 5 percent.  This bonus will decay on spells over level 65.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 65 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Magic"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of magical awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
   "name": "Magical Monologue",
   "page_title": "Magical Monologue",
   "template": "Spellpagesmart",
@@ -47184,6 +50172,47 @@
    }
   ],
   "msg_cast_on_you": "Your mind clouds.",
+  "msg_cast_on_other": "Someone  winces.",
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Mana to Hp",
+  "page_title": "Mana to Hp",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Potion of Wrackbane]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "Instant",
+  "duration_seconds": 0.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "0",
+  "description": "Converts the power of your mind into physical health.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increase Current HP by 69"
+   },
+   {
+    "slot": 2,
+    "effect": "Decrease Current Mana by 180"
+   }
+  ],
+  "msg_cast_on_you": "Your mind aches as your body heals.",
   "msg_cast_on_other": "Someone  winces.",
   "msg_wears_off": null,
   "cc_families": []
@@ -50843,6 +53872,43 @@
   "msg_cast_on_you": "A precise infusion of mana energy sharpens your armors movement.",
   "msg_cast_on_other": "Someone 's armor movements are sharpened by an injection of mana energy.",
   "msg_wears_off": "The mana infusion fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Mystical Infusion",
+  "page_title": "Mystical Infusion (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Mystical Infusion]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Single",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "20 minutes",
+  "duration_seconds": 1200.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Expands your target's mind, granting them an increased mana pool for up to 20 minutes.",
+  "slot_effects": [
+   {
+    "slot": 4,
+    "effect": "Increase Max Mana by 50"
+   }
+  ],
+  "msg_cast_on_you": "Your mind expands.",
+  "msg_cast_on_other": "Someone's mind expands.",
+  "msg_wears_off": "Your mind returns to normal.",
   "cc_families": []
  },
  {
@@ -54752,6 +57818,218 @@
   "msg_cast_on_you": null,
   "msg_cast_on_other": "Someone  staggers.",
   "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Poison Awareness I",
+  "page_title": "Poison Awareness I (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Poison Awareness I]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of poison-based spells by up to 5 percent.  This bonus will decay on spells over level 20.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 20 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Poison"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of poison awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Poison Awareness II",
+  "page_title": "Poison Awareness II (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Poison Awareness II]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of poison-based spells by up to 5 percent.  This bonus will decay on spells over level 44.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 44 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Poison"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of poison awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Poison Awareness III",
+  "page_title": "Poison Awareness III (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Poison Awareness III]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of poison-based spells by up to 5 percent.  This bonus will decay on spells over level 60.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 60 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Poison"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of poison awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
+  "cc_families": []
+ },
+ {
+  "name": "Poison Awareness IV",
+  "page_title": "Poison Awareness IV (Spell)",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": "This spell cannot be cast directly. It is triggered by drinking a [[Poison Awareness IV]].",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.0,
+  "casting_time_raw": "0.00",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "3 hours 15 minutes",
+  "duration_seconds": 11700.0,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "100",
+  "description": "Reduces the mana cost of poison-based spells by up to 5 percent.  This bonus will decay on spells over level 65.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Decrease Spell Mana Cost by 1% to 5%"
+   },
+   {
+    "slot": 2,
+    "effect": "Limit Max Level: 65 (lose 5% per level)"
+   },
+   {
+    "slot": 3,
+    "effect": "Limit Spell: Exclude"
+   },
+   {
+    "slot": 4,
+    "effect": "Limit Resist: Poison"
+   },
+   {
+    "slot": 5,
+    "effect": "Limit Type: Exclude Combat Skills"
+   }
+  ],
+  "msg_cast_on_you": "An aura of poison awareness surrounds you.",
+  "msg_cast_on_other": null,
+  "msg_wears_off": "The awareness fades.",
   "cc_families": []
  },
  {
@@ -64018,8 +67296,8 @@
   "school": "Alteration",
   "school_raw": "[[Skill Alteration | Alteration]]",
   "target_type": "Single",
-  "spell_type_raw": "Slow",
-  "beneficial": null,
+  "spell_type_raw": "Detrimental",
+  "beneficial": false,
   "mana": 45.0,
   "mana_raw": "45",
   "cast_time_seconds": 3.5,
@@ -69522,7 +72800,7 @@
  {
   "name": "Specter Lifetap",
   "page_title": "Specter Lifetap",
-  "template": "Spellpage",
+  "template": "Spellpagesmart",
   "classes": [],
   "classes_raw": "* Item Effect",
   "school": null,
@@ -69538,21 +72816,21 @@
   "recast_time_raw": "12",
   "duration_raw": "Instant",
   "duration_seconds": 0.0,
-  "resist_raw": "Magic",
+  "resist_raw": "Magic (-200)",
   "resist": {
    "type": "Magic",
-   "modifier": null
+   "modifier": -200
   },
   "range_raw": "200",
   "description": "Tears the life from your target, siphoning between 2 and 40 damage.",
   "slot_effects": [
    {
     "slot": 1,
-    "effect": "Decrease Hitpoints by 2 (L1) to 40 (L60)"
+    "effect": "Decrease Hit Points by 2 (L1) to 51 (L50)"
    }
   ],
   "msg_cast_on_you": "You feel your life force drain away.",
-  "msg_cast_on_other": "Someone  staggers.",
+  "msg_cast_on_other": "Someone staggers.",
   "msg_wears_off": null,
   "cc_families": []
  },
@@ -73413,6 +76691,74 @@
   "cc_families": []
  },
  {
+  "name": "String Resonance 14",
+  "page_title": "String Resonance 14",
+  "template": "Spellpagesmart",
+  "classes": [],
+  "classes_raw": "BRD",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": null,
+  "beneficial": null,
+  "mana": null,
+  "mana_raw": null,
+  "cast_time_seconds": null,
+  "casting_time_raw": "Instant",
+  "recast_seconds": null,
+  "recast_time_raw": null,
+  "duration_raw": "2:30:00",
+  "duration_seconds": null,
+  "resist_raw": null,
+  "resist": null,
+  "range_raw": "100",
+  "description": "Increases the power of stringed instrument based bard songs by up to 140%.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increases the power of stringed instrument based bard songs by up to 140%"
+   }
+  ],
+  "msg_cast_on_you": null,
+  "msg_cast_on_other": null,
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "String Resonance 14",
+  "page_title": "Wind Resonance 14",
+  "template": "Spellpagesmart",
+  "classes": [],
+  "classes_raw": "BRD",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": null,
+  "beneficial": null,
+  "mana": null,
+  "mana_raw": null,
+  "cast_time_seconds": null,
+  "casting_time_raw": "Instant",
+  "recast_seconds": null,
+  "recast_time_raw": null,
+  "duration_raw": "2:30:00",
+  "duration_seconds": null,
+  "resist_raw": null,
+  "resist": null,
+  "range_raw": "100",
+  "description": "Increases the power of wind instrument based bard songs by up to 140%.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increases the power of wind instrument based bard songs by up to 140%"
+   }
+  ],
+  "msg_cast_on_you": null,
+  "msg_cast_on_other": null,
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
   "name": "Strip Enchantment",
   "page_title": "Strip Enchantment",
   "template": "Spellpage",
@@ -74758,6 +78104,40 @@
   "cc_families": []
  },
  {
+  "name": "Summon Drogmor",
+  "page_title": "Summon Drogmor",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": null,
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": null,
+  "mana_raw": null,
+  "cast_time_seconds": null,
+  "casting_time_raw": "Instant",
+  "recast_seconds": null,
+  "recast_time_raw": null,
+  "duration_raw": null,
+  "duration_seconds": null,
+  "resist_raw": null,
+  "resist": null,
+  "range_raw": null,
+  "description": "Summons a drogmor mount",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Summons a drogmor mount"
+   }
+  ],
+  "msg_cast_on_you": null,
+  "msg_cast_on_other": null,
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
   "name": "Summon Elemental Blanket",
   "page_title": "Summon Elemental Blanket",
   "template": "Spellpage",
@@ -75102,6 +78482,40 @@
    {
     "slot": 1,
     "effect": "Summon Item: [[Brell's Blessed Stout]]"
+   }
+  ],
+  "msg_cast_on_you": null,
+  "msg_cast_on_other": null,
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Summon Horse",
+  "page_title": "Summon Horse",
+  "template": "Spellpage",
+  "classes": [],
+  "classes_raw": null,
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": "Beneficial",
+  "beneficial": true,
+  "mana": null,
+  "mana_raw": null,
+  "cast_time_seconds": null,
+  "casting_time_raw": "Instant",
+  "recast_seconds": null,
+  "recast_time_raw": null,
+  "duration_raw": null,
+  "duration_seconds": null,
+  "resist_raw": null,
+  "resist": null,
+  "range_raw": null,
+  "description": "Summons a horse mount",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Summons a horse mount"
    }
   ],
   "msg_cast_on_you": null,
@@ -77515,7 +80929,7 @@
     "effect": "Increase HP when cast by 224 (L34) to 307 (L41)"
    }
   ],
-  "msg_cast_on_you": "A mystic symbol flashes before your eyes.",
+  "msg_cast_on_you": "The symbol of Pinzarn flashes before your eyes.",
   "msg_cast_on_other": "Someone  is cloaked in a shimmer of glowing symbols.",
   "msg_wears_off": "The mystic symbol fades.",
   "cc_families": []
@@ -86566,6 +89980,53 @@
   "cc_families": []
  },
  {
+  "name": "Whirl Bolt",
+  "page_title": "Whirl Bolt",
+  "template": "Spellpagesmart",
+  "classes": [],
+  "classes_raw": "This spell is cast by NPCs only.",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Single",
+  "spell_type_raw": "Detrimental",
+  "beneficial": false,
+  "mana": 0.0,
+  "mana_raw": "0",
+  "cast_time_seconds": 0.5,
+  "casting_time_raw": "0.50",
+  "recast_seconds": 0.0,
+  "recast_time_raw": "0.00",
+  "duration_raw": "1 ticks @L1 to 2 ticks @L4",
+  "duration_seconds": null,
+  "resist_raw": "Unresistable",
+  "resist": {
+   "type": "Unresistable",
+   "modifier": null
+  },
+  "range_raw": "240",
+  "description": "Causes your target to get stuck in the air, and does 200 points of damage every 6 sconds for 12 seconds.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Root"
+   },
+   {
+    "slot": 2,
+    "effect": "Decrease Hitpoints by 200 per tick"
+   },
+   {
+    "slot": 3,
+    "effect": "Levitate(1)"
+   }
+  ],
+  "msg_cast_on_you": "You are trapped within a whirling wind.",
+  "msg_cast_on_other": "Someone  is trapped within a whirling wind.",
+  "msg_wears_off": "The wind fades.",
+  "cc_families": [
+   "root"
+  ]
+ },
+ {
   "name": "Whirl Till You Hurl",
   "page_title": "Whirl Till You Hurl",
   "template": "Spellpage",
@@ -86607,53 +90068,6 @@
   "msg_cast_on_other": "Someone  begins to spin.",
   "msg_wears_off": "You feel dizzy.",
   "cc_families": []
- },
- {
-  "name": "WhirlBolt",
-  "page_title": "WhirlBolt",
-  "template": "Spellpage",
-  "classes": [],
-  "classes_raw": "This spell is cast by NPCs only.",
-  "school": null,
-  "school_raw": null,
-  "target_type": "Single",
-  "spell_type_raw": "Detrimental",
-  "beneficial": false,
-  "mana": 0.0,
-  "mana_raw": "0",
-  "cast_time_seconds": 0.5,
-  "casting_time_raw": "0.50",
-  "recast_seconds": 0.0,
-  "recast_time_raw": "0.00",
-  "duration_raw": "1 ticks @L1 to 2 ticks @L4",
-  "duration_seconds": null,
-  "resist_raw": "Unresistable",
-  "resist": {
-   "type": "Unresistable",
-   "modifier": null
-  },
-  "range_raw": "200",
-  "description": "Short duration, single target root casted by [[an azarack]].",
-  "slot_effects": [
-   {
-    "slot": 1,
-    "effect": "Root"
-   },
-   {
-    "slot": 2,
-    "effect": "Decrease Hitpoints by 200 per tick"
-   },
-   {
-    "slot": 3,
-    "effect": "Levitate(1)"
-   }
-  ],
-  "msg_cast_on_you": "You are trapped within a whirling wind.",
-  "msg_cast_on_other": "Someone  is trapped within a whirling wind.",
-  "msg_wears_off": "The wind fades.",
-  "cc_families": [
-   "root"
-  ]
  },
  {
   "name": "Whirlbolt",
@@ -86754,7 +90168,7 @@
  {
   "name": "Whirlwind",
   "page_title": "Whirlwind",
-  "template": "Spellpage",
+  "template": "Spellpagesmart",
   "classes": [],
   "classes_raw": "This spell is cast by NPCs only.",
   "school": null,
@@ -87140,6 +90554,40 @@
    {
     "slot": 1,
     "effect": "Increases the power of wind instrument based bard songs by up to 100%"
+   }
+  ],
+  "msg_cast_on_you": null,
+  "msg_cast_on_other": null,
+  "msg_wears_off": null,
+  "cc_families": []
+ },
+ {
+  "name": "Wind Resonance 10",
+  "page_title": "Wind Resonance 11",
+  "template": "Spellpagesmart",
+  "classes": [],
+  "classes_raw": "BRD",
+  "school": null,
+  "school_raw": null,
+  "target_type": "Self",
+  "spell_type_raw": null,
+  "beneficial": null,
+  "mana": null,
+  "mana_raw": null,
+  "cast_time_seconds": null,
+  "casting_time_raw": "Instant",
+  "recast_seconds": null,
+  "recast_time_raw": null,
+  "duration_raw": "1:54:00",
+  "duration_seconds": null,
+  "resist_raw": null,
+  "resist": null,
+  "range_raw": "100",
+  "description": "Increases the power of wind instrument based bard songs by up to 110%.",
+  "slot_effects": [
+   {
+    "slot": 1,
+    "effect": "Increases the power of wind instrument based bard songs by up to 110%"
    }
   ],
   "msg_cast_on_you": null,

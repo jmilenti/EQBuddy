@@ -48,9 +48,11 @@ Boss NPCs no longer have a deathtouch (a.k.a. DT, [[Cazic Touch]]).
 Most of the loot from Plane of Sky quests are quite excellent for the Kunark era. All melee classes can quickly attain a 21% haste belt and eventually earn a 41% belt. There are also numerous useful clicky items for caster classes, such as the [[Vermilion Sky Ring]] for Shamans, the [[Duennan Shielding Ring]] for Magicians, and the [[Necklace of Resolution]] for Clerics. Magicians, Monks, Rangers, and Paladins will also find they must visit Plane of Sky for their epic quests. For these reasons, most casual raiding guilds will raid Plane of Sky once a week, and defeating every boss in Plane of Sky is considered a major milestone in a guild's rise to fame.
 
 = Travelling To/From Plane of Sky =
-The Plane of Sky is accessible via an orb in East Freeport, located on a rock in the bay (location approximately -425, -1200). Clicking the orb will send you to the zone.
-
-The Plane of Sky, like the Plane of Hate, is also accessible through the Wizard's spell [[Alter Plane: Sky]], which requires [[Cloudy Stone of Veeshan]] for each cast. Upon entering, all buffs and debuffs are stripped from the characters. No form of teleport spell or ability will work within Plane of Sky, except for [[Alter Plane: Sky]] (which allows a group to return to island 1 with their keys). There are only three ways to leave, jumping or falling off an island, death, or Druid [[Wind of the South]] or [[Wind of the North]] ports. After falling, a character will have all of his keys from Plane of Sky destroyed, and land in the ocean of [[East Freeport]], east of the docks (swim directly west to get back to land, the docks should come into view quickly).
+This is a quest zone, very similar to the Temple of Solusek Ro, only the challenges are here in the Zone with us.
+<br><br>
+The Plane of Sky is accessible via an orb in East Freeport, located on a rock in the bay (location approximately -425, -1200). Clicking the orb will send you to the zone. There are reports of a Wizard spell  [[Alter Plane: Sky]], which requires [[Cloudy Stone of Veeshan]] for each cast, which may also work, but this is not confirmed for EQL. If you are grouped, you may also accept a 'Gather Party' summons from a group member already on the island.
+<br><br>
+Leaving the Plane of Sky is available via any normal port spell or ritual, Gate, or the Origin ability. You may also opt to leap off the edge. After falling, you zone into the eastern edge of the ocean of [[East Freeport]], east of the docks (swim directly west to get back to land, the docks should come into view quickly).
 
 = Walkthrough/Guide =
 
@@ -96,7 +98,7 @@ The thunder spirits are bards and use some weak DoTs. Ideal to cut your teeth an
 
 Reached through the western teleporter on Island 1.
 
-This small island features a windmill and a portal to island 2. [[Noble Dojorn]], the boss of this island, is the first kill in the Efreeti Cycle, and drops coveted Efreeti pieces required for several Sky Quests. Killing him will also Spawn the [[Overseer of Air]] on Island 4.  No key pieces drop here. Hopefully you already got the key for island 2, otherwise you'll be stuck here unless you die, fall, or wizard port back to island 1. Evacuate, Succor, and Exodus also work.
+This small island features a windmill and a portal to island 2. [[Noble Dojorn]], the boss of this island, is the first kill in the Efreeti Cycle, and drops coveted Efreeti pieces required for several Sky Quests. Killing him will also Spawn the [[Overseer of Air]] on Island 4.  No key pieces drop here. Hopefully you already got the key for island 2, otherwise you'll be stuck here unless you die, fall (East Freeport), Gate (bind point), Succor, or wizard port back to island 1. Evacuate & Exodus also work.
 
 Note that the blade storms WILL assist the Noble Dojorn. There's one less on solo mode than on group mode.
 
@@ -204,14 +206,27 @@ This small island is home to [[the Hand of Veeshan]] and [[Eye of Veeshan]]. The
 == Plane of Sky Class Quests ==
 These are the various class quests, and in general, completing all of these quests will unlock the respective class as a Primary Class option in your loadouts.  The EQ Legends team simplified these quests a bit from Classic to need various wind runes and one or two specific items.  The wind runes drop from all mobs in the Plane of Sky, and many players simply farm the trash mobs on one of the early islands.
 
-<h3> [[Bard]] (Cilin Spellsinger) </h3>
+=== Quest Givers ===
+
+After entering the [[Plane of Sky]], you can access the Efreeti Chamber with all of the quest givers.
+
+First, find the '''[[Key Master]]''' near where you zoned in on island 1 and purchase an [[Efreeti's Key]]. It is free and looks like a [[Jade]].
+
+*You only need to buy the key one time and it will be saved to your character.
+
+After you have the key left click on the teleportation pad at the North point of the island, around {{Loc|Plane of Sky| 1600, 520}}.
+
+From there find Efreeti for your class based on the details below. You can hail them and use the keyword for each test if you want to confirm your items before handing them in.
+
+=== [[Bard]] Tests ===
+
+'''Quest Giver:''' [[Cilin Spellsinger]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Bard Test of Tone
-| Cilin Spellsinger
 | tone
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -226,7 +241,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Mask of Song}}
 |-
 | Bard Test of Voice
-| Cilin Spellsinger
 | voice
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -241,7 +255,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Mantle of the Songweaver}}
 |-
 | Bard Test of Pitch
-| Cilin Spellsinger
 | pitch
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -256,7 +269,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Ervaj's Flute of Flight}}
 |-
 | Bard Test of Wind
-| Cilin Spellsinger
 | wind
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -271,7 +283,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Fae Amulet}}
 |-
 | Bard Test of Brass
-| Cilin Spellsinger
 | brass
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -287,7 +298,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Denon's Horn of Disaster}}
 |-
 | Bard Test of Harmony
-| Cilin Spellsinger
 | harmony
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -300,17 +310,18 @@ These are the various class quests, and in general, completing all of these ques
 <li>[[Efreeti War Spear]]</li>
 </ul>
 </div>
-| {{:Harmonic Spear}}
+| {{:Spear of Harmony}}
 |}
 
-<h3> [[Beastlord]] (Animist Kratho)</h3>
+=== [[Beastlord]] Tests ===
+
+'''Quest Giver:''' [[Animist Kratho]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Beastlord Test of Aviak
-| Animist Kratho
 | aviak
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -325,7 +336,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Spiroc Beak Earcuff}}
 |-
 | Beastlord Test of Azarack
-| Animist Kratho
 | azarack
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -340,7 +350,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Azarack Skin Wristwraps}}   
 |-
 | Beastlord Test of Claw
-| Animist Kratho
 | claw
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -357,7 +366,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Windhowl}}, {{:Spirit Render}}  
 |-
 | Beastlord Test of Harpy
-| Animist Kratho
 | harpy
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -372,7 +380,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Griffon-Hide Armguards}}  
 |-
 | Beastlord Test of Wind
-| Animist Kratho
 | wind
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -387,14 +394,15 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Diaphonous Waistband}}
 |}
 
-<h3> [[Berserker]] (Stragen The Hewer) </h3>
+=== [[Berserker]] Tests ===
+
+'''Quest Giver:''' [[Stragen The Hewer]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Berserker Test of Sharpness
-| Stragen The Hewer
 | sharpness
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -410,7 +418,6 @@ These are the various class quests, and in general, completing all of these ques
 || {{:Skycleaver}}
 |-
 | Berserker Test of Will
-| Stragen The Hewer
 | will
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -425,7 +432,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Molten Coil}}
 |-
 | Berserker Test of Ferocity
-| Stragen The Hewer
 | ferocity
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -440,7 +446,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Sash of Ferocity}}
 |-
 | Berserker Test of Burden
-| Stragen The Hewer
 | burden
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -455,7 +460,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Shroud of the Sky}} 
 |-
 | Berserker Test of Blood
-| Stragen The Hewer
 | blood
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -470,30 +474,29 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Blood-Drawn Runes}}
 |-
 | Berserker Test of Fools Errand
-| Stragen The Hewer
 | fools errand
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
 <li>[[Wind Rune Dena]]</li>
 </ul>
 </div>
-| <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
-<ul style="margin:0; padding-left:0;">
+| <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;"><ul style="margin:0; padding-left:0;">
 <li>'''{{SkyNoDrop|[[Jester's Mask]]}}  (4-KoS)'''</li>
-<li>[[Efreeti Great Staff]]</li>
+<li>[[Efreeti Great Staff]] (8-EoV)</li>
 </ul>
 </div>
 | {{:Cudgel of the Fool}}
 |}
 
-<h3> [[Cleric]] (Josin Faithbringer) </h3>
+=== [[Cleric]] Tests ===
+
+'''Quest Giver:''' [[Josin Faithbringer]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Cleric Test of Courage
-| Josin Faithbringer
 | courage
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -508,7 +511,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Truewind Earring}}
 |-
 | Cleric Test of Skill
-| Josin Faithbringer
 | skill
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -523,7 +525,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Aegis of the Wind}}
 |-
 | Cleric Test of Protection
-| Josin Faithbringer
 | protection
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -538,7 +539,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Pauldrons of Piety}}
 |-
 | Cleric Test of Resolution
-| Josin Faithbringer
 | resolution
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -553,7 +553,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Necklace of Resolution}}
 |-
 | Cleric Test of Theurgy
-| Josin Faithbringer
 | theurgy
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -569,7 +568,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Theurgist's Star}}
 |-
 | Cleric Test of The Weak
-| Josin Faithbringer
 | weak
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -585,14 +583,15 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Baton of the Sky}}
 |}
 
-<h3> [[Druid]] (Strandar Pinemist) </h3>
+=== [[Druid]] Tests ===
+
+'''Quest Giver:''' [[Strandar Pinemist]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Druid Test of Wolf
-| Strandar Pinemist
 | wolf
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -607,7 +606,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Drake-Hide Mask}}
 |-
 | Druid Test of Bear
-| Strandar Pinemist
 | bear
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -622,7 +620,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Nature Walker's Mantle}}
 |-
 | Druid Test of Tree
-| Strandar Pinemist
 | tree
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -638,7 +635,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Shillelagh}}
 |-
 | Druid Test of The Bee
-| Strandar Pinemist
 | bee
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -653,7 +649,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Honeycomb Belt}}
 |-
 | Druid Test of Eagle
-| Strandar Pinemist
 | eagle
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -669,7 +664,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Spiroc Banisher Focus}}
 |-
 | Druid Test of Nature
-| Strandar Pinemist
 | nature
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -685,14 +679,15 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Espri}}
 |}
 
-<h3> [[Enchanter]] (Enchanter Jolas) </h3>
+=== [[Enchanter]] Tests ===
+
+'''Quest Giver:''' [[Enchanter Jolas]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Enchanter Test of Illusion
-| Enchanter Jolas
 | illusion
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -707,7 +702,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Sphinx Hair Cord}}
 |-
 | Enchanter Test of Metamorphism
-| Enchanter Jolas
 | metamorphism
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -722,7 +716,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Wind Walker's Mantle}}
 |-
 | Enchanter Test of Deception
-| Enchanter Jolas
 | deception
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -736,9 +729,8 @@ These are the various class quests, and in general, completing all of these ques
 </div>
 | {{:Ivory Mask}}
 |-
-| Enchanter Test of Disillusion
-| Enchanter Jolas
-| disillusion
+| Enchanter Test of Dislocation
+| dislocation
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
 <li>[[Wind Rune Caza]]</li>
@@ -752,7 +744,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Earring of Displacement}}
 |-
 | Enchanter Test of Memorization
-| Enchanter Jolas
 | memorization
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -767,7 +758,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Necklace of Whispering Winds}}
 |-
 | Enchanter Test of Incapacitation
-| Enchanter Jolas
 | incapacitation
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -783,14 +773,15 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Rod of the Protecting Winds}}
 |}
 
-<h3> [[Magician]] (Magus Frinon) </h3>
+=== [[Magician]] Tests ===
+
+'''Quest Giver:''' [[Magus Frinon]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Magician Test of Clarification
-| Magus Frinon
 | clarification
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -805,7 +796,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Bracelet of Clarification}}
 |-
 | Magician Test of Empowerment
-| Magus Frinon
 | empowerment
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -820,7 +810,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Mask of Empowerment}}
 |-
 | Magician Test of Shielding
-| Magus Frinon
 | shielding
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -835,7 +824,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Gold White Pendant}}
 |-
 | Magician Test of Summoning
-| Magus Frinon
 | summoning
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -850,7 +838,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Drake-Hide Amice}}
 |-
 | Magician Test of Interpretation
-| Magus Frinon
 | interpretation
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -865,7 +852,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Duennan Shielding Ring}}
 |-
 | Magician Test of Gesticulation
-| Magus Frinon
 | gesticulation
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -881,7 +867,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Staff of The Magister}}
 |-
 | Magician Test of Displacement
-| Magus Frinon
 | displacement
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -898,14 +883,14 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Staff of Elemental Mastery: Air}}
 |}
 
-<h3> [[Monk]] (Holwin) </h3>
+=== [[Monk]] Tests ===
+'''Quest Giver:''' [[Holwin]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Monk Test of Strength
-| Holwin
 | strength
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -920,7 +905,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Back Straps of Mastery}}
 |-
 | Monk Test of Sight
-| Holwin
 | sight
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -935,7 +919,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Ton Po's Eye Patch}}
 |-
 | Monk Test of Speed
-| Holwin
 | speed
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -950,7 +933,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Sandals of Alacrity}}
 |-
 | Monk Test of Tears
-| Holwin
 | tears
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -965,7 +947,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Ton Po's Shoulder Wraps}}
 |-
 | Monk Test of Fists
-| Holwin
 | fists
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -981,7 +962,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Wu's Fist of Mastery}}
 |-
 | Monk Test of Tranquility
-| Holwin
 | tranquility
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -996,14 +976,14 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Golden Sash of Tranquility}}
 |}
 
-<h3> [[Necromancer]] (Drakis Bloodcaster) </h3>
+=== [[Necromancer]] Tests ===
+'''Quest Giver:''' [[Drakis Bloodcaster]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Necromancer Test of Flight
-| Drakis Bloodcaster
 | flight
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1018,7 +998,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Bloody Griffon-Hide Wrist Guard}}
 |-
 | Necromancer Test of Power
-| Drakis Bloodcaster
 | power
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1033,7 +1012,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Cloak of Spiroc Feathers}}
 |-
 | Necromancer Test of Mind
-| Drakis Bloodcaster
 | mind
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1048,7 +1026,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Bloodsoaked Raiment}}
 |-
 | Necromancer Test of Heart
-| Drakis Bloodcaster
 | heart
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1063,7 +1040,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Sphinx Heart Amulet}}
 |-
 | Necromancer Test of Finger
-| Drakis Bloodcaster
 | finger
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1078,7 +1054,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Band of Wailing Winds}}
 |-
 | Necromancer Test of Hands
-| Drakis Bloodcaster
 | hands
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1088,20 +1063,21 @@ These are the various class quests, and in general, completing all of these ques
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
 <li>'''{{SkyNoDrop|[[Gorgon Head]]}}''' (3-Gorga)</li>
-<li>[[Efreeti Great Staff]]</li>
+<li>[[Efreeti Great Staff]] (8-EoV)</li>
 </ul>
 </div>
 | {{:Gorgon Head Staff}}
 |}
 
-<h3> [[Paladin]] (Dason Goldblade) </h3>
+=== [[Paladin]] Tests ===
+
+'''Quest Giver:''' [[Dason Goldblade]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Paladin Test of Spirit
-| Dason Goldblade
 | spirit
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1116,7 +1092,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Girdle of Faith}}
 |-
 | Paladin Test of Sacrifice
-| Dason Goldblade
 | sacrifice
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1131,7 +1106,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Aldryn, Blade of the Ocean}}
 |-
 | Paladin Test of Love
-| Dason Goldblade
 | love
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1140,14 +1114,13 @@ These are the various class quests, and in general, completing all of these ques
 </div>
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
-<li>'''{{SkyNoDrop|[[Golden Hilt]]}}''' (7)</li>
+<li>'''{{SkyNoDrop|[[Golden Hilt]]}}''' (7-Trash)</li>
 <li>'''{{SkyNoDrop|[[Sphinx Claw]]}}''' (7-SotS)</li>
 </ul>
 </div>
 | {{:Thelvorn, Blade of Light}}
 |-
 | Paladin Test of Compassion
-| Dason Goldblade
 | compassion
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1163,14 +1136,15 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Truvinan}}
 |}
 
-<h3> [[Ranger]] (Ranger Spirit) </h3>
+=== [[Ranger]] Tests ===
+
+'''Quest Giver:''' [[Ranger Spirit]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Ranger Test of Body
-| Ranger Spirit
 | body
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1185,7 +1159,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Griffon Talon Necklace}}
 |-
 | Ranger Test of Defense
-| Ranger Spirit
 | defense
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1200,7 +1173,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Dark Cloak of the Sky}}
 |-
 | Ranger Test of The Earth
-| Ranger Spirit
 | elemental earth
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1215,7 +1187,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Earthshaker's Mantle}}
 |-
 | Ranger Test of Thunder
-| Ranger Spirit
 | elemental thunder
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1230,7 +1201,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Thunderforged Earring}}
 |-
 | Ranger Test of Blade
-| Ranger Spirit
 | blade
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1246,7 +1216,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Arydryidriyorn}}
 |-
 | Ranger Test of Ranged Attack
-| Ranger Spirit
 | ranged attack
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1262,14 +1231,15 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Windstriker}}
 |}
 
-<h3> [[Rogue]] (Thalik Silenthand) </h3>
+=== [[Rogue]] Tests ===
+
+'''Quest Giver:''' [[Thalik Silenthand]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Rogue Test of Thievery
-| Thalik Silenthand
 | thievery
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1284,7 +1254,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Wispy Choker of Vigor}}
 |-
 | Rogue Test of Trickery
-| Thalik Silenthand
 | trickery
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1299,7 +1268,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Renard's Belt of Quickness}}
 |-
 | Rogue Test of Silence
-| Thalik Silenthand
 | silence
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1314,7 +1282,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Griffon Wing Spauldors}}
 |-
 | Rogue Test of Cunning
-| Thalik Silenthand
 | cunning
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1329,7 +1296,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Crystal Mask}}
 |-
 | Rogue Test of Stealth
-| Thalik Silenthand
 | stealth
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1341,10 +1307,9 @@ These are the various class quests, and in general, completing all of these ques
 <li>'''{{SkyNoDrop|[[Fine Wool Cloak]]}}''' (6-BZ)</li>
 </ul>
 </div>
-| {{:Scintillating Bracer of Protection}}(item is actually SHIMMERING Bracer)
+| {{:Shimmering Bracer of Protection}}
 |-
 | Rogue Test of Deception
-| Thalik Silenthand
 | deception
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1353,21 +1318,22 @@ These are the various class quests, and in general, completing all of these ques
 </div>
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
-<li>'''{{SkyNoDrop|[[Bixie Stinger]]}}''' (6-BZ)</li>
+<li>'''{{SkyNoDrop|[[Bixie Stinger (Bixie God's Stinger)|Bixie Stinger]]}}''' (6-BZ)</li>
 <li>'''{{SkyNoDrop|[[Bloodsky Sapphire]]}}''' (8-EoV)</li>
 </ul>
 </div>
 | {{:Thornstinger}}
 |}
 
-<h3> [[Shadow Knight]] (Sarkis Ebonblade) </h3>
+=== [[Shadow Knight]] Tests ===
+
+'''Quest Giver:''' [[Sarkis Ebonblade]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Shadow Knight Test of Bash
-| Sarkis Ebonblade
 | bash
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1382,7 +1348,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Amulet of the Sphinx Eye}}
 |-
 | Shadow Knight Test of Smash
-| Sarkis Ebonblade
 | smash
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1397,7 +1362,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Crimson Ring of the Djinni}}
 |-
 | Shadow Knight Test of Slash
-| Sarkis Ebonblade
 | slash
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1412,7 +1376,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Pegasus-Hide Belt}}
 |-
 | Shadow Knight Test of Disempowerment
-| Sarkis Ebonblade
 | disempowerment
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1427,7 +1390,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Blood Sky Face Plate}}
 |-
 | Shadow Knight Test of Envenoming
-| Sarkis Ebonblade
 | envenoming
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1442,7 +1404,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Obtenebrate Mithril Guard}}
 |-
 | Shadow Knight Raising of the Dead
-| Sarkis Ebonblade
 | raising of the dead
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1458,7 +1419,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Pearlescent Pauldrons}}
 |-
 | Shadow Knight Test of Necropotence
-| Sarkis Ebonblade
 | necropotence
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1474,14 +1434,15 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Khyldorn the Blood Drinker}}
 |}
 
-<h3> [[Shaman]] (Medicine Man Veetra) </h3>
+=== [[Shaman]] Tests ===
+
+'''Quest Giver:''' [[Medicine Man Veetra]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Shaman Test of Might
-| Medicine Man Veetra
 | might
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1496,7 +1457,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Amulet of the Fang}}
 |-
 | Shaman Test of Health
-| Medicine Man Veetra
 | health
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1511,7 +1471,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Bracelet of the Spirits}}
 |-
 | Shaman Test of Sight
-| Medicine Man Veetra
 | sight
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1526,7 +1485,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Fairy-Hide Mantle}}
 |-
 | Shaman Test of Shrink
-| Medicine Man Veetra
 | shrink
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1542,7 +1500,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Warhammer of the Wind}}
 |-
 | Shaman Test of Snake
-| Medicine Man Veetra
 | snake
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1558,7 +1515,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Vermilion Sky Ring}}
 |-
 | Shaman Test of The Witch Doctor
-| Medicine Man Veetra
 | witch doctor
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1574,14 +1530,15 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Garduk}}
 |}
 
-<h3> [[Warrior]] (Torgon Blademaster) </h3>
+=== [[Warrior]] Tests ===
+
+'''Quest Giver:''' [[Torgon Blademaster]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Warrior Test of Skill
-| Torgon Blademaster
 | skill
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1596,7 +1553,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Azure Ruby Ring}}
 |-
 | Warrior Test of Strength
-| Torgon Blademaster
 | strength
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1611,7 +1567,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Runed Wind Amulet}}
 |-
 | Warrior Test of Force
-| Torgon Blademaster
 | force
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1626,7 +1581,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Pauldrons of the Blue Sky}}
 |-
 | Warrior Test of Think
-| Torgon Blademaster
 | think
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1642,7 +1596,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Belt of the Four Winds}}
 |-
 | Warrior Test of Smash
-| Torgon Blademaster
 | smash
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1658,7 +1611,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Dagas}}
 |-
 | Warrior Test of Bash
-| Torgon Blademaster
 | bash
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1674,14 +1626,15 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Fangol}}
 |}
 
-<h3> [[Wizard]] (Wizard Schrock) </h3>
+=== [[Wizard]] Tests ===
+
+'''Quest Giver:''' [[Wizard Schrock]]
 
 {| class="eoTable3"
 |-
-! Quest || Quest Giver || Trigger Phrases || Rune || Quest Items || Reward
+! Quest || Trigger Phrases || Rune || Quest Items || Reward
 |-
 | Wizard Test of Concentration
-| Wizard Schrock
 | concentration
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1696,7 +1649,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Augmentor's Mask}}
 |-
 | Wizard Test of Focus
-| Wizard Schrock
 | focus
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1711,7 +1663,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Al`Kabor's Cap of Binding}}
 |-
 | Wizard Test of Meditation
-| Wizard Schrock
 | meditation
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1726,7 +1677,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Raiment of Thunder}}
 |-
 | Wizard Test of Conception
-| Wizard Schrock
 | conception
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1742,7 +1692,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Solidate Mithril Ring}}
 |-
 | Wizard Test of Visualization
-| Wizard Schrock
 | visualization
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">
@@ -1757,7 +1706,6 @@ These are the various class quests, and in general, completing all of these ques
 | {{:Amulet of the Void}}
 |-
 | Wizard Test of Preparation
-| Wizard Schrock
 | preparation
 | <div class="checkbox-list eql-sky-table-checklist" style="margin:0; padding:0;">
 <ul style="margin:0; padding-left:0;">

@@ -18,7 +18,7 @@ The Mountains of Rathe is a vast and dangerous mid level zone. It lies along the
 |{{:Axe of the Slayers}}, {{:Broken Bow Part A}}, {{:Cyclops Charm}}, {{:Eye of Petrifin}}, {{:Granite Bracer}}, {{:Man-o-War}}, {{:Marr's Promise}}, {{:Mithril Plated Girth}}, {{:Mortificator Staff}}, {{:Onyx Drakescale Cloak}}, {{:Shardwing Arrow}}, {{:Siryn Hair Hood}}, {{:Syythrak Hide Vest}}, {{:Drake Spine}}
 |-
 ! ''' Related Quests: '''
-|[[Armor of Ro Quests]], [[Journeyman's Boots Quest]], [[Monks of The Whistling Fist]], [[Red Dragonscale Armor Quest]], [[Solvedi Scimitar Quest]], [[Tibrinn's Quest]], [[The Etched Stone]], [[White Dragonscale Cloak Quest]], [[Shadow Knight Epic Quest]]
+|[[Armor of Ro Quests]], [[Journeyman's Boots Quest]], [[Monks of The Whistling Fist]], [[Red Dragonscale Armor Quest]], [[Solvedi Scimitar Quest]], [[Tibrinn's Quest]], [[The Etched Stone]], [[White Dragonscale Cloak Quest]], [[Shadow Knight Epic Quest]], [[Soldier's Brooch Quest]]
 |-
 ! ''' Adjacent Zones: '''
 |[[Lake Rathetear]], [[The Feerrott]]
@@ -49,7 +49,7 @@ The Mountains of Rathe is a vast and dangerous mid level zone. It lies along the
 * 3. Protected Stone Ring, surrounded by Unkempt Druids
 * 4. Gypsies with Combine Weapons, Compass, Herbs and Food (Cynthia)
 * 5. Inn, Hut with Merchant [[Darfumpel Zirubbel]] who sells Gems nearby. 
-* 6. Hill with Stone Arms reaching to the sky, Bandit Camp on top, Giant Skeletons and Lizard Men on sides of Hill
+* 6. Hill with Stone Arms reaching to the sky, Bandit Camp on top, Giant Skeletons, Cyclopes and Lizard Men on sides of Hill
 * 7. Haunted Tower with [[Findlegrob]]
 * 8. Altar protected by named beetles (Zaza)
 * 9. Lizard Man Camp
@@ -57,13 +57,13 @@ The Mountains of Rathe is a vast and dangerous mid level zone. It lies along the
 * 11. Camp with Trolls and Ogres, selling Goods, Normal Weapons, and Leather and Small Sewing Kit and Patterns
 * 12. Altar protected by named beetles (Ankh)
 * 13. Inn
-* 14. Orc Camp
+* 14. Orc Camp - Hill Giants, Cyclopes, and undead giants are prevalent in the 14-17 area
 * 15. [[Paladin]] Camp
 * 16. Gypsy Camp selling Food
 * 17. Ruined Town with [[Glaron the Wicked]]
-* 18. Sphinx ([[Ankhefenmut]])
-* 19. Region filled with Hill Giants, Cyclops, and Giant Skeletons
-* 20. Sphinx ([[Zazamoukh]])
+* 18. Sphinx ([[Ankhefenmut]]) & Sphinx ([[Zazamoukh]])
+* 19. Froglock newbie mob area, levels 4-10
+* 20. Froglock starting area with good & evil guildmasters, spell vendors, bank, general vendors and quest NPCs
 * 21. Lizard Man Camp
 * 22. Lizard Man Camp
 * 23. Orc Camp

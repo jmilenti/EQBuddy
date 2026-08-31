@@ -1,195 +1,2079 @@
 # Knowledge refresh report
 
-- Window: `2026-08-09T16:07:18Z` → `2026-08-10T10:12:53Z`
-- Changed wiki pages: 171
+- Window: `2026-08-10T09:04:52Z` → `2026-08-31T16:29:39Z`
+- Changed wiki pages: 2054
 - Changed templates: 1
-- Cache evictions: 77
+- Cache evictions: 216
 
 ## Promoted catalogs
 
-- `FadeMessages.json`: unchanged
+- `FadeMessages.json`: UPDATED
 - `QuestCatalog.json`: UPDATED
-- `ZoneGraph.json`: unchanged
+- `ZoneGraph.json`: UPDATED
 
 ## Curated catalogs (never auto-written — review these)
 
-- `SpawnCatalog.json` mentions changed pages: Akksstaff, Elial Brook, Lord Bergurgle, Plane of Sky
-- `AaCatalog.json` mentions changed pages: Bard, Druid, Enchanter, (the Alternate Advancement page itself)
+- `SpawnCatalog.json` mentions changed pages: A Fallen Noble, A Hemo Enologist, A bixie queen, Akksstaff, An Ogre Priestess, An Ogre Shaman, Ashenbone Broodmaster, Avatar of Abhorrence, Bait Masterson, Bandit Sisters, Baobob Miller, Battlelord Paluk …
+- `AaCatalog.json` mentions changed pages: Bard, Beastlord, Cleric, Druid, Enchanter, Magician, Necromancer, Paladin, Ranger, Rogue, Shadow Knight, Shaman …
+- `CcSpells.json` mentions changed pages: Call of Sky Strike
 
 ## Changed templates (parser shapes may have moved)
 
-- Template:Build Guide Preload
+- Template:KhazamSpellRow
 
 ## Changed pages
 
-- A Goblin Magician
+- A Bixie
+- A Bone Golem
+- A Boogeyman
+- A Box of Bones
+- A Broom
+- A Champion of Innoruuk
+- A Chasm Minotaur
+- A Dark Librarian
+- A Deadly Black Widow
+- A Deepwater Goblin
+- A Disciple of Innoruuk
+- A Drunkard
+- A Dune Tarantula
+- A Fallen Noble
+- A Forsaken Revenant
+- A Frightfinger
+- A Froglok Noble
+- A Froglok Tonta Knight
+- A Giant Black Widow
+- A Glare Lord
+- A Glimmering Fairie Wing
+- A Gloomstalker Mermaid
+- A Goblin Lookout
+- A Goblin Sentry
+- A Golden Haired Mermaid
+- A Gorge Minotaur
+- A Gorgon
+- A Greater Kobold Shaman
+- A Greedy Beggar
+- A Greenblood Emissary
+- A Haunted Chest
+- A Hemo Enologist
+- A Highland Lion
+- A Job for Nanrum
+- A Kiraikuei
+- A Knight of Innoruuk
+- A Loathling Lich
+- A Locked Chest
 - A Magician
-- A Shovel
-- A Torch
+- A Mangy Rat
+- A Minister of Bertoxxulous
+- A Minotaur Elder
+- A Muddite Elder
+- A Muddite Minor
+- A Nightmare
+- A Nok Ghoul Wizard
+- A Pack Leader
+- A Pickclaw Ambushbaiter
+- A Pickclaw Arroweater
+- A Pickclaw Bladestopper
+- A Pickclaw Crusader
+- A Pickclaw Destroyer
+- A Pickclaw Foechopper
+- A Pickclaw Foeseeker
+- A Pickclaw Foeslicer
+- A Pickclaw Mindripper
+- A Pickclaw Thoughtshaper
+- A Pickclaw Zekspeaker
+- A Pickclaw bonemender
+- A Royal Fish
+- A Sage of Innoruuk
+- A Samhain
+- A Scareling
+- A Scorn Banshee
+- A Shin Ghoul Knight
+- A Shiverback
+- A Spinechiller Spider
+- A Spite Golem
+- A Steel Warrior
+- A Strategic Map of Kithicor
+- A Tattered Note
+- A Teir`Dal priest
+- A Teir`Dal ranger
+- A Teir`Dal rogue
+- A Teir`Dal shadowknight
+- A Tesch Val Brute
+- A Tier'Dal Priest
+- A Tier'Dal Spellbinder
+- A Troll Greenblood
+- A Troll Marauder
+- A Werebat Wing
+- A bixie drone
+- A bixie queen
+- A bloodthirsty ghoul
+- A catfisher
+- A cloaked dhampyre
+- A crazed goblin (Butcherblock)
+- A decrepit warder
+- A diseased rat
+- A dread skeleton
+- A fallen erudite
+- A fallen noble
+- A ferocious hammerhead
+- A fetid fiend
+- A flighty fiend
+- A frenzied ghoul
+- A ghoul cavalier
+- A ghoul sentinel
+- A giant polar bear
+- A giant wood spider
+- A giant wooly spider
+- A giant yellowjacket
+- A gigantic wooly spider
+- A glyphed ghoul
+- A gnomish spelunker
+- A goblin caster
+- A goblin neophyte
+- A goblin peon
+- A goblin runt
+- A goblin scavenger
+- A goblin scryer
+- A goblin trainee
+- A halfling skeleton
+- A halfling zombie
+- A hulking gorilla
+- A jungle spider
+- A jungle spiderling
+- A kerran `amir
+- A large fruit bat
+- A large skeleton
+- A large yellowjacket
+- A lava guardian
+- A lizard ritualist
+- A loathing lich
+- A phantasm
+- A priest of najena
+- A reanimated hand (Lower Guk)
+- A reanimated hand (Unrest)
+- A revenant
+- A revultant rat
+- A rock golem
+- A sand scarab hatchling
+- A sealed letter
+- A shadow wolf
+- A shadowknight (Dark Elf Male)
+- A shadowknight (Troll)
+- A spectral shimmer
+- A steel golem
+- A tal ghoul wizard
+- A tentacle tormentor
+- A thorn drakeling
+- A tiger (Kerra Island)
+- A tree snake
+- A turmoil toad
+- A wan ghoul knight
+- A werebat
+- A wild tiger
+- A worry wraith
+- A zol ghoul knight
+- Aanya's Animation Summon
+- Acquire a Mark of Karana
+- Adamantium Earring
+- Aegis of the Wind
+- Aerated Pauldrons
+- Agilmente's Flute of Flight
+- Aglthin Dasmore
+- Aid the Kerrans of Kerra Isle
+- Air Tight Box Quest
 - Akksstaff
+- Al`Kabor's Cap of Binding
+- All Positive Faction Quests
+- Allia Moondancer
+- Allizewsaur
 - Alternate Advancement
-- An alluring siren
-- An isle goblin shaman
-- Antonian Javelin
+- Amanita Phalloide
+- Amber
+- Amethyst Amulet
+- Amulet of Necropotence
+- Amulet of Woven Hair
+- Amulet of the Fang
+- Amulet of the Sphinx Eye
+- Amulet of the Void
+- Amygdalan Tendril
+- Amygdalan Warrior
+- Amygdalan knight
+- An Abhorrent
+- An Agent of Innoruuk
+- An Ashenbone Drake
+- An Earth Elemental
+- An Elemental Crusader
+- An Elemental Warrior
+- An Elite Dragoon
+- An Elven Priest
+- An Evil Eye (Beholder's Maze)
+- An Evil Eye (Runnyeye)
+- An Executioners Axe
+- An Initiate Familiar
+- An Injured Halfling
+- An Ogre Guard
+- An Ogre Priestess
+- An Ogre Shaman
+- An Undead Brewer
+- An ancient cyclops (Ocean of Tears)
+- An elemental capturer
+- An elemental channeler
+- An elemental deceiver
+- An elemental harvester
+- An elemental visier
+- An elemental wizard
+- An evil little imp
+- An ire ghast
+- An orc lumberjack
+- An undead knight (Mistmoore)
+- An undine spirit
+- Ancient Spurned Ferraiolo
+- Ancient Spurned Waistcoat
+- Anelia Thrywiel
+- Animal Trainer Visop
+- Animate Dead Summon
+- Anthemion Armbands
+- Anthemion Armor
+- Anthemion Boots
+- Anthemion Gloves
+- Anthemion Jerkin
+- Anthemion Leggings
+- Anthemion Skullcap
+- Anthemion Wristguard
+- Anti-Mage
+- Apostate Cakazu
+- Apothic Armor
+- Apothic Boots
+- Apothic Crown
+- Apothic Gloves
+- Apothic Kilt
+- Apothic Robe
+- Apothic Sleeves
+- Apothic Warband
+- Apprentice Ishva Mas
+- Armor of the Priest Quests
+- Army Ant Potion
+- Arrias Arcanum
+- Arydryidriyorn
+- Ashenbone Broodmaster
+- Ashenbone Shield
+- Assa Leafwind
+- Assist the Great Xelha
+- Augment
+- Augmentor's Gem
+- Augmentor's Mask
+- Auraline
+- Avatar of Abhorrence
+- Aviak Eggs
+- Avian Key
+- Azarack Blood
+- Azarack Skin
+- Azarack Skin Wristwraps
+- Azure Ring
+- Azure Ruby Ring
+- BER
+- BST
+- Back Straps of Mastery
+- Bait Masterson
+- Ball of Everliving Golem
+- Bamboo Bokken
+- Bamboo Splint Armor
+- Bamboo Splint Boots
+- Bamboo Splint Bracelet
+- Bamboo Splint Cape
+- Bamboo Splint Coat
+- Bamboo Splint Coif
+- Bamboo Splint Gloves
+- Bamboo Splint Mantle
+- Bamboo Splint Neckguard
+- Bamboo Splint Pants
+- Bamboo Splint Skirt
+- Bamboo Splint Sleeves
+- Bamboo Splint Visor
+- Bamboo Tanto Bo
+- Band of Screaming Winds
+- Band of Wailing Winds
+- Bandages for Honeybugger
+- Banded Armor Set
+- Banded Belt
+- Banded Boots
+- Banded Bracer
+- Banded Cloak
+- Banded Gauntlets
+- Banded Gorget
+- Banded Helm
+- Banded Leggings
+- Banded Mail
+- Banded Mantle
+- Banded Mask
+- Banded Sleeves
+- Bandit Sashes
+- Bandit Sisters
+- Banker Willaen
+- Baobob Miller
+- Barbarian Head
 - Bard
+- Bard Plane of Sky Tests
+- Barkeep Aanlawen
+- Barkeep Lysslan
+- Barkeep Manlawen
+- Barkeep Myrisa
+- Barkeep Sissya
+- Barkeep Syntan
+- Barkeep Tuviena
+- Barkeep Tvanla
+- Barkeep Uulianu
+- Barnacle Breastplate Quest
+- Bat Blood
+- Bat blood
+- Baton of the Sky
+- Battlelord Paluk
+- Battleworn Canteen
+- Beastlord
+- Beastlord Plane of Sky Tests
+- Beckon
+- Belt of Concordance
+- Belt of Contention
+- Belt of Iniquity
+- Belt of Tranquility
+- Belt of Transience
+- Belt of Virtue
+- Belt of the Four Winds
+- Belt of the Pine
+- Benefit Awareness I
+- Benefit Awareness I (Spell)
+- Benefit Awareness II
+- Benefit Awareness II (Spell)
+- Benefit Awareness III
+- Benefit Awareness III (Spell)
+- Benefit Awareness IV
+- Benefit Awareness IV (Spell)
 - Berill Gladeleaper
-- Blessed Oil
-- Blessed Oil Quest
+- Berserker Monk Rogue Guide
+- Berserker Plane of Sky Tests
+- Bertoxxulous Symbol Quests
+- Bidils the Quickhand
+- Biggle Limbokker
+- Bilrio Surecut
+- Bindlegrob
+- Bixie Essence
+- Bixie Stinger (Bixie God's Stinger)
+- Bixie Sword Blade
+- Bizzzzt
+- Black Chain Bridle
+- Black Drum
+- Black Face Paint
+- Black Leather Bridle
+- Black Rope Bridle
+- Black Sapphire
+- Black Silk Cape
+- Black Silken Bridle
+- Black Sky Diamond
+- Black Spider Silk
+- Blackburrow
+- Blackened Mithril chain
+- Blade of Abrogation
+- Blessed Arrow Heads
+- Blessed Champion Arrows
+- Blessed Champion Arrows Guide
+- Blessed Guardian Arrows
+- Blighted Armband
+- Blighted Armor
+- Blighted Boots
+- Blighted Gloves
+- Blighted Mare Hide
+- Blighted Robe
+- Blighted Skullcap
+- Blighted Sleeves
+- Blighted Trousers
+- Blixkin Entopop
+- Block of Medium Quality Ore
+- Block of Permafrost
+- Blood Flecked Obsidian Shard
+- Blood Sky Amethyst
+- Blood Sky Emerald
+- Blood Sky Face Plate
+- Blood Sky Ruby
+- Blood Wine
+- Blood-Drawn Runes
+- Bloodclaw Battle Axe
+- Bloodclaw Mace
+- Bloodmoon
+- Bloodsky Sapphire
+- Bloodsoaked Raiment
+- Bloodstained Mantle
+- Bloodstained Tunic
+- Bloody Griffon-Hide Wrist Guard
+- Blue Crystal Staff
+- Bodbin Gimple
+- Boltran's Animation Summon
+- Bone Chips
+- Bone Chips Felwithe
+- Bone Chips Grobb
+- Bone Chips Qeynos
 - Bone Walk Summon
+- BoneCracker
+- Book of Scale
+- Bottle of Red Wine
+- Bow of the Underfoot
+- Box For Bones
+- Box of Bones
+- Box of Winds
+- Bracelet of Cessation
+- Bracelet of Clarification
+- Bracelet of Distortion
+- Bracelet of Exertion
+- Bracelet of Quiescence
+- Bracelet of the Spirits
+- Bracken Underbrush
+- Brahhms Horn
+- Brass Knuckles
+- Brass Resonance 15
+- Bren Treeclimber
+- Brew Barrel
+- Brewer's Bracer
+- Brewer's Mittens
+- Brewing Barrel
+- Brittle Staff
+- Bronze Battle Axe
+- Bronze Helm
+- Bronze Jutte
+- Bronze Knuckles
+- Bronze Kusarigama
+- Bronze Long Sword
+- Bronze Mask
+- Bronze Naginata
+- Bronze Yari
+- Broom Of Trilon Quest
 - Broom of Trilon
+- Brother Hayle
+- Brother Qwinn
+- Brother Zephyl
+- Brown Chain Bridle
+- Brown Leather Bridle
+- Brown Rope Bridle
+- Brown Silken Bridle
 - Bug Collection
-- Build Guides
 - Burning Soul of the Pestilent
 - Burning Soul of the Pious
-- Burning Soul of the Virtuous
+- Cackling Bones Summon
+- Caduceus of Sacrament
+- Cake Round
+- Call of Flame Quest
+- Call of Sky
+- Call of Sky Strike
+- Cancel Magic
+- Cap of Mending
+- Carmine Armor
+- Carmine Boots
+- Carmine Gloves
+- Carmine Pants
+- Carmine Robe
+- Carmine Sleeves
+- Carmine Trinket
+- Carmine Turban
+- Cat Courier
+- Catfish Tail
+- Catman Alliance
+- Cauldron Prawn
+- Cauldronboil
+- Cauldronbubble
+- Cavorting Bones Summon
+- Celent Newmist
+- Celest Palestream
+- Centaur courser
+- Ceramic Mask
+- Ceremonial Belt
+- Character Races
+- Charred Dagger
+- Cherista's Fangs
+- Chief Goonda
+- Cindl's Polar Bear Collection
+- Cindl's Wristband Collection
+- Circlet of Brambles
+- Clan Crushbone
+- Classic High Tier Treasures
+- Classic Mid-Tier Treasures
+- Classic Planar Armor: Group 1
+- Classic Planar Armor: Group 2
+- Classic Raid Tier Treasures
+- Clay Bracelet
+- Clay Bracelet Quest
+- Cleonae Kalen
+- Cleric
 - Cleric Plane of Sky Tests
-- Column of Lightning
-- Conjuration: Air
+- Cleric Supplies
+- Cleric of Innoruuk
+- Clerics of Tunare
+- Clickies
+- Cloak of Leaves (Sky)
+- Cloak of Spiroc Feathers
+- Cloth Shirt
+- Clump of Gorilla Hair
+- Clurg
+- Clurg's New Creation
+- Coercer T`vala
+- Coin of Tash (Tashania)
+- Cold Awareness I
+- Cold Awareness I (Spell)
+- Cold Awareness II
+- Cold Awareness II (Spell)
+- Cold Awareness III
+- Cold Awareness III (Spell)
+- Cold Awareness IV
+- Cold Awareness IV (Spell)
+- Collier
+- Collier's Weapon Treatment
+- Commands
+- Companion Spirit Summon
 - Conjuration: Air Summon
-- Conjuration: Earth
 - Conjuration: Earth Summon
-- Conjuration: Fire
 - Conjuration: Fire Summon
-- Conjuration: Water
 - Conjuration: Water Summon
-- Crown Of Elemental Mastery
+- Conjuror Matranak
+- Convoke Shadow Summon
+- Corroded Buckler
+- Corrosive Venom
+- Corrupted brownie
+- Corun Finisc
+- Counteract Poison
+- Cracked Giant Scarab Carapace
+- Cracked Glass Key
+- Cracked Leather Eyepatch
+- Craftkeepers
+- Crate for Tonics
+- Crate of teir'dal provisions
+- Crazy Cleric Armor
+- Crimson Hands
+- Crimson Ring of Desinence
+- Crimson Ring of the Djinni
+- Crow
+- Crown of Elemental Mastery
+- Crude Wooden Flute
+- Crusader Silulika
+- Crusader Swiftmoon
+- Crushbone Cadet's Grimoire
+- Crushbone Shoulderpads
+- Cryosilk Amice
+- Cryosilk Cap
+- Crystallize Mana
+- Crystallized Sulfur
+- Cudgel of the Fool
+- Cure Poison
 - Cure for Lempeck Hargrin
-- Dark-boned skeleton
+- Cursed Blade
+- Cutthroat Rings
+- Cyclamine Corm
+- Cyclops Eye
+- Cyclops Toes
+- Cyria Lorewhisper
+- Da Bashers
+- Dagas
+- Dagger Blade Mold
+- Danaria Hollin Pet
+- Dark Assassin
+- Dark Boned Bracelet
+- Dark Cloak of the Sky
+- Dark Plate Leggings
+- Darkbone Marrow
+- Darkmetal Holy Water Sprinkler
+- Darkstone Emerald
+- Darkwood Aegis
+- Darkwood Trunk
+- Dartain the Lost
+- Dason Goldblade
+- Death of Lyda Nasin
+- DeepPockets
+- Deeppockets
+- Deepwater Ink
+- Deepwater Knights
+- Deldryn Splendyr
+- Deliriously Nimble
+- Denon's Horn of Disaster
+- Diablerie II
+- Diaphonous Waistband
+- Disciple Symbol of Innoruuk
+- Disease Awareness I
+- Disease Awareness I (Spell)
+- Disease Awareness II
+- Disease Awareness II (Spell)
+- Disease Awareness III
+- Disease Awareness III (Spell)
+- Disease Awareness IV
+- Disease Awareness IV (Spell)
+- Distillate of Alacrity I
+- Distillate of Alacrity II
+- Distillate of Alacrity III
+- Distillate of Alacrity IV
+- Distillate of Alacrity IX
+- Distillate of Alacrity VI
+- Distillate of Celestial Healing I
+- Distillate of Celestial Healing II
+- Distillate of Celestial Healing III
+- Distillate of Celestial Healing IV
+- Distillate of Celestial Healing IX
+- Distillate of Celestial Healing VI
+- Distillate of Clarity I
+- Distillate of Clarity II
+- Distillate of Clarity III
+- Distillate of Clarity IV
+- Distillate of Clarity IX
+- Distillate of Clarity VI
+- Distillate of Divine Healing I
+- Distillate of Divine Healing II
+- Distillate of Divine Healing III
+- Distillate of Divine Healing IV
+- Distillate of Divine Healing IX
+- Distillate of Divine Healing VI
+- Distillate of Replenishment I
+- Distillate of Replenishment II
+- Distillate of Replenishment III
+- Distillate of Replenishment IV
+- Distillate of Replenishment IX
+- Distillate of Replenishment VI
+- Distillate of Spirituality I
+- Distillate of Spirituality II
+- Distillate of Spirituality III
+- Distillate of Spirituality IV
+- Distillate of Spirituality IX
+- Distillate of Spirituality VI
+- Divine Endurance
+- Djinni Finger Ring
+- Djinni Stave
+- Djinni War Blade
+- Donlo's Dementia
+- Dove Slippers
+- Dragon Bone Bracelet
+- Dragoon Szorn
+- Drake Fang Amulet
+- Drake lava powder
+- Drake-Hide Amice
+- Drake-Hide Mask
 - Druid
+- Druid Enchanter Shadow Knight Guide
+- Druid Necromancer Shaman Guide
 - Druid Plane of Sky Tests
-- Elemental: Air
+- Duennan Shielding Ring
+- Dull Bone Chips
+- Dusty Old Finger Bones
+- Dyrna Nlith
+- Earring of Bashing
+- Earring of Displacement
+- Earthshaker
+- Earthshaker's Mantle
+- Ebon Dagger
+- Ebon Mask
+- Ebon Scythe
+- Ebon Shard
+- Ebonsting
+- Efreeti Battle Axe
+- Efreeti Great Staff
+- Efreeti Long Sword
+- Efreeti Lord Djarn
+- Efreeti Mace
+- Efreeti Standard
+- Efreeti Statuette
+- Efreeti War Axe
+- Efreeti War Bow
+- Efreeti War Club
+- Efreeti War Horn
+- Efreeti War Maul
+- Efreeti War Shield
+- Efreeti War Staff
+- Efreeti Wind Staff
+- Efreeti Zweihander
+- Ekeros
+- Elder Shaman's Ceremonial Bracelet
+- Elemental Binder
+- Elemental Grimoire
 - Elemental: Air Summon
-- Elemental: Earth
 - Elemental: Earth Summon
-- Elemental: Fire
 - Elemental: Fire Summon
-- Elemental: Water
 - Elemental: Water Summon
-- Elementaling: Air
 - Elementaling: Air Summon
-- Elementaling: Earth
 - Elementaling: Earth Summon
-- Elementaling: Fire
 - Elementaling: Fire Summon
-- Elementaling: Water
 - Elementaling: Water Summon
-- Elementalkin: Air
 - Elementalkin: Air Summon
-- Elementalkin: Earth
 - Elementalkin: Earth Summon
-- Elementalkin: Fire
 - Elementalkin: Fire Summon
-- Elementalkin: Water
 - Elementalkin: Water Summon
-- Elial Brook
+- Elixir of Clarity I
+- Elixir of Clarity II
+- Elixir of Clarity III
+- Elixir of Clarity IV
+- Elixir of Clarity IX
+- Elixir of Clarity VI
+- Elixir of Divine Endurance
+- Elixir of Healing I
+- Elixir of Healing II
+- Elixir of Healing III
+- Elixir of Healing IV
+- Elixir of Healing IX
+- Elixir of Healing VI
+- Elixir of Replenishment I
+- Elixir of Replenishment II
+- Elixir of Replenishment III
+- Elixir of Replenishment IV
+- Elixir of Replenishment IX
+- Elixir of Replenishment VI
+- Elixir of Speed I
+- Elixir of Speed II
+- Elixir of Speed III
+- Elixir of Speed IV
+- Elixir of Speed IX
+- Elixir of Speed VI
+- Elixir of Spiritualism I
+- Elixir of Spiritualism II
+- Elixir of Spiritualism III
+- Elixir of Spiritualism IV
+- Elixir of Spiritualism IX
+- Elixir of Spiritualism VI
+- Elle Leafdancer
+- Elven Charm Necklace
+- Elytan Rantas
+- Ember
+- Embroidered Black Cape
+- Emerald Ring
+- Emil Parsini
+- Emissary of Zebuxoruk
+- Empty Bottle of Elixir
+- Empty Box
+- Empyran Jerkin
+- Empyran jerkin
+- Enchanted Fine Steel Bastard Sword
+- Enchanted Fine Steel Morning Star
 - Enchanter
+- Enchanter Plane of Sky Tests
+- Enchanter Spells
+- Encyclopedia Necrotheurgia
+- Endure Cold
+- Endure Fire
+- Endure Magic
+- Enduring Breath
+- Engagement Ring
+- Engineer's Ring
+- Enynti
+- Epicurean halfling
+- Equestrielle the Corrupted
+- Equestrielle's Eye
+- Erud's Tonic Quest
+- Erudite Prisoners
+- Ervaj's Flute of Flight
+- Espri
+- Essence of Barbarian (Wormwood)
+- Essence of Dark Elf (Wormwood)
+- Essence of Dwarf (Wormwood)
+- Essence of Earth
+- Essence of Erudite (Wormwood)
+- Essence of Fire
+- Essence of Froglok
+- Essence of Gnome (Wormwood)
+- Essence of Gukta (Wormwood)
+- Essence of Half Elf (Wormwood)
+- Essence of Halfling (Wormwood)
+- Essence of High Elf (Wormwood)
+- Essence of Human (Wormwood)
+- Essence of Ogre (Wormwood)
+- Essence of Rathe
+- Essence of Troll (Wormwood)
+- Essence of Wood Elf (Wormwood)
+- Essence of wind
 - Est Treewalker
-- Greater Conjuration: Air
+- Ethereal Emerald
+- Ethereal Mist Armor
+- Ethereal Mist Boots
+- Ethereal Mist Bracers
+- Ethereal Mist Chestplate
+- Ethereal Mist Gauntlets
+- Ethereal Mist Greaves
+- Ethereal Mist Helm
+- Ethereal Mist Vambraces
+- Ethereal Ruby
+- Ethereal Sapphire
+- Everfrost Trout
+- Evil Research
+- Exaltations
+- Exotic Drinks
+- Fabian's Strings
+- Fae Amulet
+- Fairy-Hide Mantle
+- Familiar Ring
+- Fangol
+- Feathered Cape
+- Feir`Dal Fletching Kit
+- Feir`Dal Forge
+- Feraniel Leafsway
+- Festering Cloak
+- Fetid Essence
+- Fine Cloth Raiment
+- Fine Steel Long Sword
+- Fine Steel Rapier
+- Fine Steel Short Sword
+- Fine Steel Spear
+- Fine Steel Two Handed Sword
+- Fine Velvet Cloak
+- Fine Wool Cloak
+- Finely Crafted Amulet
+- Finely Woven Cloth Belt
+- Fire Beetle Eye
+- Fire Emerald Ring
+- Fire Giant Warrior
+- Fire Goblin Bartender
+- Fire Goblin Skin
+- Fire Opal
+- Firestrike
+- Firestrike (Effect)
+- Fishing Grubs
+- Fishmonger Jassa
+- Fistwraps of Raw Flesh
+- Flame Agate
+- Fleeting Memory
+- Fleeting Quiver Pattern
+- Fleshless Skull
+- Founy Jestands
+- Freeport
+- Frenway Marthank
+- Frenzied Spirit Summon
+- Frenzy
+- Froglok
+- Frostbite's Fish
+- Frosty Cave Trout
+- Full Bottle of Elixir
+- Full Heal
+- Game Mechanics
+- Garduk
+- Gargoyle Grips
+- Gate
+- Gate Callers
+- Gate Potion
+- Gaz Commander Faltip
+- Gem of Invigoration
+- Gerb Jinklebelly
+- Gerti Blossom
+- Get a Super-Early Trueshot Longbow
+- Gharin's Note (evil)
+- Gharin's Note (good)
+- Giant Black Drum
+- Giant Green Drum
+- Giant Laceless Sandal
+- Giant Red Drum
+- Giant Wasp Wing
+- Giant White Drum
+- Gilded Mistmoore Visor
+- Gindlin Toxfodder
+- Girdle of Faith
+- Giz Dinree
+- Gladius
+- Globe of Fear
+- Globe of Mist
+- Glowing Necklace
+- Glowing Pauldrons
+- Glowing Sword Hilt
+- Gnoll Bounty
+- Gnome Tinkered Toy
+- Goblin Caster Necklace
+- Goblin Janitor
+- Gold White Pendant
+- Golden Black Sapphire Earring
+- Golden Efreeti Boots
+- Golden Efreeti Bracers
+- Golden Efreeti Chestplate
+- Golden Efreeti Greaves
+- Golden Efreeti Ring
+- Golden Efreeti Turban
+- Golden Efreeti Vambraces
+- Golden Hilt
+- Golden Sash of Tranquility
+- Gorgalosk
+- Gorged Ravener
+- Gorgon Head
+- Gorgon Head Staff
+- Gossamer Sleeves
+- Grandmaster R`Tal
+- Grave Mold
 - Greater Conjuration: Air Summon
-- Greater Conjuration: Earth
 - Greater Conjuration: Earth Summon
-- Greater Conjuration: Fire
 - Greater Conjuration: Fire Summon
-- Greater Conjuration: Water
 - Greater Conjuration: Water Summon
-- Greater Summoning: Air
+- Greater Mystical Infusion
+- Greater Mystical Infusion (Spell)
 - Greater Summoning: Air Summon
-- Greater Summoning: Earth
 - Greater Summoning: Earth Summon
-- Greater Summoning: Fire
 - Greater Summoning: Fire Summon
-- Greater Summoning: Water
 - Greater Summoning: Water Summon
-- Guard Reskin
+- Green Drum
+- Green Heartwood Branch
+- Gren Frikniller
+- Gribnor the Small
+- Gribnor's Thug
+- Griff Candleflame
+- Griffenne Blood
+- Griffin-Hide Armguards
+- Griffon Talon
+- Griffon Talon Necklace
+- Griffon Wing Spaulders
+- Griffon Wing Spauldors
+- Griffon's Beak
+- Griffon-Hide Armguards
+- Grobb Merchants
+- Grow
+- Grub Locker
+- Grynnaf Einoom
+- Guard Allmayn
+- Guard Bixby
+- Guard Captain Latorl
+- Guard Ezrothe
+- Guard Gonin
+- Guard Jup
+- Guard Kyte
+- Guard Legver
+- Guard Lehlufa
+- Guard Lesunra
+- Guard Lomanres
+- Guard Meadom
+- Guard Mystan
+- Guard Perelin
+- Guard Pomnares
+- Guard Settine
+- Guard Shilster's Stout
+- Guard Urius
+- Guard Wisnyw
 - Guardian Spirit Summon
-- Hasten Bootstrutter and Brother Zephyl Cycle
-- Heretic Battle
-- Kobold Molars (Evil)
-- Kobold Molars (Good)
-- Large Block of Clay
+- Guild Summons - Cathedral of Fortitude
+- Guja Master Therik
+- Half Elf Meat
+- Hall of the Ebon Mask
+- Hammerhead Helm
+- Hardened Bark Breastplate
+- Hate Crystal
+- Haunting Corpse Summon
+- Hawk's Eye Tonic
+- Hawks Eye Tonic
+- Hazy Opal
+- Headsplitter
+- Healing Potion I
+- Healing Potion II
+- Healing Potion III
+- Healing Potion IV
+- Healing Potion IX
+- Healing Potion VI
+- Heat Awareness I
+- Heat Awareness I (Spell)
+- Heat Awareness II
+- Heat Awareness II (Spell)
+- Heat Awareness III
+- Heat Awareness III (Spell)
+- Heat Awareness IV
+- Heat Awareness IV (Spell)
+- Hendricks
+- Heretic's Toy
+- Heritage of Mistmoore
+- High Council of Erudin
+- High Priest M`kari
+- High Priest Zaharn
+- High Quality Bear Skin
+- High Quality Raiment
+- Hill Giant Toes
+- Hilt of the Nobleman
+- Holy Dirt of Brell
+- Honey Jum Quest
+- Honey Mead for Trumpy
+- Honeycomb Belt
+- Hp to Mana
+- Ice Giant Toes
+- Ice Goblin Necklaces
+- Ice goblin caster
+- Ichor
+- Icon List
+- Idol of the Underking
+- Ilanic`s skeleton
+- Ilanics Skeleton
+- Illegible Scrolls (Felwithe)
+- Illusion: Barbarian
+- Illusion: Dark Elf
+- Illusion: Dwarf
+- Illusion: Erudite
+- Illusion: Froglok
+- Illusion: Gnome
+- Illusion: Guktan
+- Illusion: Half-Elf
+- Illusion: Halfling
+- Illusion: High Elf
+- Illusion: Human
+- Illusion: Ogre
+- Illusion: Troll
+- Illusion: Wood Elf
+- Imbrued Armor
+- Imbrued Platemail Boots
+- Imbrued Platemail Bracer
+- Imbrued Platemail Breastplate
+- Imbrued Platemail Gauntlets
+- Imbrued Platemail Greaves
+- Imbrued Platemail Helm
+- Imbrued Platemail Vambraces
+- Imbued Emerald
+- Imbued Emerald Shards
+- Imbued Ogre War Bracer (Cazic Thule)
+- Imbued Ogre War Bracer (Rallos Zek)
+- Improved Vampirism II
+- Improved Vampirism III
+- Indicolite Armor
+- Indicolite Boots
+- Indicolite Bracer
+- Indicolite Breastplate
+- Indicolite Gauntlets
+- Indicolite Greaves
+- Indicolite Helm
+- Indicolite Vambraces
+- Inert Potion Quest
+- Inferno Shock
+- Initiate Symbol of Bertoxxulous
+- Initiate Symbol of Innoruuk
+- Initiate Symbol of Tunare
+- Inkeeper Freegraze
+- Inlaid Choker
+- Innkeep Danin
+- Innkeep Larya
+- Innkeep Linen
+- Innkeep Wuleran
+- Innoruuk (God)
+- Innoruuk Symbol Quests
+- Innoruuk's Chosen
+- Insidious Armor
+- Insidious Gloves
+- Insidious Halo
+- Insidious Manacle
+- Insidious Pantaloons
+- Insidious Robe
+- Insidious Sleeves
+- Insidious Slippers
+- Inte Akera
+- Invisibility versus Undead
+- Invoke Death Summon
+- Invoke Shadow Summon
+- Ipsor's Enlightenment IV
+- Iron Visor
+- Item Upgrade System
+- Ivan McMannus' Remains
+- Ivory
+- Ivory Bracelet
+- Ivory Mask
+- Ivory Sky Diamond
+- Jack-O-Lantern Fungus
+- Jade
+- Jaded Platinum Ring
+- Jaggedpine Forest
+- Janam Rekish
+- Jarah Reskan
+- Jester's Mask
+- Jewelcrafting
+- Joana Jinklebelly
+- Jogl Doobraugh
+- Jonthan's Provocation
+- Joren Nobleheart
+- Josin Faithbringer
+- Jras Solsier
+- Juli's Animation Summon
+- Karana Clovers
+- Kedge Keep
+- Keeper of Souls
+- Keldyn's Tongue
+- Kelynn
+- Kerran `amir
+- Kerran tiger spahi
+- Key Compendium
+- Key of Beasts
+- Key of Scale
+- Key of the Swarm
+- Khrix Abomination
+- Khrix Fritchoff
+- Khyldorn the Blood Drinker
+- Kilan's Animation Summon
+- Kilij's Plans
+- Kindl Lunsight
+- Kindle
+- King Xorbb
+- King Xorbb (Faction)
+- Kinool Goldsinger
+- Kintaz's Animation Summon
+- Kirran Mirrah
+- Klok Esrek
+- Klok Nylsi
+- Kobold Killing
+- Kobold Shaman Paws
+- Konem Matse
+- Kroldir Thunderhoof
+- Krystal Aspen
+- Kurrpok Splitpaw
+- Laceration
+- Lady Vox
+- Langseax Quest
+- Large Banded Armor Set
+- Large Banded Belt
+- Large Banded Boots
+- Large Banded Bracer
+- Large Banded Cloak
+- Large Banded Gauntlets
+- Large Banded Gorget
+- Large Banded Helm
+- Large Banded Leggings
+- Large Banded Mail
+- Large Banded Mantle
+- Large Banded Mask
+- Large Banded Sleeves
+- Large Black Drum
+- Large Brick of High Quality Ore
+- Large Green Drum
+- Large Opal
+- Large Red Drum
+- Large Sewing Kit
+- Large Sky Diamond
+- Large Sky Lapis
+- Large Sky Pearl
+- Large Sky Sapphire
+- Large White Drum
+- Large Yellowjacket Tarsus
+- Larik Z`Vole
+- LarkTwitter Bow
+- Lasna Cheroon
+- Leather Cord
+- Leatherfoot Raider Skullcap (drop)
 - Leering Corpse Summon
-- Lesser Conjuration: Air
+- Left Goblin Ears
+- Lenka's Pouch
+- Leopard Skin
 - Lesser Conjuration: Air Summon
-- Lesser Conjuration: Earth
 - Lesser Conjuration: Earth Summon
-- Lesser Conjuration: Fire
 - Lesser Conjuration: Fire Summon
-- Lesser Conjuration: Water
 - Lesser Conjuration: Water Summon
-- Lesser Summoning: Air
 - Lesser Summoning: Air Summon
-- Lesser Summoning: Earth
 - Lesser Summoning: Earth Summon
-- Lesser Summoning: Fire
 - Lesser Summoning: Fire Summon
-- Lesser Summoning: Water
 - Lesser Summoning: Water Summon
-- Lord Bergurgle
+- Levity
+- Librarian Kesler
+- Library assistant
+- Lieutenant Dagarok
+- Lifebite
+- Light Cloth Mantle
+- Light Damask Mantle
+- Light Woolen Mantle
+- Light Woolen Mask
+- Lightning Rod
+- Linadian
+- Linara Parlone
+- Linux Setup Guide
+- Lion Meat Shipment Quest
+- Living Heart of a Brell Minion
+- Lixt Wing Stalk
+- Lizard Meat No 2
+- Lizard Meat Quest
+- Lizard Tail
+- Lizard Tails
+- Lizard Tails No 2
+- Lizardman Fang
+- Lizardscale Cloak
+- Loam Encrusted Gloves
+- Locked Chest
+- Lord Bergurgle's Crown
+- Lord Gimblox
+- Lord Gimblox's Signet Ring
+- Lord Gongo
+- Lord Grimrot
+- Lord Grimrot (undead)
+- Lord Nagafen
+- Lord Pickclaw
+- Lord Soptyvr
+- Lord Sviir
+- Lord Syrkl
+- Lord of Ire
+- Lord of Loathing
+- Low Quality Bear Skin
+- Lower Guk
+- Lumi Stergnon
+- Lustrous Russet Armor
+- Lustrous Russet Boots
+- Lustrous Russet Bracer
+- Lustrous Russet Breastplate
+- Lustrous Russet Gauntlets
+- Lustrous Russet Greaves
+- Lustrous Russet Helm
+- Lustrous Russet Vambraces
+- Lute of the Gypsy Princess
+- Luxio Nulsis
+- Lyda Nasin
+- Lynada the Exiled
+- Maestro of Rancor
+- Magi P'Tasa
+- Magi P`Tasa
+- Magic Awareness I
+- Magic Awareness I (Spell)
+- Magic Awareness II
+- Magic Awareness II (Spell)
+- Magic Awareness III
+- Magic Awareness III (Spell)
+- Magic Awareness IV
+- Magic Awareness IV (Spell)
+- Magic Elixir for the Warriors
+- Magician
 - Magician Plane of Sky Tests
-- Merchant Lyssia
-- Merchants of AkAnon
-- Minor Conjuration: Air
-- Minor Conjuration: Earth
+- Magician-Ranger-Shaman
+- Magus Rokyl
+- Maid Issis
+- Maid's Stockings
+- Main Page
+- Malignant Dead Summon
+- Mammoth Calf Hide
+- Mammoth Calf Hides
+- Mana to Hp
+- Mandrake Root
+- Mane Attraction
+- Manipulator Chasartiz
+- Mantle of Woven Grass
+- Mantle of the Songweaver
+- Marketplace
+- Marza T`Kix
+- Mask of Empowerment
+- Mask of Song
+- Master Scribe Uklo
+- Master Yael
+- Master of Spite
+- Maugarim
+- Mechanized Lockpicks
+- Meldrath The Malignant
+- Merchant Aianya
+- Merchant Aildien
+- Merchant Aluuvila
+- Merchant Gaeadin
+- Merchant Gerienae
+- Merchant Gililya
+- Merchant Iludarae
+- Merchant Irontree
+- Merchant Kaeluase
+- Merchant Kanoldar
+- Merchant Kwein
+- Merchant Laedar
+- Merchant Lanin
+- Merchant Linolyen
+- Merchant Milania
+- Merchant Minamas
+- Merchant Muvien
+- Merchant Neaien
+- Merchant Nildar
+- Merchant Niwiny
+- Merchant Nluolian
+- Merchant Silspin
+- Merchant Silverkale
+- Merchant Sorintal
+- Merchant Tearlan
+- Merchant Tenra
+- Merchant Tiladinya
+- Merchant Tilluen
+- Merchant Tissan
+- Merchant Tuluvdar
+- Merchant Tyslin (South Felwithe)
+- Merchant Ueaas
+- Merchant Weaolanae
+- Merchant Winerasea
+- Merchant Yisasan
+- Merchants of Erudin
+- Merdan Fleetfoot
+- Midnight Clad Armbands
+- Midnight Clad Armor
+- Midnight Clad Fistwraps
+- Midnight Clad Footwraps
+- Midnight Clad Headband
+- Midnight Clad Leggings
+- Midnight Clad Straps
+- Midnight Clad Wristbands
+- Midnight Mallet
+- Militia Crate
+- Militia Seals
+- Miner's Cap
+- Minor Conjuration: Air Summon
 - Minor Conjuration: Earth Summon
-- Minor Conjuration: Fire
-- Minor Conjuration: Water
+- Minor Conjuration: Fire Summon
 - Minor Conjuration: Water Summon
-- Minor Summoning: Air
 - Minor Summoning: Air Summon
-- Minor Summoning: Earth
 - Minor Summoning: Earth Summon
-- Minor Summoning: Fire
 - Minor Summoning: Fire Summon
-- Minor Summoning: Water
 - Minor Summoning: Water Summon
-- Monster Summoning II
+- Mircyl's Animation Summon
+- Mistmoore Battle Drums
+- Mistmoore Castle
+- Mistmoore Heirloom Ring
+- Mistress of Scorn
+- Misty Thicket
+- Mithril Arrow Heads
+- Mithril Bands
+- Mithril Bundled Arrow Shafts
+- Mithril Champion Arrows
+- Mithril Earring
+- Mithril Fletchings
+- Mithril Greaves
+- Mithril Vambraces
+- Mithril Working Knife
+- Mixing Bowl
+- Mixxy's Delicacies Vol 1
+- Molten Coil
+- Molten Ring
+- Monk Plane of Sky Tests
+- Monk Sash Quests
+- Monks of The Whistling Fist
+- Moonstone
+- Moosh
+- Mooto
+- More Help for Innoruuk
+- Moss Snakes
+- Mote Guide
+- Mote of Ascendant Potential
+- Mote of Grand Potential
+- Mote of Greater Potential
+- Mote of Infinite Potential
+- Mote of Infinitesimal Potential
+- Mote of Lesser Potential
+- Mote of Major Potential
+- Mote of Minor Potential
+- Mote of Potential
+- Mote of Superior Potential
+- Muddy Trinket
+- Mudman Enforcer
+- Muffin Quests
+- Mugwart
+- Mystical Back Straps
+- Mystical Infusion
+- Mystical Infusion (Spell)
+- Nagafen's Lair
+- Najena
+- Najena (NPC)
+- Nargon's Staff
+- Nature Walker's Mantle
+- Nautilus Shield
+- Nebulous Diamond
+- Nebulous Sapphire
+- Necklace of Resolution
+- Necklace of Whispering Winds
+- Necromancer
+- Necromancer Plane of Sky Tests
+- Neriak - Commons
+- Neriak - Foreign Quarter
+- Neriak - Third Gate
+- Nestess Branchtop
+- Nestral TGaza
+- Netted Kelp Armor
+- News
+- Niera Farbreeze
+- Nillipuss the Brownie
+- Niltoth the Unholy
+- Noble Dojorn
+- Nullify Magic
+- Nyuae the Cruel
+- Oakmoss
+- Oathbreaker's Curse
+- Obsidian Shard (Sky)
+- Obtenebrate Mithril Guard
+- Odus Pearls
+- Ogre Meat
+- Old Dimshimmer
+- One Half of Elixir
+- One Quarter of Elixir
+- Opal Bracelet
+- Opal Leganyn
+- Oracle of K`Arnon
+- Orc Apprentice
+- Orc Belts
+- Orc Pawn (Deathfist)
+- Orc Picks
+- Orc Runner (Felwithe)
+- Orc Vest
+- Osisa Goldenspear
+- Overlord Virate Manaar
+- Overseer Rael
+- Paineel Plate Gauntlets
+- Paineel Platemail Helm
+- Paineel Splinted Cloak
+- Paineel Steel Bracers
+- Paineel Steel Plate Boots
+- Paladin
+- Paladin Message
 - Paladin Plane of Sky Tests
+- Paladins of Underfoot
+- Parcels Merchant
+- Parn Gylwyn
+- Patch Notes
+- Pauldrons of Piety
+- Pauldrons of the Blue Sky
+- Paw of Opolla Quest
+- Peacekeeper Staff Quest
+- Pearl
+- Pearlescent Pauldrons
+- Pegasus-Hide Belt
+- Pendril's Animation Summon
+- Permafrost
+- Permafrost Keep
+- Personal Instance
+- Pestilence Scythe
 - Pet Guide
+- Phinigel Autropos
+- Phoboplasm
+- Phosphorous Powder
+- Phosphorous Powder for Zok Zribb
+- Pickclaw Goblins
+- Pickled Frogloks
+- Pirate's Earring
+- Pirate's Seal
+- Plains Roots
+- Plane of Fear
+- Plane of Hate
 - Plane of Sky
-- Porra
-- Potential of the Void
+- Platinum Bar
+- Players:Planar Gear
+- Players:Pre Planar Gear
+- Poacher
+- Poacher's Head Quest (Erudin)
+- Poacher's Head Quest (Surefall Glade)
+- Poison Awareness I
+- Poison Awareness I (Spell)
+- Poison Awareness II
+- Poison Awareness II (Spell)
+- Poison Awareness III
+- Poison Awareness III (Spell)
+- Poison Awareness IV
+- Poison Awareness IV (Spell)
+- Poison Cures
+- Poison Making
+- Polished Brass Key
+- Potion Skin of Ro
+- Potion of Charming Deceit
+- Potion of Copal's Demis
+- Potion of Copal's Demise
+- Potion of Fleeting Languor
+- Potion of Frosty Insurgency
+- Potion of Gnomish Boils
+- Potion of Gorging Toxin
+- Potion of Gulon's Impunity
+- Potion of Hathcoat's Spirit
+- Potion of Mystical Aptitude
+- Potion of Poison Warding
+- Potion of Prince's Root
+- Potion of Shumar's Breath
+- Potion of Vampiric Spirit
+- Potion of Vox's Vitality
+- Potion of Wolves Blood
+- Potion of Wrackbane
+- Pouch of Gold Dust
+- Preserved Hops
+- Prickly Pear
+- Priestess Llandra
+- Priests of Mischief
+- Primal Essence
+- Princess Cherista
+- Princess Lenya (Quest)
+- Pristine Bull Alligator Hide
+- Pristine Studded Leather Boots
+- Pristine Studded Leather Bracer
+- Pristine Studded Leather Leggings
+- Pristine Studded Leather Sleeves
+- Pristine Studded Leather Tunic
+- Protector of Sky
+- Protectors of Gukta
+- Pub Pants
+- Pugius
+- Pulsating Ruby
+- Qaelin Hailstorm
+- Quana Rainsparkle
+- Quiss Stormseeker
+- Raiment of Thunder
+- Rain Caller
+- Rain Caller Quest
+- Rain of Karana
+- Ran Walker
+- Ranger
+- Ranger Arrow Upgrade Chart
 - Ranger Plane of Sky Tests
-- Recharge Prayer Beads
+- Rat Eye
+- Rat Patrol
+- Rathe Mountains
+- Rathyl
+- Rathyl reincarnate
+- Ravenscale Bracer
+- Raw-hide Skullcap
+- Raw-hide Sleeves
+- Razing Sword of Skarlon
+- Recommended Levels and ZEM List
+- Reconstitution
+- Red Dragon Scales
+- Red Dragonscale Armor Quest
+- Red Drum
+- Red V Clockwork
+- Reff Truewood
+- Refugee Splitpaw
+- Refugee Splitpaw (Monk)
+- Regal Band of Bathezid
+- Regent Symbol of Innoruuk
+- Remove Curse
+- Renard's Belt of Quickness
+- Renouncing Your Faith
+- Repurposed Pickaxe
+- Research
+- Reserve Militia
+- Resist Gear
+- Restless Bones Summon
+- Retlon Brenclog
+- Retseth Tretse
+- Rheumguls
+- Rhodium Band
+- Rile's Sand Coin
+- Ring of Veeshan
+- Ringmail Boots
+- Ringmail Bracelet
+- Ringmail Coat
+- Ringmail Coif
+- Ringmail Gloves
+- Ringmail Mantle
+- Ringmail Neckguard
+- Ro's Fiery Sundering
+- Robe of the Elements Quest
+- Rod of Infinite Thought
+- Rod of Understanding
+- Rod of Warding Winds
+- Rogue
 - Rogue Plane of Sky Tests
+- Rotted Chestwraps
+- Rotted Griffon-Hide Wrist Guard
+- Rotting Faydark Mask
+- Royal Guard Lilkus
+- Royal Guard Sheltuin
+- Ruathey
 - Rubicite Armor Set
-- Selo's Accelerando
+- Rubicite Boots
+- Rubicite Bracers
+- Rubicite Vambraces
+- Ruined Bear Pelt
+- Ruined Scaled Armor
+- Rune Etched Armor
+- Rune Etched Boots
+- Rune Etched Bracer
+- Rune Etched Chestplate
+- Rune Etched Gauntlets
+- Rune Etched Greaves
+- Rune Etched Helm
+- Rune Etched Vambraces
+- Rune of Fortune
+- Runed Bolster Belt
+- Runed Wind Amulet
+- Runescale Cloak Quest
+- Runewood Shield
+- Runnyeye
+- Russet Oxide
+- Rusted Pauldrons
+- Rusty Long Sword
+- Sagar's Animation Summon
+- Sandals of Alacrity
+- Sands of Ro
+- Sarcoscypha Fungus
+- Sash of Ferocity
+- Savant's Cap
+- Scalp of the Ghoul Lord
+- Scaredy Cap
+- Scout Malom
+- Scouts Cape Quest
+- Scuffed Silver Key
+- Seleni Treekeeper
+- Seloris Windweaver
+- Sentient Armor
+- Sentinel Drom
+- Seren the Swift
+- Series C Black Boxes
+- Serpent Sight
+- Serri Moonwatcher
+- Sethena
+- Sewer Catfish
+- Sha's Lethargy
+- Shadewood Bowstave
+- Shadow Knight
 - Shadow Knight Plane of Sky Tests
-- Sisna's Animation
-- Skill Wild Rampage
-- Small Block of Clay
-- Small Brick of High Quality Ore
-- Solusek's Flower
-- SoulFire
+- Shadow Rage Armor
+- Shadow Rage Boots
+- Shadow Rage Gloves
+- Shadow Rage Helm
+- Shadow Rage Leggings
+- Shadow Rage Sleeves
+- Shadow Rage Tunic
+- Shadow Rage Wristguard
+- Shadowed Ball
+- Shadowed Book
+- Shadowed Code Book
+- Shadowknights of Night Keep
+- Shalee's Animation Summon
+- Shaman
+- Shaman Plane of Sky Tests
+- Sharkbone Warhammer
+- Sharpening Stone
+- Shattered Caster Beads
+- Shawl of Less-Than Invisibility
+- Shield of the Stalwart Seas
+- Shillelagh
+- Shimmering Bracer of Protection
+- Shimmering Ruby Stiletto
+- Shintar Vinlail
+- Shiny Pauldrons
+- Shiny Robe of the Underfoot Quest
+- Shiverback-hide Armbands
+- Shiverback-hide Armor
+- Shiverback-hide Boots
+- Shiverback-hide Gloves
+- Shiverback-hide Jerkin
+- Shiverback-hide Leggings
+- Shiverback-hide Wristbands
+- Shondo and the Tonic
+- Shovel Of Ponz Quest
+- Shovel of Ponz
+- Shrieking Ahlspiess
+- Shroud of the Sky
+- Shuriken of the Tranquil
+- Silken Strands
+- Silken Wrap
+- Silver Amulet
+- Silver Bracelet
+- Silver Hoop
+- Silvered Spiroc Necklace
+- Silvery Ring
+- Singe
+- Sir Lindeal
+- Sisna's Animation Summon
+- Sister of the Spire
+- Sivina Lutewhisper
+- Skeletal Rod
+- Skeleton Killing
+- Skill Alchemy
+- Skill Alteration
+- Skill Blacksmithing
+- Skill Block
+- Skill Brewing
+- Skill Dual Wield
+- Skill Fishing
+- Skill Fletching
+- Skill Forage
+- Skill Monk Strike
+- Skill Pick Lock
+- Skill Pottery
+- Skill Riposte
+- Skill Sense Heading
+- Skill Specialization
+- Skill Tailoring
+- Skinned Halfling Face Mask
+- Skipynn Stoneshear
+- Skunk Scent Gland (Quest)
+- Sky Emerald
+- Skycleaver
+- Slansin
+- Slime Blood of Cazic Thule
+- Slime Blood of Cazic-Thule
+- Slizik the Mighty
+- Sludge Dankmire
+- Small Banded Armor Set
+- Small Banded Belt
+- Small Banded Boots
+- Small Banded Bracer
+- Small Banded Cloak
+- Small Banded Gauntlets
+- Small Banded Gorget
+- Small Banded Helm
+- Small Banded Leggings
+- Small Banded Mail
+- Small Banded Mantle
+- Small Banded Mask
+- Small Banded Sleeves
+- Small Black Drum
+- Small Brick of Mithril
+- Small Green Drum
+- Small Piece of Ore
+- Small Red Drum
+- Small Shield
+- Small Stone Key
+- Small Vial
+- Small White Drum
+- Smith Tv`ysa
+- Snake Fang
+- Snakes Head Iris
+- Socho Darkpaw
+- Soft Leather Shoes
+- Soiled Evoker's Robe
+- Soldier's Brooch Quest
+- Soldier's Brooch of the Arcane
+- Soldier's Brooch of the Corrupt
+- Soldier's Brooch of the Darkened
+- Soldier's Brooch of the Robust
+- Soldier's Brooch of the Spirited
+- Soldier's Brooch of the Stalwart
+- Soldier's Brooch of the Stealthy
+- Soldier's Brooch of the Virtuous
+- Solidate Mithril Ring
+- Songbird Statuette
+- Songweaver's Mantle
+- Sonic bat
+- Spear of Harmony
+- Specter Lifetap
+- Speed of the Shissar
+- Spell Research Materials
+- Spell Upgrade System
+- SpellLevelSliderOverrides
+- Spelunker's Headlamp
+- Sphinx Claw
+- Sphinx Eye Amulet
+- Sphinx Eye Opal
+- Sphinx Hair Cord
+- Sphinx Heart Amulet
+- Sphinx-Hide Mantle
+- Sphinxian Circlet
+- Spider Silk
+- Spider Venom
+- Spiderling Eye
+- Spiderling Legs
+- Spiky Splintmail
+- Spirit Render
 - Spirit of Herikol Summon
+- Spirit of Kashek Summon
+- Spirit of Keshuval Summon
 - Spirit of Khaliz Summon
 - Spirit of Sharik Summon
+- Spirit of Snake
 - Spirit of Yekan Summon
-- Stances & Invocations
-- Stein (of Water)
-- Summoning: Air
+- Spiroc Banisher Focus
+- Spiroc Battle Staff
+- Spiroc Beak Earcuff
+- Spiroc Elder's Totem
+- Spiroc Healer's Cloak
+- Spiroc Sky Totem
+- Spiroc Warhammer
+- Spiroc Wingblade
+- Splitpaw Commander
+- Splitpaw Lair
+- Srell Tumblebrook
+- Stable Hand Brack
+- Stablehand Fleeb
+- Staff of Elemental Mastery: Air
+- Staff of Elemental Mastery: Earth
+- Staff of Elemental Mastery: Fire
+- Staff of Elemental Mastery: Water
+- Staff of The Magister
+- Star Ruby Earring
+- Statistics
+- Steel Knuckles
+- Stein Of Ulissa Quest
+- Stein of Flowing Ichor
+- Stein of Ulissa
+- Stiletto of the Bloodclaw
+- Stone Amulet
+- Storm Sky Opal
+- Stormy
+- String Resonance 14
+- Studded Leather Collar
+- Stylla Parsini
+- Summon Dead Summon
+- Summon Drogmor
+- Summon Horse
 - Summoning: Air Summon
-- Summoning: Earth
 - Summoning: Earth Summon
-- Summoning: Fire
 - Summoning: Fire Summon
-- Summoning: Water
 - Summoning: Water Summon
+- Superb Lion Skin
+- Supplies for the New Sebilisian Expedition
+- Sven Felligan
+- Sweaty Shirt
+- Sweetened Mudroot
+- Swirling Mist
+- Sylvani Leaf
+- Symbol of Marr
+- Symbol of Pinzarn
+- Symbol of Veeshan
+- Tae Ew Diviner
+- Tae Ew Templar
+- Talionn Forsyth
+- Tam Slyspan
 - Tame Spirit Summon
-- Tesch Val Scrolls
-- The Clothspinner Sisters (good)
-- The Etched Stone (Spell: Life Leech)
+- Tan Chain Bridle
+- Tan Leather Bridle
+- Tan Rope Bridle
+- Tan Silken Bridle
+- Tarbul Earthstrider
+- Tarnished Ancient Tiara
+- Tarnished Warhammer
+- Tarton's Wheel
+- Tattered Gnomish Cloak
+- Tattered Toupee
+- Tear of Quellious
+- Tearon Bleanix
+- Teir`Dal Sai
+- Temple of Cazic-Thule
+- Tentacle Terror
+- Terren Starwatcher
+- Terri Woodshape
+- Terror Spines
+- Test Dummy
+- Test Page
+- The Bones of Darak Lightforge
+- The Bread Shipment (Kelethin)
+- The Broodling
+- The Castle of Mistmoore
+- The Eastern Plains of Karana
+- The End of an Age
+- The Estate of Unrest
+- The Falchion
+- The Fiery Avenger
+- The Frikniller Family
+- The Ghoul Lord
+- The Gnome Take
+- The Gorge of King Xorbb
+- The Greater Faydark
+- The Hand of Veeshan
+- The Hole
+- The Ishva Mal
+- The Lair of the Splitpaw
+- The Lavastorm Mountains
+- The Lesser Faydark
+- The Liberated Citadel of Runnyeye
+- The Lost Snake
+- The Luck of Ailix
+- The Luck of Allix
+- The Oasis of Marr
+- The Ocean of Tears
+- The Plane of Hate
+- The Plane of Sky
+- The Prophet
+- The Qeynos Aqueduct System
+- The Rathe Mountains
+- The Regurgitonic
+- The Rogue Take
+- The Ruins of Old Guk
+- The Ruins of Old Paineel
+- The Seax
+- The Southern Desert of Ro
+- The Sporali Moldmaster
+- The Steamfont Mountains
+- The Stonebrunt Mountains
+- The Summoning of Dread
+- The Sword of Nobility
+- The Telescope
+- The Temple of Solusek Ro
 - The Torrid Corruptor
-- Torn Page of Mastery Earth
-- Torn Page of Mastery Fire
-- Torn Page of Mastery Water
+- The froglok shin lord
+- Thelvorn, Blade of Light
+- Theologian Claymore
+- Theurgist's Star
+- Thex Dagger Quest
+- Thick Leather Apron
+- This Means Warrr
+- Thistle Underbrush
+- Thornstinger
+- Thorny Vine Armor
+- Thorny Vine Boots
+- Thorny Vine Bracer
+- Thorny Vine Chestplate
+- Thorny Vine Gauntlets
+- Thorny Vine Greaves
+- Thorny Vine Helm
+- Thorny Vine Vambraces
+- Throwing Boulder
+- Thunder Spirit Princess
+- Thunderforged Earring
+- Tier'Dal Arcane Insignia
+- Tier'Dal Priest Insignia
+- Tiger Skin
+- Timbur the Tiny
+- Titan Potion
+- Tlin Bowfright
+- Tome of Ages
+- Tome of Miragul
+- Tomer's Rescue
+- Ton Po's Eye Patch
+- Ton Po's Shoulder Wraps
+- Tonics for Groflah
+- Topaz
+- Torch Of Alna Quest
+- Torch of Alna
+- Torklar's Battle Hammer
 - Torn Page of Mastery Wind
-- Torrid Corruptor
+- Torn, Frost covered book
+- Torn, burnt book
+- TornEar Thumper
+- Totemic Armor Quests
+- Track, Stalk, Hunt
+- Trainer's Bauble
+- Training Dummy
+- Tran Lilspin
+- Translocators
+- Transparent Mask
+- Travel Guide
+- Treant Tear
+- Troll Basher Insignia
+- Troll Greenblood Insignia
+- Trueshot Longbow
+- Trueshot Longbow Quest
+- Truesight Hammer
+- Truewind Earring
+- Trumpy Irontoe
+- Trumpy Irontoe (NPC)
+- Truvinan
+- Tumpy Tonics
+- Tunare Symbol Quests
+- Tundra Jack
+- Turtle Skin
+- Turtle's Drink
+- Twisted Silver Torque
+- Tykar Renlin
+- Tyle Songwhisper
+- Tyrana Slil
+- Uleen's Animation Summon
+- Ultravision
+- Umbral Platemail
+- Umbral Platemail Boots
+- Umbral Platemail Bracer
+- Umbral Platemail Breastplate
+- Umbral Platemail Gauntlets
+- Umbral Platemail Greaves
+- Umbral Platemail Helm
+- Umbral Platemail Vambraces
+- Undead Froglok Tongue
+- Unfired Cake Round
+- Unfired Poison Vial
+- Unfired Small Bowl
+- Ungia
+- Unicorn Horn
+- Updated Zones
+- Vagrant's Tunic
+- Valaryn Elben
+- Valorium Armor
+- Valorium Boots
+- Valorium Bracers
+- Valorium Chestplate
+- Valorium Gauntlets
+- Valorium Greaves
+- Valorium Helmet
+- Valorium Vambraces
+- Vampire Dust
+- Vampire Teeth
+- Veeshan's Key
+- Veil of Silence
+- Velium Gemmed Rune
+- Vellera Wintergreen
 - VerifiedPages
+- Verishe Bracer of Dominance
+- Verishe Mal Greataxe
+- Vermiculated Armor
+- Vermiculated Armplates
+- Vermiculated Boots
+- Vermiculated Bracelet
+- Vermiculated Crown
+- Vermiculated Gloves
+- Vermiculated Leggings
+- Vermiculated Tunic
+- Vermilion Sky Ring
+- Vexia D`Ynth
+- Vexthorne
+- Vial of Swirling Smoke
+- Vigilant Spirit Summon
+- Vira
+- Visage of the Gargoyle
 - Void-Touched Potential
+- Wand of Conflagration
+- Wand of Swiftness
+- Warbone Chips
+- Warhammer of Divine Grace
+- Warhammer of the Wind
+- Warrior
 - Warrior Plane of Sky Tests
-- Whysia Flock
+- Water Flask
+- Webclaw Murkwave
+- Weeping Wand Quest
+- Weight of the Gods
+- Weight-reducing Bags
+- Weighted Gloves
+- Wellin Brookleap
+- Werebat Wing
+- What Happened Here?
+- Whimsy Larktwitter
+- Whirl Bolt
+- Whirlwind
+- White Chain Bridle
+- White Chocolate
+- White Dragon Hide
+- White Dragon Scales
+- White Dragonscale Cloak Quest
+- White Drum
+- White Leather Bridle
+- White Rope Bridle
+- White Satin Gloves
+- White Silken Bridle
+- Whitened Treant Fists
 - Wild Spirit Summon
-- Winds of Karana
+- Wiltin Windwalker
+- Wind Resonance 11
+- Wind Resonance 14
+- Wind Rune Azia
+- Wind Rune Beza
+- Wind Rune Caza
+- Wind Rune Dena
+- Wind Rune Ena
+- Wind Rune Fana
+- Wind Rune Geza
+- Wind Rune Heda
+- Wind Rune Izah
+- Wind Rune Jaka
+- Wind Rune Kala
+- Wind Rune Lena
+- Wind Rune Meda
+- Wind Rune Neza
+- Wind Rune Ozah
+- Wind Tablet
+- Wind Walker's Mantle
+- Windhowl
+- Windstriker
+- Wine Thief
+- Winter Chocolate
+- Wislen Mamluk's Catfish
+- Wispy Choker of Vigor
+- Withered Leather Belt
+- Withered Leather Boots
+- Withered Leather Cloak
+- Withered Leather Gloves
+- Withered Leather Gorget
+- Withered Leather Leggings
+- Withered Leather Mask
+- Withered Leather Shoulderpads
+- Withered Leather Skullcap
+- Withered Leather Sleeves
+- Withered Leather Tunic
+- Withered Leather Wristbands
+- Wizard
 - Wizard Plane of Sky Tests
-- Xista Finder
+- Words of Darkness Quest
+- Worn Leather Mask
+- Woven Shadow Armor
+- Woven Shadow Boots
+- Woven Shadow Bracer
+- Woven Shadow Chestplate
+- Woven Shadow Gauntlets
+- Woven Shadow Greaves
+- Woven Shadow Helm
+- Woven Shadow Vambraces
+- Woven Skull Cap
+- Wraith of a Shissir
+- Wu's Fighting Armor Set
+- Wu's Tranquil Fist
+- Xelha's Cyclops Eye
+- Xicotl
+- Xylania Rainsparkle
+- Yannikil
+- Yegoreff's Animation Summon
+- Ysgaril Root
+- Yuio's Illness
+- Yun Assistant Maldock
+- Zanotix Ixtaz
 - Zimel's Blades (SoulFire)
+- Zok Zribb
+- Zombie Skin
+- Zombie of an Unrest Noble
+- Zraxthril Forged Flamberge

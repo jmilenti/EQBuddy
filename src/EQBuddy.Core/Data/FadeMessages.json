@@ -167,6 +167,7 @@
       "Illusion: Earth Elemental",
       "Illusion: Erudite",
       "Illusion: Fire Elemental",
+      "Illusion: Froglok",
       "Illusion: Gnome",
       "Illusion: Half Elf",
       "Illusion: Halfling",
@@ -276,6 +277,12 @@
       "Chloroplast",
       "Regrowth",
       "Extended Regeneration",
+      "Elixir of Replenishment I",
+      "Elixir of Replenishment II",
+      "Elixir of Replenishment III",
+      "Elixir of Replenishment IV",
+      "Elixir of Replenishment IX",
+      "Elixir of Replenishment VI",
       "Pack Chloroplast",
       "Pack Regeneration",
       "Regrowth of the Grove",
@@ -429,7 +436,8 @@
     "spells": [
       "Levitate",
       "Levitation",
-      "Dead Man Floating"
+      "Dead Man Floating",
+      "Levity"
     ],
     "label": "Levitate",
     "category": "Movement",
@@ -924,6 +932,21 @@
     "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
   },
   {
+    "message": "The aura of spiritualism fades.",
+    "spells": [
+      "Elixir of Spiritualism I",
+      "Elixir of Spiritualism II",
+      "Elixir of Spiritualism III",
+      "Elixir of Spiritualism IV",
+      "Elixir of Spiritualism IX",
+      "Elixir of Spiritualism VI"
+    ],
+    "label": "Elixir of Spiritualism",
+    "category": "Buff",
+    "confidence": "wiki",
+    "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
+  },
+  {
     "message": "The Avatar departs.",
     "spells": [
       "Avatar",
@@ -941,6 +964,39 @@
     ],
     "label": "Hawk Eye",
     "category": "Buff",
+    "confidence": "wiki",
+    "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
+  },
+  {
+    "message": "The awareness fades.",
+    "spells": [
+      "Benefit Awareness I",
+      "Benefit Awareness II",
+      "Benefit Awareness III",
+      "Benefit Awareness IV",
+      "Cold Awareness I",
+      "Cold Awareness II",
+      "Cold Awareness III",
+      "Cold Awareness IV",
+      "Disease Awareness I",
+      "Disease Awareness II",
+      "Disease Awareness III",
+      "Disease Awareness IV",
+      "Heat Awareness I",
+      "Heat Awareness II",
+      "Heat Awareness III",
+      "Heat Awareness IV",
+      "Magic Awareness I",
+      "Magic Awareness II",
+      "Magic Awareness III",
+      "Magic Awareness IV",
+      "Poison Awareness I",
+      "Poison Awareness II",
+      "Poison Awareness III",
+      "Poison Awareness IV"
+    ],
+    "label": "The awareness fades",
+    "category": "Other",
     "confidence": "wiki",
     "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
   },
@@ -1206,6 +1262,21 @@
     "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
   },
   {
+    "message": "The clarity of mind fades.",
+    "spells": [
+      "Elixir of Clarity I",
+      "Elixir of Clarity II",
+      "Elixir of Clarity III",
+      "Elixir of Clarity IV",
+      "Elixir of Clarity IX",
+      "Elixir of Clarity VI"
+    ],
+    "label": "Elixir of Clarity",
+    "category": "Buff",
+    "confidence": "wiki",
+    "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
+  },
+  {
     "message": "The cloud departs.",
     "spells": [
       "mind cloud"
@@ -1273,6 +1344,21 @@
     ],
     "label": "Elemental Maelstrom",
     "category": "Debuff",
+    "confidence": "wiki",
+    "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
+  },
+  {
+    "message": "The elixir's effect fades.",
+    "spells": [
+      "Elixir of Healing I",
+      "Elixir of Healing II",
+      "Elixir of Healing III",
+      "Elixir of Healing IV",
+      "Elixir of Healing IX",
+      "Elixir of Healing VI"
+    ],
+    "label": "Elixir of Healing",
+    "category": "Buff",
     "confidence": "wiki",
     "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
   },
@@ -2085,6 +2171,21 @@
     "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
   },
   {
+    "message": "The speed fades.",
+    "spells": [
+      "Elixir of Speed I",
+      "Elixir of Speed II",
+      "Elixir of Speed III",
+      "Elixir of Speed IV",
+      "Elixir of Speed IX",
+      "Elixir of Speed VI"
+    ],
+    "label": "Elixir of Speed",
+    "category": "Buff",
+    "confidence": "wiki",
+    "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
+  },
+  {
     "message": "The spirit of Bih`Li leaves you.",
     "spells": [
       "Spirit of Bih`Li"
@@ -2302,7 +2403,7 @@
   {
     "message": "The wind fades.",
     "spells": [
-      "WhirlBolt",
+      "Whirl Bolt",
       "Whirlbolt",
       "Whirlwind"
     ],
@@ -2850,6 +2951,16 @@
     "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
   },
   {
+    "message": "You no longer feel amphibious.",
+    "spells": [
+      "Illusion: Guktan"
+    ],
+    "label": "Illusion: Guktan",
+    "category": "Buff",
+    "confidence": "wiki",
+    "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
+  },
+  {
     "message": "You no longer feel asinine.",
     "spells": [
       "Cassindra's Insipid Ditty"
@@ -3027,6 +3138,7 @@
     "message": "You return to normal height.",
     "spells": [
       "Ant Legs",
+      "Donlo's Dementia",
       "Grow",
       "Shrink",
       "Tiny Companion"
@@ -3189,6 +3301,16 @@
       "Aegolism"
     ],
     "label": "Aegolism",
+    "category": "Buff",
+    "confidence": "wiki",
+    "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
+  },
+  {
+    "message": "Your aim returns to normal.",
+    "spells": [
+      "Hawk's Eye Tonic"
+    ],
+    "label": "Hawk's Eye Tonic",
     "category": "Buff",
     "confidence": "wiki",
     "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
@@ -3862,6 +3984,17 @@
     "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
   },
   {
+    "message": "Your mind returns to normal.",
+    "spells": [
+      "Greater Mystical Infusion",
+      "Mystical Infusion"
+    ],
+    "label": "Your mind returns to normal",
+    "category": "Other",
+    "confidence": "wiki",
+    "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
+  },
+  {
     "message": "Your pact fades.",
     "spells": [
       "Shadowbond"
@@ -3968,6 +4101,16 @@
       "Resist Magic"
     ],
     "label": "Resist Magic",
+    "category": "Buff",
+    "confidence": "wiki",
+    "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
+  },
+  {
+    "message": "Your resistance fades.",
+    "spells": [
+      "Divine Endurance"
+    ],
+    "label": "Divine Endurance",
     "category": "Buff",
     "confidence": "wiki",
     "note": "msg_wears_off on the spell's eqlwiki page (fades-harvest.py)."
@@ -4112,7 +4255,7 @@
       "Improved Invisibility to Undead",
       "Invisibility Versus Undead",
       "Invisibility to Undead",
-      "Invisibility versus Undead",
+      "Invisibility vs. Undead",
       "Sunskin"
     ],
     "label": "Your skin stops tingling",

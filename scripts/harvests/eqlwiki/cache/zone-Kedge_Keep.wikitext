@@ -13,19 +13,16 @@ Kedge Keep is the ancient fortress of the Kedge, an aquatic race of beings whose
 |Cerulean, Cobalt, Crimson, Emerald, and Shimmering Sailfins, Lancer, Piercer, and Impaler Swordfish, Stingtooth, Stiletto Tooth Piranha, Stiletto Fang Piranha, Cauldron Sharks and Hammerheads, Spinereef, Squallsurge, Soothebrine, and Swirlspine Seahorse, Swirlspine Guardian, Gloomwater and Gloomstalker Mermaids, Aqua Goblin Prisoners
 |-
 ! ''' Notable NPCs: '''
-|'''[[Phinigel Autropos]]''', [[Cauldronboil]], [[Cauldronbubble]], [[Coralyn Kelpmaiden]], [[Estrella of Gloomwater]], [[Fierce Impaler]], [[a ferocious cauldron shark]], [[Frenzied Cauldron Shark]], [[Golden Haired Mermaid]], [[Stiletto Fang Piranha]], [[Seahorse Patriarch]], [[Seahorse Matriarch]], [[Shellara Ebbhunter]], [[Undertow]], [[Swirlspine Guardian]]
+|[[Cauldronboil]], [[Cauldronbubble]], [[Coralyn Kelpmaiden]], [[Estrella of Gloomwater]], [[Fierce Impaler]], [[a ferocious cauldron shark]], [[Frenzied Cauldron Shark]], [[Golden Haired Mermaid]], [[Stiletto Fang Piranha]], [[Seahorse Patriarch]], [[Seahorse Matriarch]], [[Shellara Ebbhunter]], [[Undertow]], [[Swirlspine Guardian]]
 |-
 ! ''' Unique Items: '''
-|{{:Abalone Gorget}}, {{:Blazing Wand}}, {{:Darksea Harpoon}}, {{:Driftwood Treasure Chest}}, {{:Gloomwater Arrow}}, {{:Gloomwater Harpoon}}, {{:Hammerhead Helm}}, {{:Kedgemail Gauntlets}}, {{:Lamentation Blade}}, {{:Lock of Hair}}, {{:Pearlescent Mask}}, {{:Prayer Shawl}}, {{:Rod of Drones}}, {{:Rod of Health}}, {{:Seahorse Scale Cloak}}, {{:Shark Tooth}}, {{:Sharkbone Warhammer}}, {{:Sharkjaw Cutlass}}, {{:Sharkskin Drum}}, {{:Shield of Prexus}}, {{:Squallsurge Shawl}}, {{:Swirlspine Belt}}, {{:Wand of Ice}}, {{:Wand of Shadow}}
+|{{:Abalone Gorget}}, {{:Blazing Wand}}, {{:Darksea Harpoon}}, {{:Driftwood Treasure Chest}}, {{:Gloomwater Arrow}}, {{:Gloomwater Harpoon}}, {{:Hammerhead Helm}}, {{:Kedgemail Gauntlets}}, {{:Lamentation Blade}}, {{:Lock of Hair}}, {{:Pearlescent Mask}}, {{:Prayer Shawl}}, {{:Rod of Drones}}, {{:Rod of Health}}, {{:Seahorse Scale Cloak}}, {{:Shark Skin}}, {{:Shark Tooth}}, {{:Sharkbone Warhammer}}, {{:Sharkjaw Cutlass}}, {{:Sharkskin Drum}}, {{:Shield of Prexus}}, {{:Squallsurge Shawl}}, {{:Swirlspine Belt}}, {{:Wand of Ice}}, {{:Wand of Shadow}}
 |-
 ! ''' Adjacent Zones: '''
 |[[Dagnor's Cauldron]]
 |-
 ! ''' Name in /who: '''
 |kedge
-|-
-! ''' Player Guides: '''
-| [[Astuce's Guide to Kedge Keep]] &nbsp; | [[Nashlyenin's ￼Druid Guide to Kedge Keep]] &nbsp; | [[Phreekitty's Ultimate Guide to Kedge Keep]]
 |-
 ! ''' [[Zone Spawn Timer]]: '''
 |22:00
@@ -66,7 +63,7 @@ Kedge Keep is the ancient fortress of the Kedge, an aquatic race of beings whose
 * 14. "Frenzied Room" with [[Frenzied Cauldron Shark]] who drops [[Shark Tooth]] (Common) and [[Abalone Gorget]] (Rare)
 * 15. "Patriarch's Room" with [[Seahorse Patriarch]] who drops [[Wand of Ice]] (Common) and [[Seahorse Scale Cloak]] (Rare)
 * 16. "Ferocious Room" with [[a ferocious hammerhead]] who drops [[Wand of Shadow]] (Common) and [[Driftwood Treasure Chest]] (Rare)
-* 17. Room with '''[[Phinigel Autropos]]''' who drops [[Blue Crystal Staff]] (Wizard Epic), [[Kedge Backbone]] (Bard Epic), [[Robe of the Kedge]] (Rogue Epic), [[Rod of Malisement]], [[Staff of Elemental Mastery: Water]] (Magician Epic), [[Trident of the Seven Seas]], [[Wand of Mana Tapping]], [[Fusible Coral Ore]]
+* 17. Room with '''[[Phinigel Autropos]]''' (Raid Instance Only)
 
 Not marked on map: 
 * In the room south of the "Patriarch's Room" there is a spawn point for the 'frenzied shark' which drops the [[Abalone Gorget]] just like [[a frenzied bull shark]]. It's placeholder can be a sailfin or a cauldron hammerhead. (Note - this is not the room with [[a ferocious hammerhead]] spawn).
@@ -81,11 +78,6 @@ Note: in the above map the lettered areas are shafts of water that extend in and
 [[File:Kedge_keep.gif|right|border]]
 '''3D View
 |}
-
-== Guides for this zone: ==
-
-* [[Astuce's Guide to Kedge Keep]]
-* [[Phreekitty's Ultimate Guide to Kedge Keep]]
 
 == Dangers ==
 
@@ -127,16 +119,16 @@ There is one way to get to Kedge Keep, and that is by swimming down through the 
 |valign="top"|
 {| class="zoneTopTable"
 ! ''' Level of Monsters: '''
-|TBD
+|49 - 53
 |-
 ! ''' Types of Monsters: '''
-|TBD
+|Seahorses
 |-
 ! ''' Raid Boss NPCs: '''
 |[[Phinigel Autropos]]
 |-
 | ''' Phinigel Autropos Drops '''
-|
+|{{:Blue Crystal Staff}}, {{:Kedge Backbone}}, {{:Robe of the Kedge}}, {{:Rod of Malisement}}, {{:Staff of Elemental Mastery: Water}}, {{:Trident of the Seven Seas}}, {{:Wand of Mana Tapping}}
 |}
 |}
 
@@ -146,16 +138,16 @@ There is one way to get to Kedge Keep, and that is by swimming down through the 
 |-
 |style="padding:10px;"|
 [[Image:Kedge_Keep_Raid.png|right|border]]
-'''Permafrost
-<ul><li> 1. 
-</li><li> 2. 
-</li><li> 3. 
+'''Kedge Keep
+<ul><li> 1. Voidling
+</li><li> 2. Phinigel Autropos
 |}
 
 == Solo vs. Multiplayer ==
 
 When creating the raid instance, players can choose between solo and multiplayer instances.  These instances share lockouts, so players cannot do both in the same week and receive full loot.
 
+Both instances are a single room, with four seahorse trash mobs and the boss.  The seahorses are in the north, south, east and west of the map, with the boss roaming below them.
 
 [[Category: Zones]]
 [[Category: Loc Mapped]]
