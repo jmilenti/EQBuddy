@@ -1,7 +1,8 @@
-{{Spellpage|
+{{Classic Era}}
+{{Spellpagesmart|
 
 | spellname = Whirlwind
-| spellicon = M
+| spellicon = 85
 | description = A whirlwind traps your target in the air, causing a great spin as well as 100 damage.
 
 | classes = 

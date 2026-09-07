@@ -82,6 +82,50 @@
   "repeatable": false
  },
  {
+  "name": "A sealed letter",
+  "url": "https://eqlwiki.com/A_sealed_letter",
+  "startZone": "",
+  "questGiver": "",
+  "minLevel": 0,
+  "classes": "",
+  "items": [
+   {
+    "name": "Peacekeeper Staff",
+    "qty": 1
+   }
+  ],
+  "rewards": [],
+  "categories": [
+   "Cleric Quests",
+   "Erudin",
+   "Inventory Items",
+   "Paladin Quests"
+  ],
+  "relatedZones": [],
+  "era": "Classic",
+  "repeatable": false
+ },
+ {
+  "name": "Acquire a Mark of Karana",
+  "url": "https://eqlwiki.com/Acquire_a_Mark_of_Karana",
+  "startZone": "Surefall Glade",
+  "questGiver": "Qaelin Hailstorm",
+  "minLevel": 1,
+  "classes": "Any; requires Karana as your active deity.",
+  "items": [],
+  "rewards": [
+   "Mark of Karana"
+  ],
+  "categories": [
+   "Fletching Quests",
+   "Karana Quests",
+   "Surefall Glade"
+  ],
+  "relatedZones": [],
+  "era": "Classic",
+  "repeatable": false
+ },
+ {
   "name": "Acumen Mask Quest",
   "url": "https://eqlwiki.com/Acumen_Mask_Quest",
   "startZone": "Temple of Solusek Ro",
@@ -1020,10 +1064,6 @@
     "qty": 1
    },
    {
-    "name": "Ripped Qeynos Bards Guild Flyer",
-    "qty": 1
-   },
-   {
     "name": "Solusek Mining Company Invoice",
     "qty": 1
    },
@@ -1244,6 +1284,23 @@
   "repeatable": false
  },
  {
+  "name": "Bard Plane of Sky Tests",
+  "url": "https://eqlwiki.com/Bard_Plane_of_Sky_Tests",
+  "startZone": "",
+  "questGiver": "",
+  "minLevel": 0,
+  "classes": "",
+  "items": [],
+  "rewards": [],
+  "categories": [
+   "Bard Quests",
+   "Plane of Sky"
+  ],
+  "relatedZones": [],
+  "era": "Classic",
+  "repeatable": false
+ },
+ {
   "name": "Bard Reports",
   "url": "https://eqlwiki.com/Bard_Reports",
   "startZone": "Qeynos",
@@ -1461,7 +1518,7 @@
   "startZone": "Ak'Anon",
   "questGiver": "Larkon Theardor",
   "minLevel": 10,
-  "classes": "Cleric, Druid, Enchanter, Magician, Necromancer, Paladin, Shaman, Wizard",
+  "classes": "Enchanter, Magician, Necromancer, Wizard",
   "items": [
    {
     "name": "Basilisk Tongue",
@@ -1478,13 +1535,9 @@
   ],
   "categories": [
    "Ak'Anon",
-   "Cleric Quests",
-   "Druid Quests",
    "Enchanter Quests",
    "Magician Quests",
    "Necromancer Quests",
-   "Paladin Quests",
-   "Shaman Quests",
    "Wizard Quests"
   ],
   "relatedZones": [
@@ -1656,6 +1709,23 @@
   ],
   "relatedZones": [],
   "era": "",
+  "repeatable": false
+ },
+ {
+  "name": "Beastlord Plane of Sky Tests",
+  "url": "https://eqlwiki.com/Beastlord_Plane_of_Sky_Tests",
+  "startZone": "",
+  "questGiver": "",
+  "minLevel": 0,
+  "classes": "",
+  "items": [],
+  "rewards": [],
+  "categories": [
+   "Beastlord Quests",
+   "Plane of Sky"
+  ],
+  "relatedZones": [],
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -1952,6 +2022,23 @@
   "repeatable": false
  },
  {
+  "name": "Berserker Plane of Sky Tests",
+  "url": "https://eqlwiki.com/Berserker_Plane_of_Sky_Tests",
+  "startZone": "",
+  "questGiver": "",
+  "minLevel": 0,
+  "classes": "",
+  "items": [],
+  "rewards": [],
+  "categories": [
+   "Berserker Quests",
+   "Plane of Sky"
+  ],
+  "relatedZones": [],
+  "era": "Classic",
+  "repeatable": false
+ },
+ {
   "name": "Bertoxxulous Symbol Quests",
   "url": "https://eqlwiki.com/Bertoxxulous_Symbol_Quests",
   "startZone": "Ak'Anon",
@@ -1960,11 +2047,15 @@
   "classes": "Cleric",
   "items": [
    {
+    "name": "Airtight Metal Box",
+    "qty": 1
+   },
+   {
     "name": "Container of Infectious Reagents",
     "qty": 1
    },
    {
-    "name": "Empty Infectious Vial",
+    "name": "Diseased Bone Marrow",
     "qty": 1
    }
   ],
@@ -1978,7 +2069,7 @@
   "relatedZones": [
    "Steamfont Mountains"
   ],
-  "era": "Kunark",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -2665,9 +2756,11 @@
   "items": [],
   "rewards": [
    "Aviak Feather",
+   "Broad Sword",
    "Conch Shell",
    "Fishing Spear",
-   "Kiola Nut"
+   "Kiola Nut",
+   "Targ Shield"
   ],
   "categories": [
    "Ocean of Tears"
@@ -2713,7 +2806,7 @@
    "Karnor's Castle",
    "Trakanon's Teeth"
   ],
-  "era": "",
+  "era": "Kunark",
   "repeatable": false
  },
  {
@@ -2871,7 +2964,7 @@
   "url": "https://eqlwiki.com/Broom_Of_Trilon_Quest",
   "startZone": "Temple of Solusek Ro",
   "questGiver": "Vira",
-  "minLevel": 33,
+  "minLevel": 20,
   "classes": "Magician Quest is doable and spell confirmed usable by SHM and SHD.",
   "items": [
    {
@@ -2902,7 +2995,7 @@
   "relatedZones": [
    "Najena"
   ],
-  "era": "Temple",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -3545,17 +3638,19 @@
   "url": "https://eqlwiki.com/Catfish_Tail",
   "startZone": "Erudin",
   "questGiver": "Vynon Estaliun",
-  "minLevel": 7,
-  "classes": "?",
+  "minLevel": 1,
+  "classes": "All",
   "items": [],
   "rewards": [
    "Brass Ring",
+   "Corroded Buckler",
    "Torch"
   ],
   "categories": [
    "Erudin"
   ],
   "relatedZones": [
+   "Kerra Island",
    "Toxxulia Forest"
   ],
   "era": "",
@@ -3578,6 +3673,7 @@
    "Faction"
   ],
   "categories": [
+   "Erudin",
    "The Warrens"
   ],
   "relatedZones": [
@@ -3873,7 +3969,7 @@
    "Ocean of Tears",
    "Rathe Mountains"
   ],
-  "era": "Temple",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -4140,44 +4236,14 @@
   "questGiver": "",
   "minLevel": 0,
   "classes": "",
-  "items": [
-   {
-    "name": "Efreeti Mace",
-    "qty": 1
-   },
-   {
-    "name": "Efreeti Standard",
-    "qty": 1
-   }
-  ],
-  "rewards": [
-   "Aegis of the Wind",
-   "Djinni Aura",
-   "Efreeti Mace",
-   "Efreeti Standard",
-   "Mithril Bands",
-   "Necklace of Resolution",
-   "Pauldrons of Piety",
-   "Shiny Pauldrons",
-   "Silver Hoop",
-   "Silvered Spiroc Necklace",
-   "Small Shield",
-   "Theurgist's Star",
-   "Truewind Earring",
-   "Truwian Baton",
-   "Wind Rune Caza",
-   "Wind Rune Ena",
-   "Wind Rune Kala",
-   "Wind Rune Lena",
-   "Wind Rune Meda",
-   "Wind Rune Neza"
-  ],
+  "items": [],
+  "rewards": [],
   "categories": [
    "Cleric Quests",
    "Plane of Sky"
   ],
   "relatedZones": [],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -6793,7 +6859,12 @@
   "questGiver": "Tani N`Mar",
   "minLevel": 4,
   "classes": "Bard, Rogue, Shadow Knight",
-  "items": [],
+  "items": [
+   {
+    "name": "Human Head",
+    "qty": 1
+   }
+  ],
   "rewards": [
    "Cinctured Whip"
   ],
@@ -6806,7 +6877,7 @@
   "relatedZones": [
    "Freeport"
   ],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -7674,45 +7745,14 @@
   "questGiver": "",
   "minLevel": 0,
   "classes": "",
-  "items": [
-   {
-    "name": "Efreeti Scimitar",
-    "qty": 1
-   },
-   {
-    "name": "Efreeti Statuette",
-    "qty": 1
-   }
-  ],
-  "rewards": [
-   "Divine Honeycomb",
-   "Drake-Hide Mask",
-   "Efreeti Scimitar",
-   "Efreeti Statuette",
-   "Espri",
-   "Ethereal Ruby",
-   "Honeycomb Belt",
-   "Mantle of Woven Grass",
-   "Nature Walker's Mantle",
-   "Shillelagh",
-   "Spiroc Banisher Focus",
-   "Spiroc Battle Staff",
-   "Spiroc Elder's Totem",
-   "Storm Sky Opal",
-   "Wind Rune Azia",
-   "Wind Rune Dena",
-   "Wind Rune Ena",
-   "Wind Rune Izah",
-   "Wind Rune Kala",
-   "Wind Rune Meda",
-   "Worn Leather Mask"
-  ],
+  "items": [],
+  "rewards": [],
   "categories": [
    "Druid Quests",
    "Plane of Sky"
   ],
   "relatedZones": [],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -9779,7 +9819,12 @@
   "questGiver": "Enic Ruklin",
   "minLevel": 3,
   "classes": "All",
-  "items": [],
+  "items": [
+   {
+    "name": "Koalindl Fish",
+    "qty": 1
+   }
+  ],
   "rewards": [
    "Band of Rodcet Nife",
    "Prayer Beads"
@@ -10559,6 +10604,26 @@
    "Freeport"
   ],
   "era": "Classic",
+  "repeatable": false
+ },
+ {
+  "name": "Grub Locker",
+  "url": "https://eqlwiki.com/Grub_Locker",
+  "startZone": "",
+  "questGiver": "Nerbilik",
+  "minLevel": 0,
+  "classes": "ALL / CLASS",
+  "items": [],
+  "rewards": [
+   "ITEM NAME"
+  ],
+  "categories": [
+   "ZONE NAME"
+  ],
+  "relatedZones": [
+   "ZONE NAME"
+  ],
+  "era": "",
   "repeatable": false
  },
  {
@@ -13335,14 +13400,10 @@
   "startZone": "Halas",
   "questGiver": "Lysbith McNaff",
   "minLevel": 2,
-  "classes": "?",
+  "classes": "Any",
   "items": [
    {
     "name": "Bag of Ice Necklaces",
-    "qty": 1
-   },
-   {
-    "name": "Empty Bag",
     "qty": 1
    },
    {
@@ -13359,7 +13420,8 @@
    "Water Flask"
   ],
   "categories": [
-   "Halas"
+   "Halas",
+   "Warrior Quests"
   ],
   "relatedZones": [
    "Everfrost Peaks"
@@ -13837,7 +13899,7 @@
    "Shaman Quests"
   ],
   "relatedZones": [],
-  "era": "Kunark",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -13862,10 +13924,6 @@
    },
    {
     "name": "Barbarian Skull",
-    "qty": 1
-   },
-   {
-    "name": "Box of Remains",
     "qty": 1
    }
   ],
@@ -14078,15 +14136,7 @@
   "classes": "?",
   "items": [
    {
-    "name": "A tattered note",
-    "qty": 1
-   },
-   {
     "name": "Karana Clover Shipment",
-    "qty": 1
-   },
-   {
-    "name": "Polar Bear Cloak",
     "qty": 1
    }
   ],
@@ -14097,7 +14147,7 @@
    "Halas"
   ],
   "relatedZones": [
-   "Western Plains of Karana"
+   "Western Karana"
   ],
   "era": "Classic",
   "repeatable": true
@@ -14564,7 +14614,12 @@
   "questGiver": "Leraena Shelyrak",
   "minLevel": 5,
   "classes": "?",
-  "items": [],
+  "items": [
+   {
+    "name": "Odd Kobold Paw",
+    "qty": 1
+   }
+  ],
   "rewards": [
    "Cure Disease",
    "Holy Armor"
@@ -14575,7 +14630,7 @@
   "relatedZones": [
    "Toxxulia Forest"
   ],
-  "era": "Velious",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -14729,19 +14784,11 @@
   "classes": "Warrior",
   "items": [
    {
-    "name": "Langseax",
-    "qty": 1
-   },
-   {
-    "name": "Langseax of the Wolves",
+    "name": "Barbarian Head",
     "qty": 1
    },
    {
     "name": "Lion Delight",
-    "qty": 1
-   },
-   {
-    "name": "Sweaty Shirt",
     "qty": 1
    }
   ],
@@ -14754,7 +14801,7 @@
    "Warrior Quests"
   ],
   "relatedZones": [
-   "Western Plains of Karana"
+   "Western Karana"
   ],
   "era": "",
   "repeatable": false
@@ -15010,12 +15057,7 @@
   "questGiver": "Teria O`Danos",
   "minLevel": 1,
   "classes": "?",
-  "items": [
-   {
-    "name": "Lion Meat Shipment",
-    "qty": 1
-   }
-  ],
+  "items": [],
   "rewards": [
    "Lion Delight"
   ],
@@ -15391,8 +15433,21 @@
   "startZone": "Halas",
   "questGiver": "Dargon McPherson",
   "minLevel": 1,
-  "classes": "?",
-  "items": [],
+  "classes": "All",
+  "items": [
+   {
+    "name": "Full Bottle of Elixir",
+    "qty": 1
+   },
+   {
+    "name": "One Half of Elixir",
+    "qty": 1
+   },
+   {
+    "name": "One Quarter of Elixir",
+    "qty": 1
+   }
+  ],
   "rewards": [
    "Copper Band",
    "Lapis Lazuli",
@@ -15403,7 +15458,8 @@
    "Turquoise"
   ],
   "categories": [
-   "Halas"
+   "Halas",
+   "Warrior Quests"
   ],
   "relatedZones": [
    "Everfrost Peaks"
@@ -15675,44 +15731,14 @@
   "questGiver": "",
   "minLevel": 0,
   "classes": "",
-  "items": [
-   {
-    "name": "Efreeti Magi Staff",
-    "qty": 1
-   }
-  ],
-  "rewards": [
-   "Bracelet of Clarification",
-   "Ceramic Mask",
-   "Crown of Elemental Mastery",
-   "Djinni Stave",
-   "Drake-Hide Amice",
-   "Duennan Shielding Ring",
-   "Efreeti Magi Staff",
-   "Feathered Cape",
-   "Gold White Pendant",
-   "Golden Coffer",
-   "Golden Efreeti Ring",
-   "Hazy Opal",
-   "Large Diamond",
-   "Large Opal",
-   "Mask of Empowerment",
-   "Staff of Elemental Mastery: Air",
-   "Staff of The Magister",
-   "Wind Rune Azia",
-   "Wind Rune Dena",
-   "Wind Rune Ena",
-   "Wind Rune Heda",
-   "Wind Rune Jaka",
-   "Wind Rune Lena",
-   "Wind Rune Neza"
-  ],
+  "items": [],
+  "rewards": [],
   "categories": [
    "Magician Quests",
    "Plane of Sky"
   ],
   "relatedZones": [],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -16416,6 +16442,36 @@
   "rewards": [],
   "categories": [],
   "relatedZones": [],
+  "era": "Classic",
+  "repeatable": false
+ },
+ {
+  "name": "Militia Seals",
+  "url": "https://eqlwiki.com/Militia_Seals",
+  "startZone": "",
+  "questGiver": "Guard Jup",
+  "minLevel": 35,
+  "classes": "All",
+  "items": [
+   {
+    "name": "Militia Crate",
+    "qty": 1
+   }
+  ],
+  "rewards": [
+   "Twisted Silver Torque"
+  ],
+  "categories": [
+   "All Classes Quests",
+   "Broken Skull Rock",
+   "Dulak's Harbor",
+   "Gulf of Gunthak",
+   "West Freeport"
+  ],
+  "relatedZones": [
+   "Dulak's Harbor",
+   "Gulf of Gunthak"
+  ],
   "era": "Classic",
   "repeatable": false
  },
@@ -17580,7 +17636,7 @@
   "name": "More Help for Innoruuk",
   "url": "https://eqlwiki.com/More_Help_for_Innoruuk",
   "startZone": "Grobb",
-  "questGiver": "Kaglari",
+  "questGiver": "Bregna",
   "minLevel": 1,
   "classes": "All",
   "items": [
@@ -17814,10 +17870,6 @@
    },
    {
     "name": "Silver Disc",
-    "qty": 1
-   },
-   {
-    "name": "Slime Blood of Cazic Thule",
     "qty": 1
    },
    {
@@ -18567,7 +18619,7 @@
   "relatedZones": [
    "Qeynos"
   ],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -18940,15 +18992,10 @@
    {
     "name": "Deathfist Slashed Belt",
     "qty": 1
-   },
-   {
-    "name": "Tagglefoot Tingle Drink",
-    "qty": 1
    }
   ],
   "rewards": [
-   "Faction",
-   "Tagglefoot Tingle Drink"
+   "Faction"
   ],
   "categories": [
    "All Classes Quests",
@@ -19162,6 +19209,10 @@
    },
    {
     "name": "Deathfist Slashed Belt",
+    "qty": 1
+   },
+   {
+    "name": "Silk Swatch",
     "qty": 1
    }
   ],
@@ -19830,6 +19881,26 @@
   ],
   "era": "Classic",
   "repeatable": false
+ },
+ {
+  "name": "Phosphorous Powder for Zok Zribb",
+  "url": "https://eqlwiki.com/Phosphorous_Powder_for_Zok_Zribb",
+  "startZone": "Rathe Mountains",
+  "questGiver": "Zok Zribb",
+  "minLevel": 1,
+  "classes": "All",
+  "items": [],
+  "rewards": [],
+  "categories": [
+   "All Classes Quests",
+   "Rathe Mountains",
+   "Repeatable Turn-in Quests"
+  ],
+  "relatedZones": [
+   "Lower Guk"
+  ],
+  "era": "Classic",
+  "repeatable": true
  },
  {
   "name": "Pickled Frogloks",
@@ -21607,44 +21678,14 @@
   "questGiver": "",
   "minLevel": 0,
   "classes": "",
-  "items": [
-   {
-    "name": "Efreeti Long Sword",
-    "qty": 1
-   },
-   {
-    "name": "Efreeti War Bow",
-    "qty": 1
-   }
-  ],
-  "rewards": [
-   "Arydryidriyorn",
-   "Circlet of Brambles",
-   "Dark Cloak of the Sky",
-   "Earthshaker's Mantle",
-   "Efreeti Long Sword",
-   "Efreeti War Bow",
-   "Fine Velvet Cloak",
-   "Griffon Talon",
-   "Griffon Talon Necklace",
-   "Shimmering Pearl",
-   "Spiroc Earth Totem",
-   "Thunderforged Earring",
-   "White Gold Earring",
-   "Wind Rune Azia",
-   "Wind Rune Ena",
-   "Wind Rune Heda",
-   "Wind Rune Kala",
-   "Wind Rune Meda",
-   "Wind Rune Neza",
-   "Windstriker"
-  ],
+  "items": [],
+  "rewards": [],
   "categories": [
    "Plane of Sky",
    "Ranger Quests"
   ],
   "relatedZones": [],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -22125,6 +22166,32 @@
   "repeatable": false
  },
  {
+  "name": "Rathe Mountains Spiders",
+  "url": "https://eqlwiki.com/Rathe_Mountains_Spiders",
+  "startZone": "",
+  "questGiver": "Exterminator Galub",
+  "minLevel": 1,
+  "classes": "ALL",
+  "items": [
+   {
+    "name": "Spiderling Eye",
+    "qty": 1
+   }
+  ],
+  "rewards": [
+   "Faction"
+  ],
+  "categories": [
+   "All Classes Quests",
+   "The Rathe Mountains"
+  ],
+  "relatedZones": [
+   "The Rathe Mountains"
+  ],
+  "era": "Classic",
+  "repeatable": false
+ },
+ {
   "name": "Rathmana's Traveling Offer",
   "url": "https://eqlwiki.com/Rathmana%27s_Traveling_Offer",
   "startZone": "Southern Desert of Ro",
@@ -22522,6 +22589,28 @@
   "repeatable": false
  },
  {
+  "name": "Renouncing Your Faith",
+  "url": "https://eqlwiki.com/Renouncing_Your_Faith",
+  "startZone": "",
+  "questGiver": "Emissary of Zebuxoruk",
+  "minLevel": 46,
+  "classes": "All",
+  "items": [],
+  "rewards": [
+   "Agnostic"
+  ],
+  "categories": [
+   "All Classes Quests",
+   "Oasis of Marr"
+  ],
+  "relatedZones": [
+   "Plane of Fear",
+   "Plane of Hate"
+  ],
+  "era": "Classic",
+  "repeatable": false
+ },
+ {
   "name": "Request of the Arcane",
   "url": "https://eqlwiki.com/Request_of_the_Arcane",
   "startZone": "Temple of Veeshan",
@@ -22740,7 +22829,7 @@
    "Permafrost",
    "Solusek's Eye"
   ],
-  "era": "Temple",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -23046,33 +23135,13 @@
   "minLevel": 0,
   "classes": "",
   "items": [],
-  "rewards": [
-   "Bixie Stinger",
-   "Bloodsky Sapphire",
-   "Crystal Mask",
-   "Fine Wool Cloak",
-   "Griffon Wing Spauldors",
-   "Inlaid Choker",
-   "Jester's Mask",
-   "Renard's Belt of Quickness",
-   "Scintillating Bracer of Protection",
-   "Sphinxian Circlet",
-   "Spiroc Sky Totem",
-   "Thornstinger",
-   "Wind Rune Dena",
-   "Wind Rune Ena",
-   "Wind Rune Geza",
-   "Wind Rune Izah",
-   "Wind Rune Jaka",
-   "Wind Rune Ozah",
-   "Wispy Choker of Vigor"
-  ],
+  "rewards": [],
   "categories": [
    "Plane of Sky",
    "Rogue Quests"
   ],
   "relatedZones": [],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -23406,7 +23475,16 @@
   "questGiver": "Vilissia",
   "minLevel": 28,
   "classes": "Wizard",
-  "items": [],
+  "items": [
+   {
+    "name": "Lizardscale Cloak",
+    "qty": 1
+   },
+   {
+    "name": "Rune of Scale",
+    "qty": 1
+   }
+  ],
   "rewards": [
    "Runescale Cloak"
   ],
@@ -23454,7 +23532,7 @@
   "startZone": "Kaladim",
   "questGiver": "Diggins",
   "minLevel": 9,
-  "classes": "Bard, Enchanter, Magician, Necromancer, Ranger, Rogue, Shadow Knight, Shaman, Warrior, Wizard",
+  "classes": "Rogue",
   "items": [
    {
     "name": "RunnyEye Warbeads",
@@ -23468,17 +23546,8 @@
    "Rusty Spear"
   ],
   "categories": [
-   "Bard Quests",
-   "Enchanter Quests",
-   "Magician Quests",
-   "Necromancer Quests",
    "North Kaladim",
-   "Ranger Quests",
-   "Rogue Quests",
-   "Shadow Knight Quests",
-   "Shaman Quests",
-   "Warrior Quests",
-   "Wizard Quests"
+   "Rogue Quests"
   ],
   "relatedZones": [
    "Butcherblock Mountains"
@@ -24410,47 +24479,14 @@
   "questGiver": "",
   "minLevel": 0,
   "classes": "",
-  "items": [
-   {
-    "name": "Efreeti War Axe",
-    "qty": 1
-   },
-   {
-    "name": "Efreeti War Shield",
-    "qty": 1
-   }
-  ],
-  "rewards": [
-   "Amulet of the Sphinx Eye",
-   "Blood Sky Face Plate",
-   "Blood Sky Ruby",
-   "Crimson Ring of the Djinni",
-   "Efreeti War Axe",
-   "Efreeti War Shield",
-   "Fae Pauldrons",
-   "Finely Crafted Amulet",
-   "Finely Woven Cloth Belt",
-   "Khyldorn the Blood Drinker",
-   "Obtenebrate Mithril Guard",
-   "Pearlescent Pauldrons",
-   "Pegasus-Hide Belt",
-   "Rusted Pauldrons",
-   "Silvery Ring",
-   "Sphinxian Ring",
-   "Wind Rune Beza",
-   "Wind Rune Dena",
-   "Wind Rune Fana",
-   "Wind Rune Heda",
-   "Wind Rune Izah",
-   "Wind Rune Kala",
-   "Wind Rune Ozah"
-  ],
+  "items": [],
+  "rewards": [],
   "categories": [
    "Plane of Sky",
    "Shadow Knight Quests"
   ],
   "relatedZones": [],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -24461,10 +24497,6 @@
   "minLevel": 24,
   "classes": "Necromancer",
   "items": [
-   {
-    "name": "A Werebat Wing",
-    "qty": 1
-   },
    {
     "name": "Eye of Shadow",
     "qty": 1
@@ -25000,45 +25032,14 @@
   "questGiver": "",
   "minLevel": 0,
   "classes": "",
-  "items": [
-   {
-    "name": "Efreeti War Club",
-    "qty": 1
-   },
-   {
-    "name": "Efreeti War Maul",
-    "qty": 1
-   }
-  ],
-  "rewards": [
-   "Amulet of the Fang",
-   "Bixie Essence",
-   "Bracelet of the Spirits",
-   "Ceremonial Belt",
-   "Corrosive Venom",
-   "Efreeti War Club",
-   "Efreeti War Maul",
-   "Fairy-Hide Mantle",
-   "Garduk",
-   "Leather Cord",
-   "Light Damask Mantle",
-   "Spiritualist's Ring",
-   "Symbol of Veeshan",
-   "Vermilion Sky Ring",
-   "Warhammer of the Wind",
-   "Wind Rune Beza",
-   "Wind Rune Ena",
-   "Wind Rune Geza",
-   "Wind Rune Heda",
-   "Wind Rune Kala",
-   "Wind Rune Meda"
-  ],
+  "items": [],
+  "rewards": [],
   "categories": [
    "Plane of Sky",
    "Shaman Quests"
   ],
   "relatedZones": [],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -25447,6 +25448,7 @@
    }
   ],
   "rewards": [
+   "Bronze_Dagger",
    "Cast-Iron Rapier"
   ],
   "categories": [
@@ -25617,7 +25619,7 @@
    "Erudin Palace"
   ],
   "relatedZones": [],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -25625,7 +25627,7 @@
   "url": "https://eqlwiki.com/Shovel_Of_Ponz_Quest",
   "startZone": "Temple of Solusek Ro",
   "questGiver": "Vira",
-  "minLevel": 33,
+  "minLevel": 20,
   "classes": "Magician",
   "items": [
    {
@@ -25654,7 +25656,7 @@
    "Temple of Solusek Ro"
   ],
   "relatedZones": [],
-  "era": "Temple",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -25748,6 +25750,10 @@
    {
     "name": "Box For Bones",
     "qty": 1
+   },
+   {
+    "name": "Box of Bones",
+    "qty": 1
    }
   ],
   "rewards": [
@@ -25775,7 +25781,7 @@
   "relatedZones": [
    "Toxxulia Forest"
   ],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -25784,7 +25790,7 @@
   "startZone": "Kaladim",
   "questGiver": "Nultal Malfoot",
   "minLevel": 2,
-  "classes": "Cleric, Druid, Enchanter, Magician, Necromancer, Paladin, Ranger, Shadow Knight, Shaman, Wizard",
+  "classes": "Cleric",
   "items": [
    {
     "name": "Skunk Scent Gland",
@@ -25804,16 +25810,7 @@
   ],
   "categories": [
    "Cleric Quests",
-   "Druid Quests",
-   "Enchanter Quests",
-   "Magician Quests",
-   "Necromancer Quests",
-   "North Kaladim",
-   "Paladin Quests",
-   "Ranger Quests",
-   "Shadow Knight Quests",
-   "Shaman Quests",
-   "Wizard Quests"
+   "North Kaladim"
   ],
   "relatedZones": [
    "Butcherblock Mountains"
@@ -26042,6 +26039,22 @@
   "repeatable": false
  },
  {
+  "name": "Soldier's Brooch Quest",
+  "url": "https://eqlwiki.com/Soldier%27s_Brooch_Quest",
+  "startZone": "Rathe Mountains",
+  "questGiver": "Gaz Commander Faltip",
+  "minLevel": 0,
+  "classes": "All",
+  "items": [],
+  "rewards": [],
+  "categories": [],
+  "relatedZones": [
+   "Rathe Mountains"
+  ],
+  "era": "Classic",
+  "repeatable": false
+ },
+ {
   "name": "Solusek's Flower",
   "url": "https://eqlwiki.com/Solusek%27s_Flower",
   "startZone": "Mistmoore Castle",
@@ -26100,7 +26113,12 @@
   "questGiver": "The Kerran Sha`rr",
   "minLevel": 1,
   "classes": "All",
-  "items": [],
+  "items": [
+   {
+    "name": "Desecrated Kejaar Totem",
+    "qty": 1
+   }
+  ],
   "rewards": [
    "Hamed's Ring of Tears"
   ],
@@ -26111,7 +26129,7 @@
   "relatedZones": [
    "Kerra Island"
   ],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -26518,7 +26536,7 @@
   "url": "https://eqlwiki.com/Stein_Of_Ulissa_Quest",
   "startZone": "Temple of Solusek Ro",
   "questGiver": "Vira",
-  "minLevel": 33,
+  "minLevel": 20,
   "classes": "Magician",
   "items": [
    {
@@ -26551,7 +26569,7 @@
    "Temple of Solusek Ro"
   ],
   "relatedZones": [],
-  "era": "Temple",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -27290,11 +27308,67 @@
   "classes": "Paladin",
   "items": [
    {
+    "name": "Amber",
+    "qty": 1
+   },
+   {
+    "name": "Diamond",
+    "qty": 1
+   },
+   {
     "name": "Dusty Old Finger Bones",
     "qty": 1
    },
    {
+    "name": "Dusty Old Skull",
+    "qty": 1
+   },
+   {
+    "name": "Dusty Ribcage",
+    "qty": 1
+   },
+   {
     "name": "Dwarven Ale",
+    "qty": 1
+   },
+   {
+    "name": "Empty Gem Bag",
+    "qty": 1
+   },
+   {
+    "name": "Enchanted Platinum Bar",
+    "qty": 1
+   },
+   {
+    "name": "Fire Emerald",
+    "qty": 1
+   },
+   {
+    "name": "Fire Opal",
+    "qty": 1
+   },
+   {
+    "name": "Jade",
+    "qty": 1
+   },
+   {
+    "name": "Pearl",
+    "qty": 1
+   },
+   {
+    "name": "Pick",
+    "qty": 1
+   },
+   {
+    "name": "Revenant Ash",
+    "qty": 1
+   },
+   {
+    "name": "Sapphire",
+    "qty": 1
+   },
+   {
+    "name": "Star Ruby",
     "qty": 1
    }
   ],
@@ -27623,7 +27697,15 @@
   "classes": "Paladin",
   "items": [
    {
-    "name": "A Sealed List",
+    "name": "Dwarf Decapitated Head",
+    "qty": 1
+   },
+   {
+    "name": "Gnome Decapitated Head",
+    "qty": 1
+   },
+   {
+    "name": "Human Decapitated Head",
     "qty": 1
    }
   ],
@@ -28697,6 +28779,26 @@
   "repeatable": false
  },
  {
+  "name": "The Lost Snake",
+  "url": "https://eqlwiki.com/The_Lost_Snake",
+  "startZone": "",
+  "questGiver": "Animal Trainer Visop",
+  "minLevel": 1,
+  "classes": "ALL",
+  "items": [],
+  "rewards": [
+   "Trainer's Bauble"
+  ],
+  "categories": [
+   "Rathe Mountains"
+  ],
+  "relatedZones": [
+   "Rathe Mountains"
+  ],
+  "era": "Classic",
+  "repeatable": false
+ },
+ {
   "name": "The Lost Tome",
   "url": "https://eqlwiki.com/The_Lost_Tome",
   "startZone": "Plane of Growth",
@@ -29155,7 +29257,15 @@
   "classes": "All",
   "items": [
    {
+    "name": "Bayle List II",
+    "qty": 1
+   },
+   {
     "name": "Flask of Nitrates",
+    "qty": 1
+   },
+   {
+    "name": "Regurgitonic",
     "qty": 1
    }
   ],
@@ -29234,12 +29344,7 @@
   "questGiver": "Eolorn J`Axx",
   "minLevel": 1,
   "classes": "?",
-  "items": [
-   {
-    "name": "A Locked Chest",
-    "qty": 1
-   }
-  ],
+  "items": [],
   "rewards": [
    "Rat Pelt Cape"
   ],
@@ -29265,6 +29370,7 @@
   ],
   "categories": [
    "Halas",
+   "Rogue Quests",
    "Warrior Quests"
   ],
   "relatedZones": [
@@ -29528,11 +29634,19 @@
     "qty": 1
    },
    {
+    "name": "Greater Lightstone",
+    "qty": 1
+   },
+   {
     "name": "Griffon Eye",
     "qty": 1
    },
    {
     "name": "Ice Giant Toes",
+    "qty": 1
+   },
+   {
+    "name": "Mundane Shield",
     "qty": 1
    },
    {
@@ -29776,7 +29890,7 @@
    "Najena",
    "The Estate of Unrest"
   ],
-  "era": "Epics",
+  "era": "Kunark",
   "repeatable": false
  },
  {
@@ -29897,11 +30011,27 @@
   "classes": "Paladin, Shadowknight",
   "items": [
    {
+    "name": "Bone Chips",
+    "qty": 4
+   },
+   {
+    "name": "Fire Beetle Eye",
+    "qty": 4
+   },
+   {
     "name": "Pestilence Scythe",
     "qty": 1
    },
    {
     "name": "SoulFire",
+    "qty": 1
+   },
+   {
+    "name": "Spiderling Silk",
+    "qty": 4
+   },
+   {
+    "name": "Torrid Corruptor",
     "qty": 1
    }
   ],
@@ -30217,7 +30347,7 @@
   "relatedZones": [
    "Felwithe"
   ],
-  "era": "",
+  "era": "Velious",
   "repeatable": false
  },
  {
@@ -30250,8 +30380,7 @@
    }
   ],
   "rewards": [
-   "Reaper of the Dead",
-   "Thex Mallet"
+   "Reaper of the Dead"
   ],
   "categories": [
    "Necromancer Quests",
@@ -30271,7 +30400,16 @@
   "questGiver": "The Kerran Sha`rr",
   "minLevel": 1,
   "classes": "All",
-  "items": [],
+  "items": [
+   {
+    "name": "Desecrated Kejaar Totem",
+    "qty": 1
+   },
+   {
+    "name": "Heretic Insurrection Orders",
+    "qty": 1
+   }
+  ],
   "rewards": [
    "Talisman of Kejaar Kerrath"
   ],
@@ -30653,7 +30791,7 @@
   "url": "https://eqlwiki.com/Torch_Of_Alna_Quest",
   "startZone": "Temple of Solusek Ro",
   "questGiver": "Vira",
-  "minLevel": 33,
+  "minLevel": 20,
   "classes": "Magician",
   "items": [
    {
@@ -30682,7 +30820,7 @@
    "Temple of Solusek Ro"
   ],
   "relatedZones": [],
-  "era": "Temple",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -31247,7 +31385,7 @@
   "startZone": "Greater Faydark",
   "questGiver": "Tylfon",
   "minLevel": 1,
-  "classes": "Bard, Enchanter, Magician, Necromancer, Ranger, Rogue, Shadow Knight, Warrior, Wizard",
+  "classes": "Rogue",
   "items": [
    {
     "name": "Rusty Dagger",
@@ -31259,15 +31397,8 @@
   ],
   "categories": [
    "Bard Quests",
-   "Enchanter Quests",
    "Greater Faydark",
-   "Magician Quests",
-   "Necromancer Quests",
-   "Ranger Quests",
-   "Rogue Quests",
-   "Shadow Knight Quests",
-   "Warrior Quests",
-   "Wizard Quests"
+   "Rogue Quests"
   ],
   "relatedZones": [
    "Greater Faydark"
@@ -32237,45 +32368,14 @@
   "questGiver": "",
   "minLevel": 0,
   "classes": "",
-  "items": [
-   {
-    "name": "Efreeti Battle Axe",
-    "qty": 1
-   },
-   {
-    "name": "Efreeti Belt",
-    "qty": 1
-   }
-  ],
-  "rewards": [
-   "Azure Ring",
-   "Azure Ruby Ring",
-   "Belt of the Four Winds",
-   "Dagas",
-   "Djinni War Blade",
-   "Efreeti Battle Axe",
-   "Efreeti Belt",
-   "Ethereal Emerald",
-   "Fangol",
-   "Gem of Invigoration",
-   "Pauldrons of the Blue Sky",
-   "Runed Wind Amulet",
-   "Spiroc Air Totem",
-   "Stone Amulet",
-   "Wind Rune Azia",
-   "Wind Rune Beza",
-   "Wind Rune Dena",
-   "Wind Rune Fana",
-   "Wind Rune Jaka",
-   "Wind Rune Neza",
-   "Wind Tablet"
-  ],
+  "items": [],
+  "rewards": [],
   "categories": [
    "Plane of Sky",
    "Warrior Quests"
   ],
   "relatedZones": [],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
@@ -32995,44 +33095,14 @@
   "questGiver": "",
   "minLevel": 0,
   "classes": "",
-  "items": [
-   {
-    "name": "Efreeti Statuette",
-    "qty": 1
-   },
-   {
-    "name": "Efreeti War Staff",
-    "qty": 1
-   }
-  ],
-  "rewards": [
-   "Al`Kabor's Cap of Binding",
-   "Amethyst Amulet",
-   "Amulet of the Void",
-   "Augmentor's Mask",
-   "Box of Winds",
-   "Efreeti Statuette",
-   "Efreeti War Staff",
-   "Grey Damask Cloak",
-   "High Quality Raiment",
-   "Large Sky Lapis",
-   "Nargon's Staff",
-   "Raiment of Thunder",
-   "Solidate Mithril Ring",
-   "Wind Rune Caza",
-   "Wind Rune Dena",
-   "Wind Rune Fana",
-   "Wind Rune Geza",
-   "Wind Rune Izah",
-   "Wind Rune Jaka",
-   "Woven Skull Cap"
-  ],
+  "items": [],
+  "rewards": [],
   "categories": [
    "Plane of Sky",
    "Wizard Quests"
   ],
   "relatedZones": [],
-  "era": "",
+  "era": "Classic",
   "repeatable": false
  },
  {
