@@ -1,5 +1,5 @@
 {{Classic Era}}
-[[File:npc_toresian_fhabel.png|frame|Toresian Fhabel]]
+[[File:npc_toresian_fhabel.png|thumb|Toresian Fhabel]]
 {| class="questTopTable"
 ! ''' Start Zone: '''
 | [[Erudin|Erudin Palace]]
@@ -37,7 +37,7 @@ You say, 'i will study enchantment'
 
 : Toresian Fhabel says 'Then I welcome you into our circle. It is good to see new blood. I have a favor to ask of you. Do you wish to [assist Toresian] or do you not have the time?'
 
-This spawns either [[Slansin]] or [[Slansin Denvin]] downstairs in the shop Vials of Vitality. '''Slansin''' is a merchant selling one item, a cloth cap. '''Slansin Denvin''' is not a merchant, is wearing armor, and is an enchanter who will summon an enchanter pet after spawning. Only one Slansin can be up a time.
+This spawns either [[Slansin]] or [[Slansin Denvin]] downstairs in the shop Vials of Vitality. '''Slansin''' is a merchant selling one item, a cloth cap. '''Slansin Denvin''' is not a merchant, is wearing armor, <s>and is an enchanter who will summon an enchanter pet after spawning</s> (EQL: he did not summon a pet, the Real Slansin is level 50 and the fake is level 10). Only one Slansin can be up a time.
 
 You say, 'I wish to assist Toresian'
 
@@ -52,10 +52,10 @@ Give Slansin the Inert Potion.
 : Slansin says 'Thank you. I have been expecting this. We require it for mixing.' 
 
 <div class="facblock">
-* Your faction standing with [[Heretics]] got better.
-* Your faction standing with [[Craftkeepers]] got '''worse'''.
-* Your faction standing with [[High_Council_of_Erudin|High Council of Erudin]] got '''worse'''.
-* Your faction standing with [[High_Guard_of_Erudin|High Guard of Erudin]] got '''worse'''. 
+* Your faction standing with [[Heretics]] got better. (5)
+* Your faction standing with [[Craftkeepers]] got '''worse'''. (-1)
+* Your faction standing with [[High_Council_of_Erudin|High Council of Erudin]] got '''worse'''. (-1)
+* Your faction standing with [[High_Guard_of_Erudin|High Guard of Erudin]] got '''worse'''. (-1)
 </div>
 {{exp}}
 
@@ -69,11 +69,11 @@ Give Slansin Denvin the Inert Potion.
 : Slansin Denvin says 'Ha!! What a fool!! I have stolen another potion to add to the crate. I shall make a fortune!! The real Slansin is in back. Now it is time for me to leave.' 
 
 <div class="facblock">
-* Your faction standing with [[Coalition of Tradefolk Underground]] got better. +1  
-* Your faction standing with [[Coalition of Tradefolk]] got better. +1
-* Your faction standing with [[Carson_McCabe|Carson McCabe]] got better. +1
-* Your faction standing with [[Corrupt Qeynos Guards]] got better. +1
-* Your faction standing with [[Freeport Militia]] got better. +1
+* Your faction standing with [[Coalition of Tradefolk Underground]] got better. (5) 
+* Your faction standing with [[Coalition of Tradefolk]] got better. (5)
+* Your faction standing with [[Carson_McCabe|Carson McCabe]] got better. (5)
+* Your faction standing with [[Corrupt Qeynos Guards]] got better. (5)
+* Your faction standing with [[Freeport Militia]] got better. (5)
 </div>
 
 Slansin Denvin does ''not'' despawn right away, meaning you can now repeat this part of the quest until he does. He stays up for at least 20 minutes.
@@ -85,6 +85,10 @@ You can actually trigger Toresian from the bottom floor to get the potion with h
  /pause 3
  /say I wish to assist Toresian
 Then just go straight across to Vials of Vitality, where Slansin is.
+
+This didn't seem to work on EQL, NPCs seem to need LoS with you to interact (8-22-2029).
+
+Slansin does not spawn with a surname in EQL. The level difference and appearance can be used to determine the 'Denvin' version for the faction turn in. The level 50 version of Slansin wears a shopkeeper type outfit. The level 10 'Denvin' version wears a robe. Turn in your inert potions to the level 10, robe wearing Slansin. If you spawn the level 50 version, you can pick a different difficulty or create an instance to try again. You can turn in 4 bottles at a time without issue. (8-27-2026)
 
 [[Category:Quests]]
 [[Category:Erudin Palace]]

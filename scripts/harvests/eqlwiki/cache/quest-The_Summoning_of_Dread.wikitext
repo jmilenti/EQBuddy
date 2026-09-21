@@ -57,18 +57,15 @@ You say, 'Hail, Khrix Fritchoff'
 
 : Khrix Fritchoff says 'Close the door and be gone, fool!! You are going to give away my hiding spot!!'
 
-You say, 'I require a powder of reanimation'
-
-: Khrix Fritchoff says, 'So you want the powder of reanimation eh? Well you can have it if you can get it from that terrible abomination I have created! Perhaps you have a Fire Beetle Eye for me so that I may see my way out of here!
-
-'''Give him a [[Fire Beetle Eye]] (He will accept at dubious) and A [[Khrix Abomination]] will spawn in the room directly behind Khrix's closet (not in it). It is very powerful maybe 35-40.'''
+'''Give him a [[Greater Lightstone]] (He will accept at dubious) and A [[Khrix Abomination]] will spawn in the room directly behind Khrix's closet (not in it). It is level 38.'''
 
 : Khrix Fritchoff says 'At last I may leave this place!! Good luck destroying my abomination, you will surely need it against my most powerful yet uncontrollable creation!'
 
 <div class="facblock">
-* Your faction standing with [[Dark Reflection]] got better.
-* Your faction standing with [[Eldritch Collective]] got worse.
-* Your faction standing with [[Gem Choppers]] got worse.
+* Your faction standing with [[Dark Reflection]] has been adjusted by 5.
+* Your faction standing with [[Eldritch Collective]] has been adjusted by -1.
+* Your faction standing with [[Gem Choppers]] has been adjusted by -1.
+* Your faction standing with [[Deep Muses]] has been adjusted by -1.
 </div>
 {{YouGainExperience}}
 
@@ -96,7 +93,7 @@ You receive 6 platinum from Nivold Predd.
 
 [[File:npc_avatar_of_dread.png|frame|Avatar of Dread]]
 
-'''Give the Mundane Shield to the Avatar of Dread.'''
+'''Give the [[Mundane Shield]] to the [[Avatar of Dread]].'''
 
 : Avatar of Dread says, 'Wear this shield imbued with my very essence. Wear it in honor of your great services to our Lord Cazic-Thule!!'
 
@@ -110,11 +107,6 @@ You receive 6 platinum from Nivold Predd.
 {{YouGainExperience}}
 
 You receive [[Dread Forged Shield]].
-
-== Notes ==
-
-<ul><li>This quest may not be multiquested, this needs to be confirmed.</li></ul>
-
 [[Category:Quests]]
 [[Category:Paineel]]
 [[Category:Cleric Quests]]

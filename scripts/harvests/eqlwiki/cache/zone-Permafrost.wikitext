@@ -138,7 +138,7 @@ Videos mention you should not bind immediately below the trap as a Spider may sp
 
 When creating the raid instance, players can choose between solo and multiplayer instances.  These instances share lockouts, so players cannot do both in the same week and receive full loot.
 
-Solo has less trash mobs than multiplayer, specifically in Lady Vox's room.  In solo, Lady Vox is accompanied by a single Priest of Nagafen.  In multiplayer, she is accompanied by four additional giants and an icy terror.
+Solo has fewer trash mobs than multiplayer, specifically in Lady Vox's room.  In solo, Lady Vox is accompanied by a single Priest of Nagafen.  In multiplayer, she is accompanied by four additional giants and an icy terror.
 
 [[Category: Zones]]
 [[Category: Loc Mapped]]
