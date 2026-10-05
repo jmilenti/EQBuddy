@@ -8,7 +8,7 @@
 
 | classes = 
 
-* [[Ranger]] - Level 39
+* [[Ranger]] - Level 36
 
 | slots = 
 

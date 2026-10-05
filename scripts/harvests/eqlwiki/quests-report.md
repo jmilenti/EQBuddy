@@ -1,25 +1,29 @@
 # Quest harvest report
 
-- Quest Items category members: 4003
-- Pages enumerated: 917
-- Parsed: 917 (empty pages: 0)
-- With turn-in items: 595
-- Unique turn-in item names: 2263
-- Missing quest giver: 35
+- Quest Items category members: 4041
+- Pages enumerated: 930
+- Parsed: 930 (empty pages: 0)
+- With turn-in items: 599
+- Unique turn-in item names: 2272
+- Missing quest giver: 38
 - Backoff events: 0
 
 ## Quests with no turn-in items parsed (review these)
+- Acquire a Mark of Karana
 - Aenia and Behroe
 - Air Tight Box Quest
 - Ancient Dragon Tome
 - Armor Size
 - Bandit Spectacles
 - Bard Mail
+- Bard Plane of Sky Tests
 - Bard Reports
 - Bat Fur and Beetle Legs
 - Bat Fur Quest
 - Bat Wings and Snake Fangs
 - Bearskin Gloves Quest
+- Beastlord Plane of Sky Tests
+- Berserker Plane of Sky Tests
 - Beta Neutral
 - Blank Scrolls
 - Blessed Oil
@@ -29,7 +33,6 @@
 - Bloodboil Quest
 - Bone Chips Quests
 - Boysenberry Pie Quest
-- Bracers of Erollisi Quest
 - Broken Lute
 - Bug Collection
 - Burning Soul of the Pestilent
@@ -43,6 +46,7 @@
 - Cazic Thule Symbol Quests
 - Class Race Quest List
 - Clear Water Quest
+- Cleric Plane of Sky Tests
 - Cleric Spells (Evil)
 - Cleric Spells (Good)
 - Cleric Supplies
@@ -53,7 +57,6 @@
 - Crustacean Shell Armor Quest
 - Cures
 - Custom Plate Helms - Kael Drakkel
-- Death of Lyda Nasin
 - Deck of Spontaneous Generation Quest
 - Demise of Blizzent
 - Deputy Tagil's Debt
@@ -63,29 +66,31 @@
 - Dragon Heads
 - Drolvarg Teeth
 - Drosco the Zombie (evil)
+- Druid Plane of Sky Tests
 - Enchant Bonethunder
 - Enchanter Spells (Evil)
 - Enchanter Spells (Good)
 - Errand for Tonmerk
 - Erud's Tonic Quest
 - Erudin Cures
+- Escort the Cargo Clockwork
+- Fabian's Strings
 - Faction Quests
 - Faerie Dragon Wings
 - Fang Tooth (quest)
 - Faren's Tacklebox
 - Fire Goblin Runner
 - Fresh Baked Muffins (Qeynos)
-- Frostbite's Fish
 - Garath's Weapons to Trade
 - Gearheart (Quest)
 - Geozite Tool Quest
 - Gharin's Note (good)
-- Gindlin's Poison
 - Gnasher's Head
 - Gnoll Paws
 - Going Postal
 - Greenblood Tunics
 - Groflah Steadirt's Death
+- Grub Locker
 - Guard Shilster's Stout
 - Guild Summons
 - Guild Summons - Abbey of Deep Musing Cleric
@@ -183,22 +188,20 @@
 - Kevlin Diggs' Debt
 - Key to Sleeper's Tomb
 - Kilij's Plans
-- Kobold Shaman Paws
 - Kwinn's Quest
 - Kwint's Kwest
 - Legion Lager Quest
 - Library Book
+- Lion Meat Shipment Quest
 - Lionskin Gloves Quest
 - Living Dragons
 - Lizard Dolls
-- Lizard Meat No 2
-- Lizard Tails
 - Lord Grimlot's Love
 - Lupine Claw Gauntlets Quest
 - Lydl Mastat
 - Lynuga's Gem Collection
 - Madame Serena Quest
-- Magic Elixir for the Warriors
+- Magician Plane of Sky Tests
 - Magician Spells (Evil Version)
 - Magician Spells (Evil)
 - Magician Spells (Good)
@@ -230,6 +233,7 @@
 - Orc Belt Quests
 - Orc Picks
 - Ortallius' Cutthroat Rings
+- Phosphorous Powder for Zok Zribb
 - Pirate Earrings
 - Plane of Mischief Faction Quest
 - Popular Quests by Level
@@ -237,16 +241,17 @@
 - Preserved Meat Delivery
 - Quest:Druid Spells
 - Quest:Necromancer Spells
+- Ranger Plane of Sky Tests
 - Rare Coins
 - Rat Pelt Cape Quest
 - Rathmana's Traveling Offer
 - Ratskin Gloves Quest
 - Reebo's Carrots
+- Renouncing Your Faith
 - Research Aid
 - Reserve Militia
 - Rogue Errands
 - Rogue Plane of Sky Tests
-- Runescale Cloak Quest
 - Rusted Black Boxes
 - Sad Klandicar
 - Scout Blade
@@ -255,6 +260,8 @@
 - Scrolls of the Ancient Totem
 - Second Test of Kejaar
 - Sentry Xyrin Quest
+- Shadow Knight Plane of Sky Tests
+- Shaman Plane of Sky Tests
 - Shaman Spells (Evil - Iksar)
 - Shaman Spells (Evil)
 - Shaman Spells (Good)
@@ -264,13 +271,12 @@
 - Sir Morgan's Armor
 - Snake Fang Necklace Quest
 - Soil of Underfoot
+- Soldier's Brooch Quest
 - Solusek's Flower
-- Something is Wrrrong
 - Steel Warrior Initiation
 - Strife to the Coldain
 - Supplies for the New Sebilisian Expedition
 - Talym Shoontar's Head
-- Tarton's Wheel
 - Taxes
 - Tayla Ironforge
 - Temple Blankets Quest
@@ -292,11 +298,13 @@
 - The First Arcane Test
 - The Loom
 - The Lost Circle
+- The Lost Snake
 - The Lottery Ticket
 - The Mudtoes
 - The Painting
 - The Power of the Gatecallers
 - The Realm of Heroes -- Felwithe
+- The Rogue Take
 - The Seax
 - The Second Arcane Test
 - The Tattered Pouch
@@ -306,7 +314,6 @@
 - The Vengeful Musicians
 - The Waylaid Courier
 - The Worldly Path
-- This Means Warrr
 - Tinmizer's Fabulous Compactor (Quest)
 - Tiny Savages
 - Tome of Ages
@@ -324,9 +331,11 @@
 - Vkjor's Major Task
 - Wage War Upon The Coldain
 - Wall Squad Ring
+- Warrior Plane of Sky Tests
 - Wenbie's Muffins
 - Winds of Karana
 - Wislen Mamluk's Catfish
+- Wizard Plane of Sky Tests
 - Wizard Spells (Evil)
 - Wizard Spells (Good)
 - Wolfskin Gloves Quest
@@ -334,7 +343,11 @@
 
 ## Missing quest giver
 - 10th Coldain Ring Quest
+- A sealed letter
 - All Positive Faction Quests
+- Bard Plane of Sky Tests
+- Beastlord Plane of Sky Tests
+- Berserker Plane of Sky Tests
 - Bone Chips Quests
 - Bread Shipment Quests
 - Burning Soul of the Pestilent
@@ -349,7 +362,6 @@
 - Enchanter Plane of Sky Tests
 - Faction Quests
 - Guild Summons
-- Hollow Skull Quest
 - Magician Plane of Sky Tests
 - Monk Plane of Sky Tests
 - Monk Quests

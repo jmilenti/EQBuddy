@@ -1,5 +1,5 @@
 {{Classic Era}}
-[[File:npc_enic_ruklin.png|frame|Enic Ruklin]]
+[[File:npc_enic_ruklin.png|thumb|Enic Ruklin]]
 {| class="questTopTable"
 ! ''' Start Zone: '''
 | [[Qeynos|North Qeynos]]
@@ -63,11 +63,11 @@ You say, 'What about [[Frostbite]]?'
 ====Regurg====
 '''Or you can do [[The Regurgitonic]] quest in [[Ak'Anon]] and feed Frostbite the [[Regurgitonic]], which will cause him to cough up the fish corpse with no loss of faction. 
 
-* As of November 20th 2019 Frostbite does NOT cough up the fish every time. Out of 8 turn in's the fish was provided 5 of those times. Gnome Agnostic Enchanter doing turn in. (Note 6/17/21 - This is because sometimes Kimble gives you a 'Bad Regurgitonic'. Identify will tell you the item lore and let you know if you got a bad one.)'''
+* Note that sometimes Kimble gives you a dud that will not work. When a good tonic is inspected (as though you were adding motes) it will not have a 'Lore' tab. The bad tonics will have an item lore tab with the text 'Bad Regurgitonic'.
 
 Frostbite spits something into your hand.
 <div class='facblock'>
-* Your faction standing with [[Wolves of the North]] has been adjusted by 5.
+* Your faction standing with [[Wolves of the North|Wolves of the Nor]][[Wolves of the North|th]] has been adjusted by 5.
 * Your faction standing with [[Shamen of Justice]] has been adjusted by 5.
 * Your faction standing with [[Merchants of Halas]] has been adjusted by 5.
 * Your faction standing with [[Rogues of the White Rose]] has been adjusted by 5.
@@ -78,33 +78,19 @@ Frostbite spits something into your hand.
 You receive a [[Koalindl Fish]].
 
 ===Turn-in===
-<s>The faction for this turn in massive. I went from a couple points into amiable to Kindly in 3 turn ins. 5 to get ally on an Iksar Monk. (11/2018)</s><br>
-As of March, 2025, from 1 point into Amiable, 6 turn-ins still leaves you at Kindly. The 7th turn-in takes you from Kindly into Warmly. It looks like the Priests of Life increase is 100. 
+Hand the [[Koalindl Fish]] to [[Enic Ruklin]]:
 
 : Enic Ruklin says, 'Thank you my friend!!  Every Koalindl must be accounted for, even the dead.  Rodcet Nife shall be pleased and I shall reward you. Nothing much, just a small token of gratitude.' 
 
 <div class='facblock'>
-* Your faction standing with [[Priests of Life]] got better (100).
-* Your faction standing with [[Knights of Thunder]] got better.
-* Your faction standing with [[Guards of Qeynos]] got better.
-* Your faction standing with [[Bloodsabers]] got '''worse.'''
-* Your faction standing with [[Antonius Bayle]] got better.
+* Your faction standing with [[Priests of Life]] has been adjusted by 100.
+* Your faction standing with [[Knights of Thunder]] has been adjusted by 30.
+* Your faction standing with [[Guards of Qeynos]] has been adjusted by 50.
+* Your faction standing with [[Bloodsabers]] has been adjusted by -25.
+* Your faction standing with [[Antonius Bayle]] has been adjusted by 15.
 </div>
 {{exp}}
 
-== Exp Gain ==
-
-=== Human Monk ===
-
-{| class="eoTable2"
-! Level 
-! Exp per turn in (Rough Average)
-! Sample size (Number of runs)
-|-
-| 11
-| 9%
-| 2
-|}
 
 [[Category:Quests]]
 [[Category:North Qeynos]]
