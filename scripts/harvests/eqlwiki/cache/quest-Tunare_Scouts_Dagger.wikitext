@@ -1,5 +1,5 @@
 {{Classic Era}}
-[[File:npc_tylfon.png|frame|Tylfon]]
+[[File:npc_tylfon.png|thumb|Tylfon]]
 {| class="questTopTable"
 ! ''' Start Zone: '''
 | [[Greater Faydark|Kelethin]]
@@ -11,13 +11,10 @@
 | 1
 |-
 ! ''' Classes: '''
-| [[Bard]], [[Enchanter]], [[Magician]], [[Necromancer]], [[Ranger]], [[Rogue]], [[Shadow Knight]], [[Warrior]], [[Wizard]]
+| [[Rogue]]
 |-
 ! ''' Related Zones: '''
 | [[Greater Faydark]]
-|-
-! ''' Related NPCs: '''
-| [[a decaying skeleton]], [[Orc Pawn (Crushbone)]], [[a pixie trickster]]
 |}
 
 == Reward ==
@@ -42,7 +39,7 @@ You say, 'I dare'
 : Tylfon says, 'Well, well. I didn't think you could do it. Here's your cut and don't be surprised that it's not much because it's your first lesson. Remember, the smaller the operation, the bigger the share, and the richest rogues have the tightest lips.'
 
 <div class="facblock">
-* Your faction standing with [[Tunare's Scouts]] got better.
+* Your faction standing with [[Tunare's Scouts]] has been adjusted by 5.
 </div>
 
 {{YouGainExperience}}
@@ -51,12 +48,4 @@ You receive 5 silver pieces.
 
 [[Category:Quests]]
 [[Category:Greater Faydark]]
-[[Category:Bard Quests]]
-[[Category:Enchanter Quests]]
-[[Category:Magician Quests]]
-[[Category:Necromancer Quests]]
-[[Category:Ranger Quests]]
 [[Category:Rogue Quests]]
-[[Category:Shadow Knight Quests]]
-[[Category:Warrior Quests]]
-[[Category:Wizard Quests]]
