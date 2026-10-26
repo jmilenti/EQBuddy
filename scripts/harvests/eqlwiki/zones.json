@@ -7,7 +7,8 @@
  ],
  "Blackburrow": [
   "Qeynos Hills",
-  "Everfrost Peaks"
+  "Everfrost Peaks",
+  "Jaggedpine Forest"
  ],
  "Burning Wood": [
   "Frontier Mountains",
@@ -192,6 +193,11 @@
   "Southern Desert of Ro",
   "The Feerrott"
  ],
+ "Jaggedpine Forest": [
+  "Blackburrow",
+  "Nedaria's Landing",
+  "Surefall Glade"
+ ],
  "Kael Drakkel": [
   "Eastern Wastes",
   "Wakening Land"
@@ -221,6 +227,12 @@
  ],
  "Kurn's Tower": [
   "Field of Bone"
+ ],
+ "Lake Nerius": [
+  "Nektropos Castle",
+  "Nektulos Forest",
+  "Nektropos Undercrofts",
+  "The Nektropos Undercroft"
  ],
  "Lake of Ill Omen": [
   "Cabilis",
@@ -268,10 +280,20 @@
  "Najena": [
   "Lavastorm Mountains"
  ],
+ "Nektropos Castle": [
+  "Lake Nerius",
+  "Nektropos Undercrofts",
+  "The Nektropos Undercroft"
+ ],
+ "Nektropos Undercrofts": [
+  "Lake Nerius",
+  "Nektropos Castle"
+ ],
  "Nektulos Forest": [
   "Neriak",
   "East Commonlands",
-  "Lavastorm Mountains"
+  "Lavastorm Mountains",
+  "Lake Nerius"
  ],
  "Neriak": [
   "Nektulos Forest"
@@ -401,7 +423,8 @@
   "The Warrens"
  ],
  "Surefall Glade": [
-  "Qeynos Hills"
+  "Qeynos Hills",
+  "Jaggedpine Forest"
  ],
  "Swamp of No Hope": [
   "Cabilis",
@@ -434,6 +457,10 @@
   "Paineel",
   "Neriak Third Gate",
   "Erudin"
+ ],
+ "The Nektropos Undercroft": [
+  "Nektropos Castle",
+  "Lake Nerius"
  ],
  "The Northern Desert of Ro": [
   "East Freeport",

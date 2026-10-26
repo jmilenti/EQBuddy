@@ -1,4 +1,4 @@
-[[File:npc_maesyn_trueshot.png|frame|Maesyn Trueshot]]
+[[File:npc_maesyn_trueshot.png|right|200px|Maesyn Trueshot]]
 {| class="questTopTable"
 ! ''' Start Zone: '''
 | [[Greater Faydark]]
@@ -67,13 +67,13 @@ You say, 'What Tumpy Tonics?'
 : Trantor Everhot says 'Great!! I did not have the time to get down to Irontoe's today. Here. Like I said. A spool of dwarven wire. Now go away. I ain't sharing these tonics.'
 
 <div class="facblock">
-* Your faction standing with [[Storm Guard]] got better.
-* Your faction standing with [[Kazon Stormhammer]] got better.
-* Your faction standing with [[Miners Guild 249]] got better.
-* Your faction standing with [[Merchants of Kaladim]] got better.
-* Your faction standing with [[Craknek Warriors]] got worse.
+* Your faction standing with [[Storm Guard]] has been adjusted by 5.
+* Your faction standing with [[Kazon Stormhammer]] has been adjusted by 5.
+* Your faction standing with [[Miners Guild 249]] has been adjusted by 5.
+* Your faction standing with [[Merchants of Kaladim]] has been adjusted by 5.
+* Your faction standing with [[Craknek Warriors]] has been adjusted by -1.
 </div>
-You gain experience!! 
+{{Exp}}
 
 '''You receive [[Dwarven Wire]].  Give him another two [[Tumpy Tonics]] unstacked for the second piece of [[Dwarven Wire]].'''
 
@@ -95,11 +95,11 @@ You can buy a [[Small Lantern]] at many vendors, including [[Innkeep Palola]] in
 : Jyle Windshot says 'Thanks, friend. I have run a long way to get here in time. Mostly at night. I lost my lantern in a card game in Highkeep.'
 
 <div class="facblock">
-* Your faction standing with [[Faydarks Champions|Faydark's Champions]] got better.
-* Your faction standing with [[King Tearis Thex]] got better.
-* Your faction standing with [[Clerics of Tunare]] got better.
-* Your faction standing with [[Soldiers of Tunare]] got better.
-* Your faction standing with [[Crushbone Orcs]] got worse.
+* Your faction standing with [[Faydarks Champions]] has been adjusted by 5.
+* Your faction standing with [[King Tearis Thex]] has been adjusted by 5.
+* Your faction standing with [[Clerics of Tunare]] has been adjusted by 5.
+* Your faction standing with [[Soldiers of Tunare]] has been adjusted by 5.
+* Your faction standing with [[Crushbone Orcs]] has been adjusted by -1.
 </div> 
 You gain experience!!
 
@@ -120,11 +120,11 @@ In the Material Pack, combine 1 [[Dwarven Wire]], 1 [[Wooden Shards]], 1 [[Spide
 : [[Maesyn Trueshot]] says 'I shall see that my father gets the materials. I hope this can be of use to you. It will serve as your starting point toward fletching a Trueshot longbow. It is unfortunate that we are unable to enchant the bow to its [next incarnation], but it is still a fine weapon. You do know the [correct components] needed for fletching such a bow, do you not?'
 
 <div class="facblock">
-* Your faction standing with [[Faydarks Champions|Faydark's Champions]] got better.
-* Your faction standing with [[King Tearis Thex]] got better.
-* Your faction standing with [[Clerics of Tunare]] got better.
-* Your faction standing with [[Soldiers of Tunare]] got better.
-* Your faction standing with [[Crushbone Orcs]] got worse.
+* Your faction standing with [[Faydarks Champions|Faydark's Champions]] could not possibly get any better.
+* Your faction standing with [[King Tearis Thex]] could not possibly get any better.
+* Your faction standing with [[Clerics of Tunare]] could not possibly get any better.
+* Your faction standing with [[Soldiers of Tunare]] could not possibly get any better.
+* Your faction standing with [[Crushbone Orcs]] has been adjusted by -6.
 </div>
 You gain experience!!
 You receive 6 gold from Maesyn Trueshot.
