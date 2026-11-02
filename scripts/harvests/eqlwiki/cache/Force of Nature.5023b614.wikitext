@@ -4,6 +4,9 @@
 | spellname = Force of Nature
 | spellicon = 158
 | description = Focus yourself with the force of nature, increasing your attack rating, hitpoint regeneration, endurance regeneration, and causing damage to anything that strikes you.
+Overrides and matches Chloroplast.
+Overrides and improves Nature's Precision.
+Overrides Wolf Form.
 
 | Table = {{{Table|0}}}
 | TableLevel = {{{TableLevel|}}}
@@ -19,9 +22,9 @@
 
 | slots = 
 
-{{SpellSlotRowSmart | 1 | Increase ATK by 20 | simple = {{#ifeq:{{{Table|0}}}|0|0|1}} }}
+{{SpellSlotRowSmart | 1 | Increase Hitpoints by 6 per tick. Max: 19 per tick | simple = {{#ifeq:{{{Table|0}}}|0|0|1}} }}
 {{SpellSlotRowSmart | 2 | Increase Damage Shield by 5 | simple = {{#ifeq:{{{Table|0}}}|0|0|1}} }}
-{{SpellSlotRowSmart | 3 | Increase Hitpoints by 6 per tick. Max: 19 per tick | simple = {{#ifeq:{{{Table|0}}}|0|0|1}} }}
+{{SpellSlotRowSmart | 3 | Increase ATK by 20 | simple = {{#ifeq:{{{Table|0}}}|0|0|1}} }}
 {{SpellSlotRowSmart | 4 | Increase Endurance by 6 per tick. Max: 19 per tick | simple = {{#ifeq:{{{Table|0}}}|0|0|1}} }}
 
 

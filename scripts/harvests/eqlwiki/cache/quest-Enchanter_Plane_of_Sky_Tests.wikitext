@@ -61,7 +61,7 @@ Test of Incapacitation
 Talk to Enchanter Jolas in the [[Plane of Sky]].
 
 You say, 'Hail, Enchanter Jolas'
-:''Enchanter Jolas says, 'Greetings, Tify.  Have you come here to test your [powers of enchantment]?' ''
+:''Enchanter Jolas says, 'Greetings, Gand.  Have you come here to test your [powers of enchantment]?' ''
 You say, 'powers of enchantment'
 :''Enchanter Jolas says, 'I am most honored to be able to help you.  Of the many aspects of enchantment, I can offer you the following tests.  [Illusion], [dislocation], [metamorphism], [deception], [memorization], and finally [incapacitation].' ''
 
