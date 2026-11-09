@@ -1,5 +1,5 @@
 {{Classic Era}}
-[[File:npc_gren_frikniller.png|frame|Gren Frikniller]]
+[[File:npc_gren_frikniller.png|Gren Frikniller|thumb|392x392px]]
 {| class="questTopTable"
 ! ''' Start Zone: '''
 | [[Freeport|East Freeport]]
@@ -27,7 +27,7 @@
 
 == Walkthrough ==
 
-'''[[Gren Frikniller]] is a bodyguard for the rogue guildmaster in East Freeport. Ask him about his sister (they share the same surname):'''
+'''[[Gren Frikniller]] is a bodyguard for the rogue guildmaster in East Freeport. Ask him about his sister (they share the same surname):'''  He does see through sneak, but you can do this quest while KOS if you sneak behind him while he's moving and ask about his sister.  
 
 You say, 'Who is your sister?'
 

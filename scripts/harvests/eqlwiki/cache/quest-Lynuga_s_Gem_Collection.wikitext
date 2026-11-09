@@ -1,6 +1,5 @@
 {{Classic Era}}
-{{Nerfed Quest}}
-[[File:npc_lynuga.png|frame|Lynuga]]
+[[File:npc_lynuga.png|thumb|Lynuga]]
 {| class="questTopTable"
 ! ''' Start Zone: '''
 | [[Innothule Swamp]]
@@ -38,19 +37,19 @@ You say, 'Hail, Lynuga'
 
 You say, 'Collecting what?' 
 
-: Lynuga says 'I collect all sorts of things. Gems be my favorite. Me really like rubies. If you have ruby, give to me! Why you want to know? You want to steal my collection?!?! I squish you if you do!!' 
+: Lynuga says, 'I collect all sorts of things.  Gems be my favorite.  Me really like rubies.  If you have ruby, give to me! Why you want to know?  You want to steal my collection?!?!  I squish you if you do!'
 
-'''You can buy a [[Ruby]] from most jewelry vendors for about 131pp. Upon giving her a Ruby:'''
+''You can buy a [[Ruby]] from most jewelry vendors for about 131pp. Upon giving her a Ruby:''
 
-: Lynuga says 'Mmm. Ruby!! Me thanks you! Here take this, me got it off dead someone who try take my collection. Me thinks this valuable thing..' 
+: Lynuga says, 'Mmm.  Ruby!  Me thanks you!  Here take this, me got it off dead someone who try take my collection.  Me thinks this valuable thing...'
 
 <div class="facblock">
-* Your faction standing with [[Broken Skull Clan]] got better. 
-* Your faction standing with [[Shadowknights of Night Keep]] got worse. 
-* Your faction standing with [[DaBashers]] got worse. 
+* Your faction standing with [[Broken Skull Clan]] has been adjusted by 5.
+* Your faction standing with [[Shadowknights of Night Keep]] has been adjusted by -1.
+* Your faction standing with [[DaBashers]] has been adjusted by -1.
 </div>
 
-'''You receive one of the three rewards at random - the Hoop is the (ultra)rarest of the rewards.  All three rewards are lore, to receive substantial return on investment do not turn in multiple rubies at once or duplicate rewards will be lost.''' ''Note: The Hoop was made even more rare on the 9/10/11 patch due to balance issues.''.
+'''You receive one of the three rewards at random - the Hoop is the rarest of the rewards.''' 
 
 [[Category:Quests]]
 [[Category:Innothule Swamp]]
